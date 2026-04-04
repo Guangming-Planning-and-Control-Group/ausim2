@@ -1,0 +1,2 @@
+/usr/bin/ar qc ../lib/libquadrotor_core.a CMakeFiles/quadrotor_core.dir/src/se3_controller.cpp.o CMakeFiles/quadrotor_core.dir/src/motor_mixer.cpp.o CMakeFiles/quadrotor_core.dir/src/geometry.cpp.o CMakeFiles/quadrotor_core.dir/src/quadrotor_sim.cpp.o
+/usr/bin/ranlib ../lib/libquadrotor_core.a

@@ -1,0 +1,45 @@
+model:
+  scene_xml: ../assets/crazyfile/scene.xml
+
+simulation:
+  duration: 0.0
+  dt: 0.001
+  print_interval: 0.5
+  use_circular_trajectory: false
+
+viewer:
+  enabled: true
+  fallback_to_headless: false
+  mjui_enabled: false
+  width: 1920
+  height: 1080
+  vsync: true
+  render_fps: 120.0
+  title: "Quadrotor MuJoCo Viewer"
+
+vehicle:
+  gravity: 9.8066
+  mass: 0.033
+  thrust_coefficient: 3.25e-4
+  drag_coefficient: 7.9379e-6
+  arm_length: 0.0325
+  max_thrust: 0.1573
+  max_torque: 0.003842
+  max_speed_krpm: 22.0
+
+controller:
+  kx: 0.6
+  kv: 0.4
+  kR: 6.0
+  kw: 1.0
+  torque_scale: 0.001
+
+goal:
+  position: [0.0, 0.0, 0.3]
+  heading: [1.0, 0.0, 0.0]
+
+trajectory:
+  wait_time: 1.5
+  height: 0.3
+  radius: 0.5
+  speed_hz: 0.3
