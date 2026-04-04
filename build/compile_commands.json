@@ -1,47 +1,47 @@
 [
 {
-  "directory": "/home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor",
-  "command": "/usr/bin/c++ -DmjUSEPLATFORMSIMD -I/home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party -isystem /opt/mujoco/include -O3 -DNDEBUG -std=c++17 -o CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/simulate.cc.o -c /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/simulate.cc",
-  "file": "/home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/simulate.cc"
+  "directory": "/home/x/mujoco/ausim2/build/quadrotor",
+  "command": "/usr/bin/c++ -DmjUSEPLATFORMSIMD -I/home/x/mujoco/ausim2/third_party -isystem /opt/mujoco/include -O3 -DNDEBUG -std=c++17 -o CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/simulate.cc.o -c /home/x/mujoco/ausim2/third_party/mujoco_simulate/simulate.cc",
+  "file": "/home/x/mujoco/ausim2/third_party/mujoco_simulate/simulate.cc"
 },
 {
-  "directory": "/home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor",
-  "command": "/usr/bin/c++ -DmjUSEPLATFORMSIMD -I/home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party -isystem /opt/mujoco/include -O3 -DNDEBUG -std=c++17 -o CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/platform_ui_adapter.cc.o -c /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/platform_ui_adapter.cc",
-  "file": "/home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/platform_ui_adapter.cc"
+  "directory": "/home/x/mujoco/ausim2/build/quadrotor",
+  "command": "/usr/bin/c++ -DmjUSEPLATFORMSIMD -I/home/x/mujoco/ausim2/third_party -isystem /opt/mujoco/include -O3 -DNDEBUG -std=c++17 -o CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/platform_ui_adapter.cc.o -c /home/x/mujoco/ausim2/third_party/mujoco_simulate/platform_ui_adapter.cc",
+  "file": "/home/x/mujoco/ausim2/third_party/mujoco_simulate/platform_ui_adapter.cc"
 },
 {
-  "directory": "/home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor",
-  "command": "/usr/bin/c++ -DmjUSEPLATFORMSIMD -I/home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party -isystem /opt/mujoco/include -O3 -DNDEBUG -std=c++17 -o CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_adapter.cc.o -c /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/glfw_adapter.cc",
-  "file": "/home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/glfw_adapter.cc"
+  "directory": "/home/x/mujoco/ausim2/build/quadrotor",
+  "command": "/usr/bin/c++ -DmjUSEPLATFORMSIMD -I/home/x/mujoco/ausim2/third_party -isystem /opt/mujoco/include -O3 -DNDEBUG -std=c++17 -o CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_adapter.cc.o -c /home/x/mujoco/ausim2/third_party/mujoco_simulate/glfw_adapter.cc",
+  "file": "/home/x/mujoco/ausim2/third_party/mujoco_simulate/glfw_adapter.cc"
 },
 {
-  "directory": "/home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor",
-  "command": "/usr/bin/c++ -DmjUSEPLATFORMSIMD -I/home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party -isystem /opt/mujoco/include -O3 -DNDEBUG -std=c++17 -o CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_dispatch.cc.o -c /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/glfw_dispatch.cc",
-  "file": "/home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/glfw_dispatch.cc"
+  "directory": "/home/x/mujoco/ausim2/build/quadrotor",
+  "command": "/usr/bin/c++ -DmjUSEPLATFORMSIMD -I/home/x/mujoco/ausim2/third_party -isystem /opt/mujoco/include -O3 -DNDEBUG -std=c++17 -o CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_dispatch.cc.o -c /home/x/mujoco/ausim2/third_party/mujoco_simulate/glfw_dispatch.cc",
+  "file": "/home/x/mujoco/ausim2/third_party/mujoco_simulate/glfw_dispatch.cc"
 },
 {
-  "directory": "/home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor",
-  "command": "/usr/bin/c++ -DQUADROTOR_SOURCE_DIR=\\\"/home/x/mujoco/Quadrotor_SE3_Control/quadrotor\\\" -DmjUSEPLATFORMSIMD -I/home/x/mujoco/Quadrotor_SE3_Control/quadrotor/include -I/home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party -isystem /usr/include/eigen3 -isystem /opt/mujoco/include -O3 -DNDEBUG -std=c++17 -o CMakeFiles/quadrotor_core.dir/src/se3_controller.cpp.o -c /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/src/se3_controller.cpp",
-  "file": "/home/x/mujoco/Quadrotor_SE3_Control/quadrotor/src/se3_controller.cpp"
+  "directory": "/home/x/mujoco/ausim2/build/quadrotor",
+  "command": "/usr/bin/c++ -DQUADROTOR_SOURCE_DIR=\\\"/home/x/mujoco/ausim2/quadrotor\\\" -DmjUSEPLATFORMSIMD -I/home/x/mujoco/ausim2/quadrotor/include -I/home/x/mujoco/ausim2/third_party -isystem /usr/include/eigen3 -isystem /opt/mujoco/include -O3 -DNDEBUG -std=c++17 -o CMakeFiles/quadrotor_core.dir/src/se3_controller.cpp.o -c /home/x/mujoco/ausim2/quadrotor/src/se3_controller.cpp",
+  "file": "/home/x/mujoco/ausim2/quadrotor/src/se3_controller.cpp"
 },
 {
-  "directory": "/home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor",
-  "command": "/usr/bin/c++ -DQUADROTOR_SOURCE_DIR=\\\"/home/x/mujoco/Quadrotor_SE3_Control/quadrotor\\\" -DmjUSEPLATFORMSIMD -I/home/x/mujoco/Quadrotor_SE3_Control/quadrotor/include -I/home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party -isystem /usr/include/eigen3 -isystem /opt/mujoco/include -O3 -DNDEBUG -std=c++17 -o CMakeFiles/quadrotor_core.dir/src/motor_mixer.cpp.o -c /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/src/motor_mixer.cpp",
-  "file": "/home/x/mujoco/Quadrotor_SE3_Control/quadrotor/src/motor_mixer.cpp"
+  "directory": "/home/x/mujoco/ausim2/build/quadrotor",
+  "command": "/usr/bin/c++ -DQUADROTOR_SOURCE_DIR=\\\"/home/x/mujoco/ausim2/quadrotor\\\" -DmjUSEPLATFORMSIMD -I/home/x/mujoco/ausim2/quadrotor/include -I/home/x/mujoco/ausim2/third_party -isystem /usr/include/eigen3 -isystem /opt/mujoco/include -O3 -DNDEBUG -std=c++17 -o CMakeFiles/quadrotor_core.dir/src/motor_mixer.cpp.o -c /home/x/mujoco/ausim2/quadrotor/src/motor_mixer.cpp",
+  "file": "/home/x/mujoco/ausim2/quadrotor/src/motor_mixer.cpp"
 },
 {
-  "directory": "/home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor",
-  "command": "/usr/bin/c++ -DQUADROTOR_SOURCE_DIR=\\\"/home/x/mujoco/Quadrotor_SE3_Control/quadrotor\\\" -DmjUSEPLATFORMSIMD -I/home/x/mujoco/Quadrotor_SE3_Control/quadrotor/include -I/home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party -isystem /usr/include/eigen3 -isystem /opt/mujoco/include -O3 -DNDEBUG -std=c++17 -o CMakeFiles/quadrotor_core.dir/src/geometry.cpp.o -c /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/src/geometry.cpp",
-  "file": "/home/x/mujoco/Quadrotor_SE3_Control/quadrotor/src/geometry.cpp"
+  "directory": "/home/x/mujoco/ausim2/build/quadrotor",
+  "command": "/usr/bin/c++ -DQUADROTOR_SOURCE_DIR=\\\"/home/x/mujoco/ausim2/quadrotor\\\" -DmjUSEPLATFORMSIMD -I/home/x/mujoco/ausim2/quadrotor/include -I/home/x/mujoco/ausim2/third_party -isystem /usr/include/eigen3 -isystem /opt/mujoco/include -O3 -DNDEBUG -std=c++17 -o CMakeFiles/quadrotor_core.dir/src/geometry.cpp.o -c /home/x/mujoco/ausim2/quadrotor/src/geometry.cpp",
+  "file": "/home/x/mujoco/ausim2/quadrotor/src/geometry.cpp"
 },
 {
-  "directory": "/home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor",
-  "command": "/usr/bin/c++ -DQUADROTOR_SOURCE_DIR=\\\"/home/x/mujoco/Quadrotor_SE3_Control/quadrotor\\\" -DmjUSEPLATFORMSIMD -I/home/x/mujoco/Quadrotor_SE3_Control/quadrotor/include -I/home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party -isystem /usr/include/eigen3 -isystem /opt/mujoco/include -O3 -DNDEBUG -std=c++17 -o CMakeFiles/quadrotor_core.dir/src/quadrotor_sim.cpp.o -c /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/src/quadrotor_sim.cpp",
-  "file": "/home/x/mujoco/Quadrotor_SE3_Control/quadrotor/src/quadrotor_sim.cpp"
+  "directory": "/home/x/mujoco/ausim2/build/quadrotor",
+  "command": "/usr/bin/c++ -DQUADROTOR_SOURCE_DIR=\\\"/home/x/mujoco/ausim2/quadrotor\\\" -DmjUSEPLATFORMSIMD -I/home/x/mujoco/ausim2/quadrotor/include -I/home/x/mujoco/ausim2/third_party -isystem /usr/include/eigen3 -isystem /opt/mujoco/include -O3 -DNDEBUG -std=c++17 -o CMakeFiles/quadrotor_core.dir/src/quadrotor_sim.cpp.o -c /home/x/mujoco/ausim2/quadrotor/src/quadrotor_sim.cpp",
+  "file": "/home/x/mujoco/ausim2/quadrotor/src/quadrotor_sim.cpp"
 },
 {
-  "directory": "/home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor",
-  "command": "/usr/bin/c++ -DQUADROTOR_SOURCE_DIR=\\\"/home/x/mujoco/Quadrotor_SE3_Control/quadrotor\\\" -DmjUSEPLATFORMSIMD -I/home/x/mujoco/Quadrotor_SE3_Control/quadrotor/include -I/home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party -isystem /usr/include/eigen3 -isystem /opt/mujoco/include -O3 -DNDEBUG -std=c++17 -o CMakeFiles/quadrotor.dir/src/main.cpp.o -c /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/src/main.cpp",
-  "file": "/home/x/mujoco/Quadrotor_SE3_Control/quadrotor/src/main.cpp"
+  "directory": "/home/x/mujoco/ausim2/build/quadrotor",
+  "command": "/usr/bin/c++ -DQUADROTOR_SOURCE_DIR=\\\"/home/x/mujoco/ausim2/quadrotor\\\" -DmjUSEPLATFORMSIMD -I/home/x/mujoco/ausim2/quadrotor/include -I/home/x/mujoco/ausim2/third_party -isystem /usr/include/eigen3 -isystem /opt/mujoco/include -O3 -DNDEBUG -std=c++17 -o CMakeFiles/quadrotor.dir/src/main.cpp.o -c /home/x/mujoco/ausim2/quadrotor/src/main.cpp",
+  "file": "/home/x/mujoco/ausim2/quadrotor/src/main.cpp"
 }
 ]

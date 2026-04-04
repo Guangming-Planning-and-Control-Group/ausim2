@@ -1,7 +1,7 @@
 quadrotor/CMakeFiles/quadrotor_core.dir/src/quadrotor_sim.cpp.o: \
- /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/src/quadrotor_sim.cpp \
+ /home/x/mujoco/ausim2/quadrotor/src/quadrotor_sim.cpp \
  /usr/include/stdc-predef.h \
- /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/include/sim/quadrotor_sim.hpp \
+ /home/x/mujoco/ausim2/quadrotor/include/sim/quadrotor_sim.hpp \
  /usr/include/c++/11/array /usr/include/c++/11/utility \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/os_defines.h \
@@ -383,8 +383,8 @@ quadrotor/CMakeFiles/quadrotor_core.dir/src/quadrotor_sim.cpp.o: \
  /opt/mujoco/include/mujoco/mjvisualize.h \
  /opt/mujoco/include/mujoco/mjrender.h /opt/mujoco/include/mujoco/mjsan.h \
  /opt/mujoco/include/mujoco/mjspec.h /opt/mujoco/include/mujoco/mjui.h \
- /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/include/control/motor_mixer.hpp \
- /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/include/controller/se3_controller.hpp \
+ /home/x/mujoco/ausim2/quadrotor/include/control/motor_mixer.hpp \
+ /home/x/mujoco/ausim2/quadrotor/include/controller/se3_controller.hpp \
  /usr/include/c++/11/optional /usr/include/eigen3/Eigen/Geometry \
  /usr/include/eigen3/Eigen/Core /usr/include/eigen3/Eigen/SVD \
  /usr/include/eigen3/Eigen/QR /usr/include/eigen3/Eigen/Cholesky \
@@ -427,7 +427,7 @@ quadrotor/CMakeFiles/quadrotor_core.dir/src/quadrotor_sim.cpp.o: \
  /usr/include/eigen3/Eigen/src/Geometry/AlignedBox.h \
  /usr/include/eigen3/Eigen/src/Geometry/Umeyama.h \
  /usr/include/eigen3/Eigen/src/Geometry/arch/Geometry_SIMD.h \
- /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/include/controller/state.hpp \
+ /home/x/mujoco/ausim2/quadrotor/include/controller/state.hpp \
  /usr/include/c++/11/csignal /usr/include/signal.h \
  /usr/include/x86_64-linux-gnu/bits/signum-generic.h \
  /usr/include/x86_64-linux-gnu/bits/signum-arch.h \
@@ -489,9 +489,9 @@ quadrotor/CMakeFiles/quadrotor_core.dir/src/quadrotor_sim.cpp.o: \
  /usr/include/yaml-cpp/node/convert.h \
  /usr/include/yaml-cpp/node/detail/impl.h \
  /usr/include/yaml-cpp/node/parse.h /usr/include/yaml-cpp/node/emit.h \
- /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/glfw_adapter.h \
- /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/platform_ui_adapter.h \
- /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/simulate.h \
+ /home/x/mujoco/ausim2/third_party/mujoco_simulate/glfw_adapter.h \
+ /home/x/mujoco/ausim2/third_party/mujoco_simulate/platform_ui_adapter.h \
+ /home/x/mujoco/ausim2/third_party/mujoco_simulate/simulate.h \
  /usr/include/c++/11/condition_variable \
  /usr/include/c++/11/bits/std_mutex.h \
  /usr/include/c++/11/bits/unique_lock.h /usr/include/c++/11/mutex

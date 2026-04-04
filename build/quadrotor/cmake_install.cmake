@@ -1,8 +1,8 @@
-# Install script for directory: /home/x/mujoco/Quadrotor_SE3_Control/quadrotor
+# Install script for directory: /home/x/mujoco/ausim2/quadrotor
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/home/x/mujoco/Quadrotor_SE3_Control/build/install")
+  set(CMAKE_INSTALL_PREFIX "/home/x/mujoco/ausim2/build/install")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -49,7 +49,7 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
          FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/quadrotor"
          RPATH "/opt/mujoco/lib")
   endif()
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE EXECUTABLE FILES "/home/x/mujoco/Quadrotor_SE3_Control/build/bin/quadrotor")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE EXECUTABLE FILES "/home/x/mujoco/ausim2/build/bin/quadrotor")
   if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/quadrotor" AND
      NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/quadrotor")
     file(RPATH_CHANGE
@@ -63,21 +63,21 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY FILES "/home/x/mujoco/Quadrotor_SE3_Control/build/lib/libquadrotor_core.a")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY FILES "/home/x/mujoco/ausim2/build/lib/libquadrotor_core.a")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY FILES "/home/x/mujoco/Quadrotor_SE3_Control/build/lib/libquadrotor_mujoco_viewer.a")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY FILES "/home/x/mujoco/ausim2/build/lib/libquadrotor_mujoco_viewer.a")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share" TYPE DIRECTORY FILES "/home/x/mujoco/Quadrotor_SE3_Control/assets")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share" TYPE DIRECTORY FILES "/home/x/mujoco/ausim2/assets")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/quadrotor" TYPE FILE FILES
-    "/home/x/mujoco/Quadrotor_SE3_Control/quadrotor/README.md"
-    "/home/x/mujoco/Quadrotor_SE3_Control/quadrotor/config.yaml"
+    "/home/x/mujoco/ausim2/quadrotor/README.md"
+    "/home/x/mujoco/ausim2/quadrotor/config.yaml"
     )
 endif()
 

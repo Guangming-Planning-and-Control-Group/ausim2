@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = -DmjUSEPLATFORMSIMD
 
-CXX_INCLUDES = -I/home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party -isystem /opt/mujoco/include
+CXX_INCLUDES = -I/home/x/mujoco/ausim2/third_party -isystem /opt/mujoco/include
 
 CXX_FLAGS = -O3 -DNDEBUG -std=c++17
 

@@ -1,7 +1,7 @@
 quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/platform_ui_adapter.cc.o: \
- /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/platform_ui_adapter.cc \
+ /home/x/mujoco/ausim2/quadrotor/third_party/mujoco_simulate/platform_ui_adapter.cc \
  /usr/include/stdc-predef.h \
- /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/platform_ui_adapter.h \
+ /home/x/mujoco/ausim2/quadrotor/third_party/mujoco_simulate/platform_ui_adapter.h \
  /usr/include/c++/11/utility \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/os_defines.h \

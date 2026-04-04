@@ -10,19 +10,15 @@ namespace fs = std::filesystem;
 
 namespace {
 
-fs::path DefaultConfigPath(const char* argv0) {
-  const fs::path executable_path = fs::absolute(argv0);
-  const fs::path installed_config =
-      (executable_path.parent_path() / "../share/quadrotor/config.yaml").lexically_normal();
-  if (fs::exists(installed_config)) {
-    return installed_config;
+fs::path ResolveConfigPath(const fs::path& input_path) {
+  if (!input_path.empty()) {
+    return input_path;
   }
 
-  const fs::path source_config = fs::path(QUADROTOR_SOURCE_DIR) / "config.yaml";
-  if (fs::exists(source_config)) {
-    return source_config;
+  const fs::path default_path = fs::current_path() / "config.yaml";
+  if (fs::exists(default_path)) {
+    return default_path.lexically_normal();
   }
-
   return {};
 }
 
@@ -34,7 +30,8 @@ void PrintUsage(const char* program_name) {
 
 int main(int argc, char** argv) {
   try {
-    std::filesystem::path config_path = DefaultConfigPath(argv[0]);
+    (void)argv;
+    std::filesystem::path config_arg;
     bool force_viewer = false;
     bool force_headless = false;
 
@@ -48,12 +45,14 @@ int main(int argc, char** argv) {
       } else if (arg == "--headless") {
         force_headless = true;
       } else {
-        config_path = arg;
+        config_arg = arg;
       }
     }
 
+    const std::filesystem::path config_path = ResolveConfigPath(config_arg);
+
     if (config_path.empty()) {
-      throw std::runtime_error("Unable to locate config.yaml. Pass it explicitly on the command line.");
+      throw std::runtime_error("Unable to locate config.yaml in current working directory.");
     }
 
     quadrotor::QuadrotorConfig config = quadrotor::LoadConfigFromYaml(config_path.string());

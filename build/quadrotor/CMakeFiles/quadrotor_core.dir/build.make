@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/x/mujoco/Quadrotor_SE3_Control
+CMAKE_SOURCE_DIR = /home/x/mujoco/ausim2
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/x/mujoco/Quadrotor_SE3_Control/build
+CMAKE_BINARY_DIR = /home/x/mujoco/ausim2/build
 
 # Include any dependencies generated for this target.
 include quadrotor/CMakeFiles/quadrotor_core.dir/depend.make
@@ -72,58 +72,58 @@ include quadrotor/CMakeFiles/quadrotor_core.dir/flags.make
 quadrotor/CMakeFiles/quadrotor_core.dir/src/se3_controller.cpp.o: quadrotor/CMakeFiles/quadrotor_core.dir/flags.make
 quadrotor/CMakeFiles/quadrotor_core.dir/src/se3_controller.cpp.o: ../quadrotor/src/se3_controller.cpp
 quadrotor/CMakeFiles/quadrotor_core.dir/src/se3_controller.cpp.o: quadrotor/CMakeFiles/quadrotor_core.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/x/mujoco/Quadrotor_SE3_Control/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object quadrotor/CMakeFiles/quadrotor_core.dir/src/se3_controller.cpp.o"
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT quadrotor/CMakeFiles/quadrotor_core.dir/src/se3_controller.cpp.o -MF CMakeFiles/quadrotor_core.dir/src/se3_controller.cpp.o.d -o CMakeFiles/quadrotor_core.dir/src/se3_controller.cpp.o -c /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/src/se3_controller.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/x/mujoco/ausim2/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object quadrotor/CMakeFiles/quadrotor_core.dir/src/se3_controller.cpp.o"
+	cd /home/x/mujoco/ausim2/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT quadrotor/CMakeFiles/quadrotor_core.dir/src/se3_controller.cpp.o -MF CMakeFiles/quadrotor_core.dir/src/se3_controller.cpp.o.d -o CMakeFiles/quadrotor_core.dir/src/se3_controller.cpp.o -c /home/x/mujoco/ausim2/quadrotor/src/se3_controller.cpp
 
 quadrotor/CMakeFiles/quadrotor_core.dir/src/se3_controller.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/quadrotor_core.dir/src/se3_controller.cpp.i"
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/src/se3_controller.cpp > CMakeFiles/quadrotor_core.dir/src/se3_controller.cpp.i
+	cd /home/x/mujoco/ausim2/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/x/mujoco/ausim2/quadrotor/src/se3_controller.cpp > CMakeFiles/quadrotor_core.dir/src/se3_controller.cpp.i
 
 quadrotor/CMakeFiles/quadrotor_core.dir/src/se3_controller.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/quadrotor_core.dir/src/se3_controller.cpp.s"
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/src/se3_controller.cpp -o CMakeFiles/quadrotor_core.dir/src/se3_controller.cpp.s
+	cd /home/x/mujoco/ausim2/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/x/mujoco/ausim2/quadrotor/src/se3_controller.cpp -o CMakeFiles/quadrotor_core.dir/src/se3_controller.cpp.s
 
 quadrotor/CMakeFiles/quadrotor_core.dir/src/motor_mixer.cpp.o: quadrotor/CMakeFiles/quadrotor_core.dir/flags.make
 quadrotor/CMakeFiles/quadrotor_core.dir/src/motor_mixer.cpp.o: ../quadrotor/src/motor_mixer.cpp
 quadrotor/CMakeFiles/quadrotor_core.dir/src/motor_mixer.cpp.o: quadrotor/CMakeFiles/quadrotor_core.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/x/mujoco/Quadrotor_SE3_Control/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object quadrotor/CMakeFiles/quadrotor_core.dir/src/motor_mixer.cpp.o"
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT quadrotor/CMakeFiles/quadrotor_core.dir/src/motor_mixer.cpp.o -MF CMakeFiles/quadrotor_core.dir/src/motor_mixer.cpp.o.d -o CMakeFiles/quadrotor_core.dir/src/motor_mixer.cpp.o -c /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/src/motor_mixer.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/x/mujoco/ausim2/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object quadrotor/CMakeFiles/quadrotor_core.dir/src/motor_mixer.cpp.o"
+	cd /home/x/mujoco/ausim2/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT quadrotor/CMakeFiles/quadrotor_core.dir/src/motor_mixer.cpp.o -MF CMakeFiles/quadrotor_core.dir/src/motor_mixer.cpp.o.d -o CMakeFiles/quadrotor_core.dir/src/motor_mixer.cpp.o -c /home/x/mujoco/ausim2/quadrotor/src/motor_mixer.cpp
 
 quadrotor/CMakeFiles/quadrotor_core.dir/src/motor_mixer.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/quadrotor_core.dir/src/motor_mixer.cpp.i"
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/src/motor_mixer.cpp > CMakeFiles/quadrotor_core.dir/src/motor_mixer.cpp.i
+	cd /home/x/mujoco/ausim2/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/x/mujoco/ausim2/quadrotor/src/motor_mixer.cpp > CMakeFiles/quadrotor_core.dir/src/motor_mixer.cpp.i
 
 quadrotor/CMakeFiles/quadrotor_core.dir/src/motor_mixer.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/quadrotor_core.dir/src/motor_mixer.cpp.s"
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/src/motor_mixer.cpp -o CMakeFiles/quadrotor_core.dir/src/motor_mixer.cpp.s
+	cd /home/x/mujoco/ausim2/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/x/mujoco/ausim2/quadrotor/src/motor_mixer.cpp -o CMakeFiles/quadrotor_core.dir/src/motor_mixer.cpp.s
 
 quadrotor/CMakeFiles/quadrotor_core.dir/src/geometry.cpp.o: quadrotor/CMakeFiles/quadrotor_core.dir/flags.make
 quadrotor/CMakeFiles/quadrotor_core.dir/src/geometry.cpp.o: ../quadrotor/src/geometry.cpp
 quadrotor/CMakeFiles/quadrotor_core.dir/src/geometry.cpp.o: quadrotor/CMakeFiles/quadrotor_core.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/x/mujoco/Quadrotor_SE3_Control/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object quadrotor/CMakeFiles/quadrotor_core.dir/src/geometry.cpp.o"
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT quadrotor/CMakeFiles/quadrotor_core.dir/src/geometry.cpp.o -MF CMakeFiles/quadrotor_core.dir/src/geometry.cpp.o.d -o CMakeFiles/quadrotor_core.dir/src/geometry.cpp.o -c /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/src/geometry.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/x/mujoco/ausim2/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object quadrotor/CMakeFiles/quadrotor_core.dir/src/geometry.cpp.o"
+	cd /home/x/mujoco/ausim2/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT quadrotor/CMakeFiles/quadrotor_core.dir/src/geometry.cpp.o -MF CMakeFiles/quadrotor_core.dir/src/geometry.cpp.o.d -o CMakeFiles/quadrotor_core.dir/src/geometry.cpp.o -c /home/x/mujoco/ausim2/quadrotor/src/geometry.cpp
 
 quadrotor/CMakeFiles/quadrotor_core.dir/src/geometry.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/quadrotor_core.dir/src/geometry.cpp.i"
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/src/geometry.cpp > CMakeFiles/quadrotor_core.dir/src/geometry.cpp.i
+	cd /home/x/mujoco/ausim2/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/x/mujoco/ausim2/quadrotor/src/geometry.cpp > CMakeFiles/quadrotor_core.dir/src/geometry.cpp.i
 
 quadrotor/CMakeFiles/quadrotor_core.dir/src/geometry.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/quadrotor_core.dir/src/geometry.cpp.s"
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/src/geometry.cpp -o CMakeFiles/quadrotor_core.dir/src/geometry.cpp.s
+	cd /home/x/mujoco/ausim2/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/x/mujoco/ausim2/quadrotor/src/geometry.cpp -o CMakeFiles/quadrotor_core.dir/src/geometry.cpp.s
 
 quadrotor/CMakeFiles/quadrotor_core.dir/src/quadrotor_sim.cpp.o: quadrotor/CMakeFiles/quadrotor_core.dir/flags.make
 quadrotor/CMakeFiles/quadrotor_core.dir/src/quadrotor_sim.cpp.o: ../quadrotor/src/quadrotor_sim.cpp
 quadrotor/CMakeFiles/quadrotor_core.dir/src/quadrotor_sim.cpp.o: quadrotor/CMakeFiles/quadrotor_core.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/x/mujoco/Quadrotor_SE3_Control/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object quadrotor/CMakeFiles/quadrotor_core.dir/src/quadrotor_sim.cpp.o"
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT quadrotor/CMakeFiles/quadrotor_core.dir/src/quadrotor_sim.cpp.o -MF CMakeFiles/quadrotor_core.dir/src/quadrotor_sim.cpp.o.d -o CMakeFiles/quadrotor_core.dir/src/quadrotor_sim.cpp.o -c /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/src/quadrotor_sim.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/x/mujoco/ausim2/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object quadrotor/CMakeFiles/quadrotor_core.dir/src/quadrotor_sim.cpp.o"
+	cd /home/x/mujoco/ausim2/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT quadrotor/CMakeFiles/quadrotor_core.dir/src/quadrotor_sim.cpp.o -MF CMakeFiles/quadrotor_core.dir/src/quadrotor_sim.cpp.o.d -o CMakeFiles/quadrotor_core.dir/src/quadrotor_sim.cpp.o -c /home/x/mujoco/ausim2/quadrotor/src/quadrotor_sim.cpp
 
 quadrotor/CMakeFiles/quadrotor_core.dir/src/quadrotor_sim.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/quadrotor_core.dir/src/quadrotor_sim.cpp.i"
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/src/quadrotor_sim.cpp > CMakeFiles/quadrotor_core.dir/src/quadrotor_sim.cpp.i
+	cd /home/x/mujoco/ausim2/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/x/mujoco/ausim2/quadrotor/src/quadrotor_sim.cpp > CMakeFiles/quadrotor_core.dir/src/quadrotor_sim.cpp.i
 
 quadrotor/CMakeFiles/quadrotor_core.dir/src/quadrotor_sim.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/quadrotor_core.dir/src/quadrotor_sim.cpp.s"
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/src/quadrotor_sim.cpp -o CMakeFiles/quadrotor_core.dir/src/quadrotor_sim.cpp.s
+	cd /home/x/mujoco/ausim2/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/x/mujoco/ausim2/quadrotor/src/quadrotor_sim.cpp -o CMakeFiles/quadrotor_core.dir/src/quadrotor_sim.cpp.s
 
 # Object files for target quadrotor_core
 quadrotor_core_OBJECTS = \
@@ -141,19 +141,19 @@ lib/libquadrotor_core.a: quadrotor/CMakeFiles/quadrotor_core.dir/src/geometry.cp
 lib/libquadrotor_core.a: quadrotor/CMakeFiles/quadrotor_core.dir/src/quadrotor_sim.cpp.o
 lib/libquadrotor_core.a: quadrotor/CMakeFiles/quadrotor_core.dir/build.make
 lib/libquadrotor_core.a: quadrotor/CMakeFiles/quadrotor_core.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/x/mujoco/Quadrotor_SE3_Control/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX static library ../lib/libquadrotor_core.a"
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor && $(CMAKE_COMMAND) -P CMakeFiles/quadrotor_core.dir/cmake_clean_target.cmake
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/quadrotor_core.dir/link.txt --verbose=$(VERBOSE)
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/x/mujoco/ausim2/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX static library ../lib/libquadrotor_core.a"
+	cd /home/x/mujoco/ausim2/build/quadrotor && $(CMAKE_COMMAND) -P CMakeFiles/quadrotor_core.dir/cmake_clean_target.cmake
+	cd /home/x/mujoco/ausim2/build/quadrotor && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/quadrotor_core.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
 quadrotor/CMakeFiles/quadrotor_core.dir/build: lib/libquadrotor_core.a
 .PHONY : quadrotor/CMakeFiles/quadrotor_core.dir/build
 
 quadrotor/CMakeFiles/quadrotor_core.dir/clean:
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor && $(CMAKE_COMMAND) -P CMakeFiles/quadrotor_core.dir/cmake_clean.cmake
+	cd /home/x/mujoco/ausim2/build/quadrotor && $(CMAKE_COMMAND) -P CMakeFiles/quadrotor_core.dir/cmake_clean.cmake
 .PHONY : quadrotor/CMakeFiles/quadrotor_core.dir/clean
 
 quadrotor/CMakeFiles/quadrotor_core.dir/depend:
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/x/mujoco/Quadrotor_SE3_Control /home/x/mujoco/Quadrotor_SE3_Control/quadrotor /home/x/mujoco/Quadrotor_SE3_Control/build /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor/CMakeFiles/quadrotor_core.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/x/mujoco/ausim2/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/x/mujoco/ausim2 /home/x/mujoco/ausim2/quadrotor /home/x/mujoco/ausim2/build /home/x/mujoco/ausim2/build/quadrotor /home/x/mujoco/ausim2/build/quadrotor/CMakeFiles/quadrotor_core.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : quadrotor/CMakeFiles/quadrotor_core.dir/depend
 

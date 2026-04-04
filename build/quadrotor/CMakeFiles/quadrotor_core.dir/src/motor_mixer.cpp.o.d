@@ -1,7 +1,7 @@
 quadrotor/CMakeFiles/quadrotor_core.dir/src/motor_mixer.cpp.o: \
- /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/src/motor_mixer.cpp \
+ /home/x/mujoco/ausim2/quadrotor/src/motor_mixer.cpp \
  /usr/include/stdc-predef.h \
- /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/include/control/motor_mixer.hpp \
+ /home/x/mujoco/ausim2/quadrotor/include/control/motor_mixer.hpp \
  /usr/include/eigen3/Eigen/Core \
  /usr/include/eigen3/Eigen/src/Core/util/DisableStupidWarnings.h \
  /usr/include/eigen3/Eigen/src/Core/util/Macros.h \

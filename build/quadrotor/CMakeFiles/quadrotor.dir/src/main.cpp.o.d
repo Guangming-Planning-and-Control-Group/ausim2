@@ -1,7 +1,7 @@
 quadrotor/CMakeFiles/quadrotor.dir/src/main.cpp.o: \
- /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/src/main.cpp \
- /usr/include/stdc-predef.h /usr/include/c++/11/filesystem \
- /usr/include/c++/11/bits/fs_fwd.h /usr/include/c++/11/system_error \
+ /home/x/mujoco/ausim2/quadrotor/src/main.cpp /usr/include/stdc-predef.h \
+ /usr/include/c++/11/filesystem /usr/include/c++/11/bits/fs_fwd.h \
+ /usr/include/c++/11/system_error \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/os_defines.h \
  /usr/include/features.h /usr/include/features-time64.h \
@@ -176,7 +176,7 @@ quadrotor/CMakeFiles/quadrotor.dir/src/main.cpp.o: \
  /usr/include/c++/11/ext/aligned_buffer.h \
  /usr/include/c++/11/bits/fs_dir.h /usr/include/c++/11/bits/fs_ops.h \
  /usr/include/c++/11/iostream \
- /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/include/sim/quadrotor_sim.hpp \
+ /home/x/mujoco/ausim2/quadrotor/include/sim/quadrotor_sim.hpp \
  /usr/include/c++/11/atomic /usr/include/c++/11/bits/atomic_base.h \
  /usr/include/c++/11/bits/atomic_lockfree_defines.h \
  /usr/include/c++/11/memory /usr/include/c++/11/bits/stl_uninitialized.h \
@@ -383,8 +383,8 @@ quadrotor/CMakeFiles/quadrotor.dir/src/main.cpp.o: \
  /opt/mujoco/include/mujoco/mjvisualize.h \
  /opt/mujoco/include/mujoco/mjrender.h /opt/mujoco/include/mujoco/mjsan.h \
  /opt/mujoco/include/mujoco/mjspec.h /opt/mujoco/include/mujoco/mjui.h \
- /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/include/control/motor_mixer.hpp \
- /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/include/controller/se3_controller.hpp \
+ /home/x/mujoco/ausim2/quadrotor/include/control/motor_mixer.hpp \
+ /home/x/mujoco/ausim2/quadrotor/include/controller/se3_controller.hpp \
  /usr/include/c++/11/optional /usr/include/eigen3/Eigen/Geometry \
  /usr/include/eigen3/Eigen/Core /usr/include/eigen3/Eigen/SVD \
  /usr/include/eigen3/Eigen/QR /usr/include/eigen3/Eigen/Cholesky \
@@ -427,4 +427,4 @@ quadrotor/CMakeFiles/quadrotor.dir/src/main.cpp.o: \
  /usr/include/eigen3/Eigen/src/Geometry/AlignedBox.h \
  /usr/include/eigen3/Eigen/src/Geometry/Umeyama.h \
  /usr/include/eigen3/Eigen/src/Geometry/arch/Geometry_SIMD.h \
- /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/include/controller/state.hpp
+ /home/x/mujoco/ausim2/quadrotor/include/controller/state.hpp

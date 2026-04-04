@@ -1,7 +1,7 @@
 quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_dispatch.cc.o: \
- /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/glfw_dispatch.cc \
+ /home/x/mujoco/ausim2/quadrotor/third_party/mujoco_simulate/glfw_dispatch.cc \
  /usr/include/stdc-predef.h \
- /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/glfw_dispatch.h \
+ /home/x/mujoco/ausim2/quadrotor/third_party/mujoco_simulate/glfw_dispatch.h \
  /usr/include/GLFW/glfw3.h \
  /usr/lib/gcc/x86_64-linux-gnu/11/include/stddef.h \
  /usr/lib/gcc/x86_64-linux-gnu/11/include/stdint.h /usr/include/stdint.h \

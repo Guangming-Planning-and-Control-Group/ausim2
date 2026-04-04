@@ -1,7 +1,7 @@
 quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/simulate.cc.o: \
- /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/simulate.cc \
+ /home/x/mujoco/ausim2/quadrotor/third_party/mujoco_simulate/simulate.cc \
  /usr/include/stdc-predef.h \
- /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/simulate.h \
+ /home/x/mujoco/ausim2/quadrotor/third_party/mujoco_simulate/simulate.h \
  /usr/include/c++/11/atomic /usr/include/c++/11/bits/atomic_base.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/os_defines.h \
@@ -201,7 +201,7 @@ quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/sim
  /opt/mujoco/include/mujoco/mjvisualize.h \
  /opt/mujoco/include/mujoco/mjsan.h /opt/mujoco/include/mujoco/mjspec.h \
  /usr/include/c++/11/cstddef \
- /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/platform_ui_adapter.h \
+ /home/x/mujoco/ausim2/quadrotor/third_party/mujoco_simulate/platform_ui_adapter.h \
  /usr/include/c++/11/algorithm /usr/include/c++/11/bits/stl_algo.h \
  /usr/include/c++/11/bits/algorithmfwd.h \
  /usr/include/c++/11/bits/stl_heap.h \
@@ -224,7 +224,7 @@ quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/sim
  /usr/include/string.h /usr/include/strings.h \
  /usr/include/x86_64-linux-gnu/bits/strings_fortified.h \
  /usr/include/x86_64-linux-gnu/bits/string_fortified.h \
- /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/lodepng.h \
+ /home/x/mujoco/ausim2/quadrotor/third_party/mujoco_simulate/lodepng.h \
  /opt/mujoco/include/mujoco/mjxmacro.h \
- /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/array_safety.h \
+ /home/x/mujoco/ausim2/quadrotor/third_party/mujoco_simulate/array_safety.h \
  /usr/include/c++/11/cstdarg

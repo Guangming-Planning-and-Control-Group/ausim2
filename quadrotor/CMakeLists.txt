@@ -29,16 +29,18 @@ if(NOT mujoco_FOUND)
   find_package(mujoco CONFIG REQUIRED PATHS ${_quadrotor_mujoco_hints})
 endif()
 
+set(QUADROTOR_THIRD_PARTY_DIR "${CMAKE_SOURCE_DIR}/third_party")
+
 add_library(quadrotor_mujoco_viewer STATIC
-  third_party/mujoco_simulate/simulate.cc
-  third_party/mujoco_simulate/platform_ui_adapter.cc
-  third_party/mujoco_simulate/glfw_adapter.cc
-  third_party/mujoco_simulate/glfw_dispatch.cc
+  "${QUADROTOR_THIRD_PARTY_DIR}/mujoco_simulate/simulate.cc"
+  "${QUADROTOR_THIRD_PARTY_DIR}/mujoco_simulate/platform_ui_adapter.cc"
+  "${QUADROTOR_THIRD_PARTY_DIR}/mujoco_simulate/glfw_adapter.cc"
+  "${QUADROTOR_THIRD_PARTY_DIR}/mujoco_simulate/glfw_dispatch.cc"
 )
 
 target_include_directories(quadrotor_mujoco_viewer
   PUBLIC
-    "${CMAKE_CURRENT_SOURCE_DIR}/third_party"
+    "${QUADROTOR_THIRD_PARTY_DIR}"
 )
 
 target_compile_features(quadrotor_mujoco_viewer PUBLIC cxx_std_17)
@@ -47,7 +49,7 @@ target_link_libraries(quadrotor_mujoco_viewer
   PUBLIC
     glfw
     mujoco::mujoco
-    "${CMAKE_CURRENT_SOURCE_DIR}/third_party/mujoco_simulate/liblodepng.a"
+    "${QUADROTOR_THIRD_PARTY_DIR}/mujoco_simulate/liblodepng.a"
 )
 
 add_library(quadrotor_core STATIC

@@ -1429,9 +1429,9 @@ quadrotor/CMakeFiles/quadrotor_core.dir/src/quadrotor_sim.cpp.o: ../quadrotor/sr
   /usr/include/yaml-cpp/node/detail/impl.h \
   /usr/include/yaml-cpp/node/parse.h \
   /usr/include/yaml-cpp/node/emit.h \
-  ../quadrotor/third_party/mujoco_simulate/glfw_adapter.h \
-  ../quadrotor/third_party/mujoco_simulate/platform_ui_adapter.h \
-  ../quadrotor/third_party/mujoco_simulate/simulate.h \
+  ../third_party/mujoco_simulate/glfw_adapter.h \
+  ../third_party/mujoco_simulate/platform_ui_adapter.h \
+  ../third_party/mujoco_simulate/simulate.h \
   /usr/include/c++/11/condition_variable \
   /usr/include/c++/11/bits/std_mutex.h \
   /usr/include/c++/11/bits/unique_lock.h \
@@ -1891,6 +1891,8 @@ quadrotor/CMakeFiles/quadrotor_core.dir/src/se3_controller.cpp.o: ../quadrotor/s
 
 /usr/include/c++/11/bits/std_mutex.h:
 
+../third_party/mujoco_simulate/platform_ui_adapter.h:
+
 /usr/include/yaml-cpp/node/emit.h:
 
 /usr/include/yaml-cpp/node/parse.h:
@@ -2157,8 +2159,6 @@ quadrotor/CMakeFiles/quadrotor_core.dir/src/se3_controller.cpp.o: ../quadrotor/s
 
 /usr/include/x86_64-linux-gnu/bits/waitflags.h:
 
-../quadrotor/third_party/mujoco_simulate/platform_ui_adapter.h:
-
 /usr/include/x86_64-linux-gnu/bits/types/struct_timespec.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/11/include/xmmintrin.h:
@@ -2288,8 +2288,6 @@ quadrotor/CMakeFiles/quadrotor_core.dir/src/se3_controller.cpp.o: ../quadrotor/s
 /usr/include/x86_64-linux-gnu/c++/11/bits/c++config.h:
 
 /usr/include/x86_64-linux-gnu/bits/pthread_stack_min-dynamic.h:
-
-../quadrotor/third_party/mujoco_simulate/glfw_adapter.h:
 
 /usr/include/c++/11/tr1/legendre_function.tcc:
 
@@ -2478,6 +2476,8 @@ quadrotor/CMakeFiles/quadrotor_core.dir/src/se3_controller.cpp.o: ../quadrotor/s
 /usr/include/c++/11/new:
 
 /usr/include/c++/11/climits:
+
+../third_party/mujoco_simulate/glfw_adapter.h:
 
 /usr/include/x86_64-linux-gnu/bits/struct_rwlock.h:
 
@@ -2827,8 +2827,6 @@ quadrotor/CMakeFiles/quadrotor_core.dir/src/se3_controller.cpp.o: ../quadrotor/s
 
 /usr/include/eigen3/Eigen/src/Core/Reverse.h:
 
-../quadrotor/third_party/mujoco_simulate/simulate.h:
-
 /usr/include/x86_64-linux-gnu/bits/wctype-wchar.h:
 
 /usr/include/eigen3/Eigen/src/Core/ArrayWrapper.h:
@@ -3006,6 +3004,8 @@ quadrotor/CMakeFiles/quadrotor_core.dir/src/se3_controller.cpp.o: ../quadrotor/s
 /usr/include/x86_64-linux-gnu/bits/siginfo-consts.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/sigval_t.h:
+
+../third_party/mujoco_simulate/simulate.h:
 
 /usr/include/x86_64-linux-gnu/bits/sigevent-consts.h:
 

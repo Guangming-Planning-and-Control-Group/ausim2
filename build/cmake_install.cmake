@@ -1,8 +1,8 @@
-# Install script for directory: /home/x/mujoco/Quadrotor_SE3_Control
+# Install script for directory: /home/x/mujoco/ausim2
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/home/x/mujoco/Quadrotor_SE3_Control/build/install")
+  set(CMAKE_INSTALL_PREFIX "/home/x/mujoco/ausim2/build/install")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -44,7 +44,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor/cmake_install.cmake")
+  include("/home/x/mujoco/ausim2/build/quadrotor/cmake_install.cmake")
 endif()
 
 if(CMAKE_INSTALL_COMPONENT)
@@ -55,5 +55,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/x/mujoco/Quadrotor_SE3_Control/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/x/mujoco/ausim2/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

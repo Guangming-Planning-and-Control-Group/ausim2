@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/x/mujoco/Quadrotor_SE3_Control
+CMAKE_SOURCE_DIR = /home/x/mujoco/ausim2
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/x/mujoco/Quadrotor_SE3_Control/build
+CMAKE_BINARY_DIR = /home/x/mujoco/ausim2/build
 
 # Include any dependencies generated for this target.
 include quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/depend.make
@@ -69,91 +69,91 @@ include quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/progress.make
 # Include the compile flags for this target's objects.
 include quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/flags.make
 
-quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/simulate.cc.o: quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/flags.make
-quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/simulate.cc.o: ../quadrotor/third_party/mujoco_simulate/simulate.cc
-quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/simulate.cc.o: quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/x/mujoco/Quadrotor_SE3_Control/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/simulate.cc.o"
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/simulate.cc.o -MF CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/simulate.cc.o.d -o CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/simulate.cc.o -c /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/simulate.cc
+quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/simulate.cc.o: quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/flags.make
+quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/simulate.cc.o: ../third_party/mujoco_simulate/simulate.cc
+quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/simulate.cc.o: quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/x/mujoco/ausim2/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/simulate.cc.o"
+	cd /home/x/mujoco/ausim2/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/simulate.cc.o -MF CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/simulate.cc.o.d -o CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/simulate.cc.o -c /home/x/mujoco/ausim2/third_party/mujoco_simulate/simulate.cc
 
-quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/simulate.cc.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/simulate.cc.i"
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/simulate.cc > CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/simulate.cc.i
+quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/simulate.cc.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/simulate.cc.i"
+	cd /home/x/mujoco/ausim2/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/x/mujoco/ausim2/third_party/mujoco_simulate/simulate.cc > CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/simulate.cc.i
 
-quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/simulate.cc.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/simulate.cc.s"
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/simulate.cc -o CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/simulate.cc.s
+quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/simulate.cc.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/simulate.cc.s"
+	cd /home/x/mujoco/ausim2/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/x/mujoco/ausim2/third_party/mujoco_simulate/simulate.cc -o CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/simulate.cc.s
 
-quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/platform_ui_adapter.cc.o: quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/flags.make
-quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/platform_ui_adapter.cc.o: ../quadrotor/third_party/mujoco_simulate/platform_ui_adapter.cc
-quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/platform_ui_adapter.cc.o: quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/x/mujoco/Quadrotor_SE3_Control/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/platform_ui_adapter.cc.o"
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/platform_ui_adapter.cc.o -MF CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/platform_ui_adapter.cc.o.d -o CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/platform_ui_adapter.cc.o -c /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/platform_ui_adapter.cc
+quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/platform_ui_adapter.cc.o: quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/flags.make
+quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/platform_ui_adapter.cc.o: ../third_party/mujoco_simulate/platform_ui_adapter.cc
+quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/platform_ui_adapter.cc.o: quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/x/mujoco/ausim2/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/platform_ui_adapter.cc.o"
+	cd /home/x/mujoco/ausim2/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/platform_ui_adapter.cc.o -MF CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/platform_ui_adapter.cc.o.d -o CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/platform_ui_adapter.cc.o -c /home/x/mujoco/ausim2/third_party/mujoco_simulate/platform_ui_adapter.cc
 
-quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/platform_ui_adapter.cc.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/platform_ui_adapter.cc.i"
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/platform_ui_adapter.cc > CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/platform_ui_adapter.cc.i
+quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/platform_ui_adapter.cc.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/platform_ui_adapter.cc.i"
+	cd /home/x/mujoco/ausim2/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/x/mujoco/ausim2/third_party/mujoco_simulate/platform_ui_adapter.cc > CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/platform_ui_adapter.cc.i
 
-quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/platform_ui_adapter.cc.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/platform_ui_adapter.cc.s"
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/platform_ui_adapter.cc -o CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/platform_ui_adapter.cc.s
+quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/platform_ui_adapter.cc.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/platform_ui_adapter.cc.s"
+	cd /home/x/mujoco/ausim2/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/x/mujoco/ausim2/third_party/mujoco_simulate/platform_ui_adapter.cc -o CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/platform_ui_adapter.cc.s
 
-quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_adapter.cc.o: quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/flags.make
-quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_adapter.cc.o: ../quadrotor/third_party/mujoco_simulate/glfw_adapter.cc
-quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_adapter.cc.o: quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/x/mujoco/Quadrotor_SE3_Control/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_adapter.cc.o"
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_adapter.cc.o -MF CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_adapter.cc.o.d -o CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_adapter.cc.o -c /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/glfw_adapter.cc
+quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_adapter.cc.o: quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/flags.make
+quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_adapter.cc.o: ../third_party/mujoco_simulate/glfw_adapter.cc
+quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_adapter.cc.o: quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/x/mujoco/ausim2/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_adapter.cc.o"
+	cd /home/x/mujoco/ausim2/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_adapter.cc.o -MF CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_adapter.cc.o.d -o CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_adapter.cc.o -c /home/x/mujoco/ausim2/third_party/mujoco_simulate/glfw_adapter.cc
 
-quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_adapter.cc.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_adapter.cc.i"
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/glfw_adapter.cc > CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_adapter.cc.i
+quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_adapter.cc.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_adapter.cc.i"
+	cd /home/x/mujoco/ausim2/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/x/mujoco/ausim2/third_party/mujoco_simulate/glfw_adapter.cc > CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_adapter.cc.i
 
-quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_adapter.cc.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_adapter.cc.s"
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/glfw_adapter.cc -o CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_adapter.cc.s
+quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_adapter.cc.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_adapter.cc.s"
+	cd /home/x/mujoco/ausim2/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/x/mujoco/ausim2/third_party/mujoco_simulate/glfw_adapter.cc -o CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_adapter.cc.s
 
-quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_dispatch.cc.o: quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/flags.make
-quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_dispatch.cc.o: ../quadrotor/third_party/mujoco_simulate/glfw_dispatch.cc
-quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_dispatch.cc.o: quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/x/mujoco/Quadrotor_SE3_Control/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_dispatch.cc.o"
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_dispatch.cc.o -MF CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_dispatch.cc.o.d -o CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_dispatch.cc.o -c /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/glfw_dispatch.cc
+quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_dispatch.cc.o: quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/flags.make
+quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_dispatch.cc.o: ../third_party/mujoco_simulate/glfw_dispatch.cc
+quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_dispatch.cc.o: quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/x/mujoco/ausim2/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_dispatch.cc.o"
+	cd /home/x/mujoco/ausim2/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_dispatch.cc.o -MF CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_dispatch.cc.o.d -o CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_dispatch.cc.o -c /home/x/mujoco/ausim2/third_party/mujoco_simulate/glfw_dispatch.cc
 
-quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_dispatch.cc.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_dispatch.cc.i"
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/glfw_dispatch.cc > CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_dispatch.cc.i
+quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_dispatch.cc.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_dispatch.cc.i"
+	cd /home/x/mujoco/ausim2/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/x/mujoco/ausim2/third_party/mujoco_simulate/glfw_dispatch.cc > CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_dispatch.cc.i
 
-quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_dispatch.cc.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_dispatch.cc.s"
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/third_party/mujoco_simulate/glfw_dispatch.cc -o CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_dispatch.cc.s
+quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_dispatch.cc.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_dispatch.cc.s"
+	cd /home/x/mujoco/ausim2/build/quadrotor && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/x/mujoco/ausim2/third_party/mujoco_simulate/glfw_dispatch.cc -o CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_dispatch.cc.s
 
 # Object files for target quadrotor_mujoco_viewer
 quadrotor_mujoco_viewer_OBJECTS = \
-"CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/simulate.cc.o" \
-"CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/platform_ui_adapter.cc.o" \
-"CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_adapter.cc.o" \
-"CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_dispatch.cc.o"
+"CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/simulate.cc.o" \
+"CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/platform_ui_adapter.cc.o" \
+"CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_adapter.cc.o" \
+"CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_dispatch.cc.o"
 
 # External object files for target quadrotor_mujoco_viewer
 quadrotor_mujoco_viewer_EXTERNAL_OBJECTS =
 
-lib/libquadrotor_mujoco_viewer.a: quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/simulate.cc.o
-lib/libquadrotor_mujoco_viewer.a: quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/platform_ui_adapter.cc.o
-lib/libquadrotor_mujoco_viewer.a: quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_adapter.cc.o
-lib/libquadrotor_mujoco_viewer.a: quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/third_party/mujoco_simulate/glfw_dispatch.cc.o
+lib/libquadrotor_mujoco_viewer.a: quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/simulate.cc.o
+lib/libquadrotor_mujoco_viewer.a: quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/platform_ui_adapter.cc.o
+lib/libquadrotor_mujoco_viewer.a: quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_adapter.cc.o
+lib/libquadrotor_mujoco_viewer.a: quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/__/third_party/mujoco_simulate/glfw_dispatch.cc.o
 lib/libquadrotor_mujoco_viewer.a: quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/build.make
 lib/libquadrotor_mujoco_viewer.a: quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/x/mujoco/Quadrotor_SE3_Control/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX static library ../lib/libquadrotor_mujoco_viewer.a"
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor && $(CMAKE_COMMAND) -P CMakeFiles/quadrotor_mujoco_viewer.dir/cmake_clean_target.cmake
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/quadrotor_mujoco_viewer.dir/link.txt --verbose=$(VERBOSE)
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/x/mujoco/ausim2/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX static library ../lib/libquadrotor_mujoco_viewer.a"
+	cd /home/x/mujoco/ausim2/build/quadrotor && $(CMAKE_COMMAND) -P CMakeFiles/quadrotor_mujoco_viewer.dir/cmake_clean_target.cmake
+	cd /home/x/mujoco/ausim2/build/quadrotor && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/quadrotor_mujoco_viewer.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
 quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/build: lib/libquadrotor_mujoco_viewer.a
 .PHONY : quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/build
 
 quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/clean:
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor && $(CMAKE_COMMAND) -P CMakeFiles/quadrotor_mujoco_viewer.dir/cmake_clean.cmake
+	cd /home/x/mujoco/ausim2/build/quadrotor && $(CMAKE_COMMAND) -P CMakeFiles/quadrotor_mujoco_viewer.dir/cmake_clean.cmake
 .PHONY : quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/clean
 
 quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/depend:
-	cd /home/x/mujoco/Quadrotor_SE3_Control/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/x/mujoco/Quadrotor_SE3_Control /home/x/mujoco/Quadrotor_SE3_Control/quadrotor /home/x/mujoco/Quadrotor_SE3_Control/build /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor /home/x/mujoco/Quadrotor_SE3_Control/build/quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/x/mujoco/ausim2/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/x/mujoco/ausim2 /home/x/mujoco/ausim2/quadrotor /home/x/mujoco/ausim2/build /home/x/mujoco/ausim2/build/quadrotor /home/x/mujoco/ausim2/build/quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : quadrotor/CMakeFiles/quadrotor_mujoco_viewer.dir/depend
 

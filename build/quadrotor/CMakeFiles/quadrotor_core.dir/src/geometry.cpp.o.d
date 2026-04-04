@@ -1,7 +1,7 @@
 quadrotor/CMakeFiles/quadrotor_core.dir/src/geometry.cpp.o: \
- /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/src/geometry.cpp \
+ /home/x/mujoco/ausim2/quadrotor/src/geometry.cpp \
  /usr/include/stdc-predef.h \
- /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/include/math/geometry.hpp \
+ /home/x/mujoco/ausim2/quadrotor/include/math/geometry.hpp \
  /usr/include/c++/11/utility \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/os_defines.h \

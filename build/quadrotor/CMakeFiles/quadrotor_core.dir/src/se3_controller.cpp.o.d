@@ -1,7 +1,7 @@
 quadrotor/CMakeFiles/quadrotor_core.dir/src/se3_controller.cpp.o: \
- /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/src/se3_controller.cpp \
+ /home/x/mujoco/ausim2/quadrotor/src/se3_controller.cpp \
  /usr/include/stdc-predef.h \
- /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/include/controller/se3_controller.hpp \
+ /home/x/mujoco/ausim2/quadrotor/include/controller/se3_controller.hpp \
  /usr/include/c++/11/optional /usr/include/c++/11/utility \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/os_defines.h \
@@ -389,5 +389,5 @@ quadrotor/CMakeFiles/quadrotor_core.dir/src/se3_controller.cpp.o: \
  /usr/include/eigen3/Eigen/src/Geometry/AlignedBox.h \
  /usr/include/eigen3/Eigen/src/Geometry/Umeyama.h \
  /usr/include/eigen3/Eigen/src/Geometry/arch/Geometry_SIMD.h \
- /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/include/controller/state.hpp \
- /home/x/mujoco/Quadrotor_SE3_Control/quadrotor/include/math/geometry.hpp
+ /home/x/mujoco/ausim2/quadrotor/include/controller/state.hpp \
+ /home/x/mujoco/ausim2/quadrotor/include/math/geometry.hpp
