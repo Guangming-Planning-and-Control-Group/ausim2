@@ -21,7 +21,6 @@ class Simulate;
 namespace quadrotor {
 
 struct VehicleParams {
-  double gravity = 9.8066;
   double mass = 0.033;
   double Ct = 3.25e-4;
   double Cd = 7.9379e-6;
@@ -36,10 +35,12 @@ struct ControllerGains {
   double kv = 0.4;
   double kR = 6.0;
   double kw = 1.0;
+  double rate_hz = 250.0;
 };
 
 struct HoverGoal {
   Eigen::Vector3d position = Eigen::Vector3d(0.0, 0.0, 0.3);
+  Eigen::Vector3d velocity = Eigen::Vector3d::Zero();
   Eigen::Vector3d heading = Eigen::Vector3d(1.0, 0.0, 0.0);
 };
 
@@ -48,6 +49,7 @@ struct CircleTrajectoryConfig {
   double height = 0.3;
   double radius = 0.5;
   double speed_hz = 0.3;
+  double height_gain = 1.5;
 };
 
 struct SimulationConfig {
@@ -55,18 +57,15 @@ struct SimulationConfig {
   double duration = 0.0;
   double dt = 0.001;
   double print_interval = 0.5;
-  bool use_circular_trajectory = false;
+  int control_mode = 2;
+  int example_mode = 1;
 };
 
 struct ViewerConfig {
   bool enabled = true;
   bool fallback_to_headless = true;
   bool mjui_enabled = true;
-  int width = 1200;
-  int height = 900;
   bool vsync = true;
-  double render_fps = 60.0;
-  std::string title = "Quadrotor MuJoCo Viewer";
 };
 
 struct QuadrotorConfig {
@@ -99,7 +98,7 @@ class QuadrotorSim {
   void ApplyControl(const mjModel* model, mjData* data);
 
   State ReadCurrentState(const mjData* data) const;
-  State BuildGoalState(double time, Eigen::Vector3d* forward) const;
+  State BuildGoalState(double time, const State& current, Eigen::Vector3d* forward) const;
   void ResolveActuatorIds();
   double CalcMotorForce(double krpm) const;
   double CalcMotorInput(double krpm) const;
@@ -125,7 +124,9 @@ class QuadrotorSim {
       mjData* new_data,
       const std::filesystem::path& model_path,
       bool replace_existing);
+  void ConfigureDefaultCamera();
   std::string ValidateModel(const mjModel* candidate) const;
+  int ComputeControlDecimation() const;
   bool ShouldContinueHeadless() const;
   void SleepToMatchRealtime(
       const std::chrono::high_resolution_clock::time_point& step_start,
@@ -145,6 +146,9 @@ class QuadrotorSim {
   std::array<int, 4> actuator_ids_ = {-1, -1, -1, -1};
   mutable double next_log_time_ = 0.0;
   int vehicle_body_id_ = -1;
+  int control_decimation_ = 1;
+  int control_step_count_ = 0;
+  ControlCommand cached_command_;
   std::atomic_bool stop_requested_ = false;
 
   static QuadrotorSim* active_instance_;

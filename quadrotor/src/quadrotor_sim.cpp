@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <iomanip>
 #include <iostream>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <thread>
@@ -35,6 +36,12 @@ using Seconds = std::chrono::duration<double>;
 constexpr double kSyncMisalign = 0.1;
 constexpr double kSimRefreshFraction = 0.7;
 constexpr int kLoadErrorLength = 1024;
+constexpr double kFrequencyTolerance = 1e-6;
+
+enum class ExampleMode {
+  kSimple = 1,
+  kCircular = 2,
+};
 
 template <typename T>
 void AssignIfPresent(const YAML::Node& node, const char* key, T* value) {
@@ -199,10 +206,10 @@ QuadrotorConfig LoadConfigFromYaml(const std::string& path) {
   AssignIfPresent(simulation_node, "duration", &config.simulation.duration);
   AssignIfPresent(simulation_node, "dt", &config.simulation.dt);
   AssignIfPresent(simulation_node, "print_interval", &config.simulation.print_interval);
-  AssignIfPresent(simulation_node, "use_circular_trajectory", &config.simulation.use_circular_trajectory);
+  AssignIfPresent(simulation_node, "control_mode", &config.simulation.control_mode);
+  AssignIfPresent(simulation_node, "example_mode", &config.simulation.example_mode);
 
   const YAML::Node vehicle_node = root["vehicle"];
-  AssignIfPresent(vehicle_node, "gravity", &config.vehicle.gravity);
   AssignIfPresent(vehicle_node, "mass", &config.vehicle.mass);
   AssignIfPresent(vehicle_node, "thrust_coefficient", &config.vehicle.Ct);
   AssignIfPresent(vehicle_node, "drag_coefficient", &config.vehicle.Cd);
@@ -216,11 +223,13 @@ QuadrotorConfig LoadConfigFromYaml(const std::string& path) {
   AssignIfPresent(controller_node, "kv", &config.controller.kv);
   AssignIfPresent(controller_node, "kR", &config.controller.kR);
   AssignIfPresent(controller_node, "kw", &config.controller.kw);
+  AssignIfPresent(controller_node, "rate_hz", &config.controller.rate_hz);
   AssignIfPresent(controller_node, "torque_scale", &config.torque_scale);
 
   const YAML::Node goal_node = root["goal"];
   if (goal_node) {
     config.hover_goal.position = LoadVector3(goal_node["position"], config.hover_goal.position);
+    config.hover_goal.velocity = LoadVector3(goal_node["velocity"], config.hover_goal.velocity);
     config.hover_goal.heading = LoadVector3(goal_node["heading"], config.hover_goal.heading);
   }
 
@@ -229,16 +238,13 @@ QuadrotorConfig LoadConfigFromYaml(const std::string& path) {
   AssignIfPresent(trajectory_node, "height", &config.circle_trajectory.height);
   AssignIfPresent(trajectory_node, "radius", &config.circle_trajectory.radius);
   AssignIfPresent(trajectory_node, "speed_hz", &config.circle_trajectory.speed_hz);
+  AssignIfPresent(trajectory_node, "height_gain", &config.circle_trajectory.height_gain);
 
   const YAML::Node viewer_node = root["viewer"];
   AssignIfPresent(viewer_node, "enabled", &config.viewer.enabled);
   AssignIfPresent(viewer_node, "fallback_to_headless", &config.viewer.fallback_to_headless);
   AssignIfPresent(viewer_node, "mjui_enabled", &config.viewer.mjui_enabled);
-  AssignIfPresent(viewer_node, "width", &config.viewer.width);
-  AssignIfPresent(viewer_node, "height", &config.viewer.height);
   AssignIfPresent(viewer_node, "vsync", &config.viewer.vsync);
-  AssignIfPresent(viewer_node, "render_fps", &config.viewer.render_fps);
-  AssignIfPresent(viewer_node, "title", &config.viewer.title);
 
   return config;
 }
@@ -260,6 +266,9 @@ QuadrotorSim::QuadrotorSim(QuadrotorConfig config)
   controller_.kv = config_.controller.kv;
   controller_.kR = config_.controller.kR;
   controller_.kw = config_.controller.kw;
+  controller_.control_mode =
+      static_cast<SE3Controller::ControlMode>(config_.simulation.control_mode);
+  control_decimation_ = ComputeControlDecimation();
 }
 
 QuadrotorSim::~QuadrotorSim() {
@@ -358,16 +367,29 @@ void QuadrotorSim::ControlCallback(const mjModel* model, mjData* data) {
 
 void QuadrotorSim::ApplyControl(const mjModel* model, mjData* data) {
   (void)model;
-  const State current_state = ReadCurrentState(data);
+  std::optional<State> current_state;
+  std::optional<State> goal_state;
 
-  Eigen::Vector3d forward = config_.hover_goal.heading;
-  const State goal_state = BuildGoalState(data->time, &forward);
+  if (control_step_count_ == 0) {
+    current_state = ReadCurrentState(data);
+    Eigen::Vector3d forward = config_.hover_goal.heading;
+    goal_state = BuildGoalState(data->time, *current_state, &forward);
+    const bool use_position_hold =
+        config_.simulation.control_mode == static_cast<int>(SE3Controller::ControlMode::kVelocity) &&
+        data->time < config_.circle_trajectory.wait_time;
+    controller_.control_mode = use_position_hold
+                                   ? SE3Controller::ControlMode::kPosition
+                                   : static_cast<SE3Controller::ControlMode>(config_.simulation.control_mode);
+    const double control_dt = control_decimation_ * model->opt.timestep;
+    cached_command_ = controller_.controlUpdate(*current_state, *goal_state, control_dt, forward);
+  }
 
-  const ControlCommand command =
-      controller_.controlUpdate(current_state, goal_state, config_.simulation.dt, forward);
-
-  const double mixer_thrust = command.thrust * config_.vehicle.gravity * config_.vehicle.mass;
-  const Eigen::Vector3d mixer_torque = command.angular * config_.torque_scale;
+  const double gravity_magnitude = std::sqrt(
+      model->opt.gravity[0] * model->opt.gravity[0] +
+      model->opt.gravity[1] * model->opt.gravity[1] +
+      model->opt.gravity[2] * model->opt.gravity[2]);
+  const double mixer_thrust = cached_command_.thrust * gravity_magnitude * config_.vehicle.mass;
+  const Eigen::Vector3d mixer_torque = cached_command_.angular * config_.torque_scale;
   const Eigen::Vector4d motor_speed =
       mixer_.calculate(mixer_thrust, mixer_torque.x(), mixer_torque.y(), mixer_torque.z());
 
@@ -375,7 +397,11 @@ void QuadrotorSim::ApplyControl(const mjModel* model, mjData* data) {
     data->ctrl[actuator_ids_[i]] = CalcMotorInput(motor_speed[static_cast<Eigen::Index>(i)]);
   }
 
-  LogStateIfNeeded(data, current_state, goal_state, motor_speed);
+  if (current_state.has_value() && goal_state.has_value()) {
+    LogStateIfNeeded(data, *current_state, *goal_state, motor_speed);
+  }
+
+  control_step_count_ = (control_step_count_ + 1) % control_decimation_;
 }
 
 State QuadrotorSim::ReadCurrentState(const mjData* data) const {
@@ -404,30 +430,55 @@ State QuadrotorSim::ReadCurrentState(const mjData* data) const {
   return state;
 }
 
-State QuadrotorSim::BuildGoalState(double time, Eigen::Vector3d* forward) const {
+State QuadrotorSim::BuildGoalState(double time, const State& current, Eigen::Vector3d* forward) const {
   State goal_state;
   goal_state.quaternion = Eigen::Quaterniond::Identity();
+  *forward = config_.hover_goal.heading;
 
-  if (!config_.simulation.use_circular_trajectory) {
+  const bool velocity_mode =
+      config_.simulation.control_mode == static_cast<int>(SE3Controller::ControlMode::kVelocity);
+  const CircleTrajectoryConfig& circle = config_.circle_trajectory;
+  if (velocity_mode && time < circle.wait_time) {
     goal_state.position = config_.hover_goal.position;
-    *forward = config_.hover_goal.heading;
+    goal_state.velocity = Eigen::Vector3d::Zero();
     return goal_state;
   }
 
-  const CircleTrajectoryConfig& circle = config_.circle_trajectory;
+  const auto example_mode = static_cast<ExampleMode>(config_.simulation.example_mode);
+  if (example_mode == ExampleMode::kSimple) {
+    goal_state.position = config_.hover_goal.position;
+    goal_state.velocity = velocity_mode ? config_.hover_goal.velocity : Eigen::Vector3d::Zero();
+    if (goal_state.velocity.norm() > 1e-6) {
+      *forward = goal_state.velocity.normalized();
+    }
+    return goal_state;
+  }
+
   constexpr double kPi = 3.14159265358979323846;
   const double phase = 2.0 * kPi * circle.speed_hz * (time - circle.wait_time);
   const double cosine = std::cos(phase);
   const double sine = std::sin(phase);
 
-  if (time < circle.wait_time) {
-    goal_state.position = Eigen::Vector3d(circle.radius, 0.0, circle.height);
-    *forward = Eigen::Vector3d(0.0, 1.0, 0.0);
-    return goal_state;
-  }
-
   goal_state.position = Eigen::Vector3d(circle.radius * cosine, circle.radius * sine, circle.height);
   *forward = Eigen::Vector3d(-sine, cosine, 0.0);
+
+  if (velocity_mode) {
+    const Eigen::Vector2d base_xy(config_.hover_goal.velocity.x(), config_.hover_goal.velocity.y());
+    const Eigen::Matrix2d rotation =
+        (Eigen::Matrix2d() << cosine, -sine, sine, cosine).finished();
+    const Eigen::Vector2d rotated_xy = rotation * base_xy;
+    const double vertical_velocity =
+        config_.hover_goal.velocity.z() +
+        circle.height_gain * (config_.hover_goal.position.z() - current.position.z());
+
+    goal_state.velocity = Eigen::Vector3d(rotated_xy.x(), rotated_xy.y(), vertical_velocity);
+    if (rotated_xy.norm() > 1e-6) {
+      *forward = Eigen::Vector3d(rotated_xy.x(), rotated_xy.y(), 0.0).normalized();
+    }
+  } else {
+    goal_state.velocity = Eigen::Vector3d::Zero();
+  }
+
   return goal_state;
 }
 
@@ -459,6 +510,8 @@ void QuadrotorSim::ResetSimulation() {
   mj_resetData(model_, data_);
   mj_forward(model_, data_);
   next_log_time_ = 0.0;
+  control_step_count_ = 0;
+  cached_command_ = ControlCommand{};
 }
 
 void QuadrotorSim::RunHeadless() {
@@ -499,10 +552,17 @@ void QuadrotorSim::InitializeViewer() {
       &perturbation_,
       /* is_passive = */ false);
 
-  viewer_->vsync = config_.viewer.vsync ? 1 : 0;
-  if (config_.viewer.render_fps > 1e-6) {
-    viewer_->refresh_rate = std::max(1, static_cast<int>(std::lround(config_.viewer.render_fps)));
+  const int mjui_enabled = config_.viewer.mjui_enabled ? 1 : 0;
+  viewer_->ui0_enable = mjui_enabled;
+  viewer_->ui1_enable = mjui_enabled;
+  if (!config_.viewer.mjui_enabled) {
+    viewer_->help = 0;
+    viewer_->info = 0;
+    viewer_->profiler = 0;
+    viewer_->sensor = 0;
   }
+
+  viewer_->vsync = config_.viewer.vsync ? 1 : 0;
 }
 
 void QuadrotorSim::CleanupViewer() {
@@ -725,8 +785,11 @@ void QuadrotorSim::InstallModelPointers(
   if (vehicle_body_id_ < 0 && model_->nbody > 1) {
     vehicle_body_id_ = 1;
   }
+  ConfigureDefaultCamera();
 
   next_log_time_ = 0.0;
+  control_step_count_ = 0;
+  cached_command_ = ControlCommand{};
   active_instance_ = this;
   mjcb_control = &QuadrotorSim::ControlCallback;
   mj_forward(model_, data_);
@@ -741,6 +804,22 @@ void QuadrotorSim::InstallModelPointers(
   }
 }
 
+void QuadrotorSim::ConfigureDefaultCamera() {
+  if (model_ == nullptr) {
+    return;
+  }
+
+  const int track_camera_id = mj_name2id(model_, mjOBJ_CAMERA, "track");
+  if (track_camera_id >= 0) {
+    camera_.type = mjCAMERA_FIXED;
+    camera_.fixedcamid = track_camera_id;
+    camera_.trackbodyid = -1;
+    if (viewer_) {
+      viewer_->camera = 2 + track_camera_id;
+    }
+  }
+}
+
 std::string QuadrotorSim::ValidateModel(const mjModel* candidate) const {
   static constexpr const char* kMotorNames[4] = {"motor1", "motor2", "motor3", "motor4"};
   for (const char* motor_name : kMotorNames) {
@@ -750,6 +829,46 @@ std::string QuadrotorSim::ValidateModel(const mjModel* candidate) const {
     }
   }
   return {};
+}
+
+int QuadrotorSim::ComputeControlDecimation() const {
+  if (config_.simulation.dt <= 0.0) {
+    throw std::runtime_error("simulation.dt must be positive.");
+  }
+  if (config_.controller.rate_hz <= 0.0) {
+    throw std::runtime_error("controller.rate_hz must be positive.");
+  }
+  if (config_.simulation.control_mode < 0 || config_.simulation.control_mode > 2) {
+    throw std::runtime_error("simulation.control_mode must be 0, 1, or 2.");
+  }
+  if (config_.simulation.example_mode < 1 || config_.simulation.example_mode > 2) {
+    throw std::runtime_error("simulation.example_mode must be 1 or 2.");
+  }
+  if (config_.simulation.control_mode == static_cast<int>(SE3Controller::ControlMode::kDirect)) {
+    throw std::runtime_error(
+        "simulation.control_mode=0 is reserved for direct thrust/motor control and is not implemented yet.");
+  }
+
+  const double physics_rate_hz = 1.0 / config_.simulation.dt;
+  const double raw_decimation = physics_rate_hz / config_.controller.rate_hz;
+  const int decimation = static_cast<int>(std::lround(raw_decimation));
+
+  if (decimation <= 0) {
+    throw std::runtime_error("controller.rate_hz must not exceed the physics update rate.");
+  }
+
+  const double snapped_rate_hz = physics_rate_hz / static_cast<double>(decimation);
+  if (std::abs(snapped_rate_hz - config_.controller.rate_hz) > kFrequencyTolerance) {
+    std::ostringstream stream;
+    stream << "controller.rate_hz=" << config_.controller.rate_hz
+           << " is incompatible with simulation.dt=" << config_.simulation.dt
+           << ". The ratio physics_rate/controller_rate must be an integer. "
+           << "For this dt, valid rates include " << physics_rate_hz << ", "
+           << physics_rate_hz / 2.0 << ", " << physics_rate_hz / 4.0 << ", ...";
+    throw std::runtime_error(stream.str());
+  }
+
+  return decimation;
 }
 
 bool QuadrotorSim::ShouldContinueHeadless() const {
