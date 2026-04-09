@@ -34,6 +34,14 @@ namespace mj = ::mujoco;
 using Seconds = std::chrono::duration<double>;
 
 constexpr double kSyncMisalign = 0.1;
+
+void LoadMuJoCoPlugins() {
+  const char* plugin_dir = std::getenv("MUJOCO_PLUGIN_DIR");
+  if (plugin_dir) {
+    mj_loadAllPluginLibraries(plugin_dir, nullptr);
+  }
+}
+
 constexpr double kSimRefreshFraction = 0.7;
 constexpr int kLoadErrorLength = 1024;
 constexpr double kFrequencyTolerance = 1e-6;
@@ -111,6 +119,7 @@ struct ModelLoadResult {
 };
 
 ModelLoadResult LoadModelFile(const fs::path& path) {
+  LoadMuJoCoPlugins();
   ModelLoadResult result;
 
   char load_error[kLoadErrorLength] = "Could not load binary model";
