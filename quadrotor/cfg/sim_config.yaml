@@ -22,6 +22,12 @@ ros2:
   publish_tf: true
   publish_clock: true
 
+# Dynamic obstacle configuration
+# Set enabled: true to enable dynamic obstacles
+dynamic_obstacle:
+  enabled: true
+  config_path: "../../third_party/dynamic_obs_generator/obstacle.yaml"
+  
 goal:
   position: [0.0, 0.0, 0.3]
   velocity: [0.5, 0.0, 0.0]
@@ -33,3 +39,4 @@ trajectory:
   radius: 0.5
   speed_hz: 0.3
   height_gain: 1.5
+

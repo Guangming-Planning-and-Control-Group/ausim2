@@ -438,6 +438,9 @@ void QuadrotorSim::Step() {
     throw std::runtime_error("Simulation is not loaded.");
   }
   mj_step(model_, data_);
+  UpdateDynamicObstacles();
+  // Recompute forward kinematics so renderer sees updated geom positions
+  mj_forward(model_, data_);
 }
 
 void QuadrotorSim::Run() {
@@ -825,6 +828,9 @@ void QuadrotorSim::InstallModelPointers(
     stream.sequence = 0;
   }
 
+  // Initialize dynamic obstacle manager after model is ready
+  InitializeDynamicObstacleManager();
+
   if (replace_existing) {
     if (old_data != nullptr && old_data != new_data) {
       mj_deleteData(old_data);
@@ -1168,6 +1174,48 @@ void QuadrotorSim::LogStateIfNeeded(const TelemetrySnapshot& snapshot) const {
             << "goal=" << VectorToString(snapshot.goal_state.position) << " "
             << "source=" << snapshot.goal_source << " "
             << "motor_krpm=" << VectorToString(snapshot.motor_speed_krpm) << '\n';
+}
+
+void QuadrotorSim::InitializeDynamicObstacleManager() {
+  // Skip if not enabled
+  if (!config_.dynamic_obstacle.enabled) {
+    return;
+  }
+
+  // Skip if already initialized (model reloaded)
+  if (obstacle_manager_ != nullptr) {
+    std::cout << "[QuadrotorSim] Dynamic obstacle manager already initialized, skipping." << std::endl;
+    return;
+  }
+
+  // Check if config path is provided
+  if (config_.dynamic_obstacle.config_path.empty()) {
+    std::cerr << "[QuadrotorSim] Warning: dynamic_obstacle.enabled=true but config_path is not set." << std::endl;
+    std::cerr << "[QuadrotorSim] Warning: Please set dynamic_obstacle.config_path in sim_config.yaml" << std::endl;
+    return;
+  }
+
+  try {
+    auto manager = std::make_unique<dynamic_obstacle::DynamicObstacleManager>();
+    auto obstacle_config = dynamic_obstacle::LoadConfigFromYaml(
+        config_.dynamic_obstacle.config_path);
+
+    if (manager->Initialize(obstacle_config, model_, data_)) {
+      obstacle_manager_ = std::move(manager);
+      std::cout << "[QuadrotorSim] Dynamic obstacle manager initialized successfully." << std::endl;
+      std::cout << obstacle_manager_->GetDebugInfo() << std::endl;
+    } else {
+      std::cerr << "[QuadrotorSim] Failed to initialize dynamic obstacle manager." << std::endl;
+    }
+  } catch (const std::exception& e) {
+    std::cerr << "[QuadrotorSim] Exception initializing dynamic obstacle manager: " << e.what() << std::endl;
+  }
+}
+
+void QuadrotorSim::UpdateDynamicObstacles() {
+  if (obstacle_manager_ != nullptr) {
+    obstacle_manager_->Update();
+  }
 }
 
 }  // namespace quadrotor

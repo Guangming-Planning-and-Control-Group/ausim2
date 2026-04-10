@@ -188,6 +188,15 @@ void ApplyConfigRoot(
     AssignIfPresent(trajectory_node, "radius", &config->circle_trajectory.radius);
     AssignIfPresent(trajectory_node, "speed_hz", &config->circle_trajectory.speed_hz);
     AssignIfPresent(trajectory_node, "height_gain", &config->circle_trajectory.height_gain);
+
+    const YAML::Node dynamic_obstacle_node = root["dynamic_obstacle"];
+    if (dynamic_obstacle_node) {
+      AssignIfPresent(dynamic_obstacle_node, "enabled", &config->dynamic_obstacle.enabled);
+      if (dynamic_obstacle_node["config_path"]) {
+        config->dynamic_obstacle.config_path =
+            ResolvePath(config_path, dynamic_obstacle_node["config_path"].as<std::string>()).string();
+      }
+    }
   }
 
   const YAML::Node vehicle_node = root["vehicle"];

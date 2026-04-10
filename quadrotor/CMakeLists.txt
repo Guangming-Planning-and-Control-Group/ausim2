@@ -56,6 +56,8 @@ target_link_libraries(quadrotor_mujoco_viewer
     "${QUADROTOR_THIRD_PARTY_DIR}/mujoco_simulate/liblodepng.a"
 )
 
+add_subdirectory("${QUADROTOR_THIRD_PARTY_DIR}/dynamic_obs_generator" "dynamic_obs_generator_build")
+
 add_library(quadrotor_sim_core STATIC
   src/app/quadrotor_app.cpp
   src/config/quadrotor_config.cpp
@@ -140,6 +142,7 @@ target_link_libraries(quadrotor_sim_core
   glfw
   yaml-cpp
   quadrotor_mujoco_viewer
+  dynamic_obs_generator
   "${MUJOCO_IMPORTED_TARGET}"
 )
 

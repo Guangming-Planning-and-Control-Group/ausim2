@@ -61,6 +61,11 @@ struct SimulationConfig {
   std::string track_camera_name = "track";
 };
 
+struct DynamicObstacleConfig {
+  bool enabled = false;
+  std::string config_path = "";  // Path to obstacle.yaml
+};
+
 struct ViewerConfig {
   bool enabled = true;
   bool fallback_to_headless = true;
@@ -160,6 +165,7 @@ struct QuadrotorConfig {
   CircleTrajectoryConfig circle_trajectory;
   SimulationConfig simulation;
   ViewerConfig viewer;
+  DynamicObstacleConfig dynamic_obstacle;
   ActuatorBindingConfig actuators;
   StateBindingConfig state;
   Ros2Config ros2;

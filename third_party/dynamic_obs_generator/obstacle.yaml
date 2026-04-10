@@ -1,0 +1,46 @@
+# Dynamic Obstacle Generator Configuration
+# 动态障碍物生成器配置
+
+# Random seed for reproducible generation (0 = use random seed from system)
+random_seed: 42
+
+# Generation mode: "2d" or "3d"
+# 2D: obstacles move in XY plane, Z stays fixed (for ground environments)
+# 3D: obstacles move in XYZ space (for aerial environments)
+mode: "2d"
+
+# Size parameters (not used when obstacles are pre-defined in XML)
+radius: 0.3          # Radius for cylinder/sphere shapes (meters)
+box_length: 0.5     # Length of box base (meters)
+box_width: 0.5      # Width of box base (meters)
+cube_size: 0.5      # Size of cube edge (meters)
+
+# Movement bounds (world coordinates)
+range:
+  x_min: -3.0       # Minimum x coordinate
+  x_max: 3.0        # Maximum x coordinate
+  y_min: -3.0       # Minimum y coordinate
+  y_max: 3.0        # Maximum y coordinate
+  z_min: 0.0        # Minimum z coordinate (ground level)
+  z_max: 3.0        # Maximum z coordinate (for 3D mode)
+
+# Maximum number of obstacles to scan for (should match XML)
+obstacle_count: 5
+
+# Motion parameters
+min_speed: 0.0       # Minimum obstacle speed (m/s)
+max_speed: 0.5       # Maximum obstacle speed (m/s)
+                  # Note: If max_speed = 0, all obstacles are static
+
+# ---------------------------------------------------------------------------
+# Quick Start:
+# 1. Add obstacles to your MuJoCo XML scene with names: dynamic_obs_0, dynamic_obs_1, etc.
+# 2. Enable in sim_config.yaml: dynamic_obstacle.enabled: true
+# 3. Run simulation!
+#
+# Example XML additions:
+#   <geom name="dynamic_obs_0" type="cylinder" size="0.3 0.5"
+#         pos="1.0 2.0 1.0" rgba="0.7 0.2 0.2 1" contype="0" conaffinity="0"/>
+#   <geom name="dynamic_obs_1" type="box" size="0.3 0.3 0.5"
+#         pos="2.0 1.0 0.5" rgba="0.2 0.7 0.2 1" contype="0" conaffinity="0"/>
+# ---------------------------------------------------------------------------

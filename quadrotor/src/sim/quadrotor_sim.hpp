@@ -18,6 +18,7 @@
 #include "sim/mujoco_actuator_writer.hpp"
 #include "sim/mujoco_bindings.hpp"
 #include "sim/mujoco_state_reader.hpp"
+#include "dynamic_obs_generator/dynamic_obstacle_manager.hpp"
 
 namespace mujoco {
 class Simulate;
@@ -75,6 +76,10 @@ class QuadrotorSim {
       double simulated_seconds) const;
   static void HandleSigint(int signal);
 
+  // Dynamic obstacle management
+  void InitializeDynamicObstacleManager();
+  void UpdateDynamicObstacles();
+
   QuadrotorConfig config_;
   VehicleRuntime runtime_;
   MujocoBindings bindings_;
@@ -114,6 +119,9 @@ class QuadrotorSim {
   CameraRenderer camera_renderer_;
   bool camera_rendering_ready_ = false;
   bool camera_rendering_failed_ = false;
+
+  // Dynamic obstacle manager
+  std::unique_ptr<dynamic_obstacle::DynamicObstacleManager> obstacle_manager_;
 
   static QuadrotorSim* active_instance_;
 };
