@@ -7,7 +7,12 @@ random_seed: 0
 # Whether obstacles should move at runtime.
 # false: generate static obstacles only, skip runtime obstacle updates
 # true: generate runtime velocities and update obstacle motion
-dynamic: false
+dynamic: true
+
+# Keep generated obstacles out of MuJoCo contact dynamics.
+# false: depth/RGB visible, no physical collision; keeps updates at sensor cadence
+# true: physical collision enabled; forces obstacle updates at physics cadence
+collision_enabled: false
 
 # Enable verbose per-obstacle initialization logs and full debug dumps.
 debug: false
