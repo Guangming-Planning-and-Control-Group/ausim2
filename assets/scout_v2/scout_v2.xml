@@ -1,0 +1,70 @@
+<mujoco model="scout_v2">
+  <compiler angle='radian' eulerseq="XYZ" meshdir="./meshes"
+    autolimits="true" />
+
+  <option timestep="0.001" />
+
+  <default>
+      <default class="scout">
+          <site rgba="1 0 0 1" size="0.01" group="5"/>
+          <joint damping="0.0" armature="0.03" frictionloss="0.3"/>
+          <default class="visual">
+              <geom group="2" type="mesh" contype="0" conaffinity="0" density="0"/>
+          </default>
+          <default class="collision">
+              <geom group="3" type="mesh"/>
+          </default>
+      </default>
+  </default>
+  <asset>
+    <mesh name="base_link" file="base_link.STL"/>
+    <mesh name="wheel_type1" file="wheel_type1.STL"/>
+    <mesh name="wheel_type2" file="wheel_type2.STL"/>
+  </asset>
+
+  <worldbody>
+    <body name="base_link" pos="0 0 0.23479" euler="0 0 0" childclass="scout">
+      <light name="tracking" mode="trackcom" pos="0 0 2"/>
+      <freejoint name="floating_base_joint"/>
+      <inertial pos="0 0 0" mass="50" diaginertia="2.288641 5.103976 3.431465"/>
+      <geom class="visual" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.298039 0.298039 0.298039 1" mesh="base_link"/>
+      <geom class="collision" type="mesh" rgba="0.298039 0.298039 0.298039 1" mesh="base_link"/>
+      <site name="front_mount" pos="0.325 0 0.112701" group="3"/>
+      <site name="rear_mount" pos="-0.325 0 0.112701" group="3"/>
+
+      <body name="front_right_wheel_link" pos="0.249 -0.29153 -0.0702" euler="3.14 0 0">
+        <inertial pos="0 0 0" mass="8" diaginertia="0.1171 0.1361 0.1171"/>
+        <joint name="front_right_wheel" pos="0 0 0" axis="0 -1 0" actuatorfrcrange="-80 80"/>
+        <geom class="visual" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.02 0.02 0.02 1" mesh="wheel_type1"/>
+        <geom class="collision" type="mesh" rgba="0.02 0.02 0.02 1" mesh="wheel_type1"/>
+      </body>
+
+      <body name="front_left_wheel_link" pos="0.249 0.29153 -0.0702" euler="0 0 0">
+        <inertial pos="0 0 0" mass="8" diaginertia="0.1171 0.1361 0.1171"/>
+        <joint name="front_left_wheel" pos="0 0 0" axis="0 -1 0" actuatorfrcrange="-80 80"/>
+        <geom class="visual" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.02 0.02 0.02 1" mesh="wheel_type2"/>
+        <geom class="collision" type="mesh" rgba="0.02 0.02 0.02 1" mesh="wheel_type2"/>
+      </body>
+
+      <body name="rear_left_wheel_link" pos="-0.249 0.29153 -0.0702" euler="0 0 0">
+        <inertial pos="0 0 0" mass="8" diaginertia="0.1171 0.1361 0.1171"/>
+        <joint name="rear_left_wheel" pos="0 0 0" axis="0 -1 0" actuatorfrcrange="-80 80"/>
+        <geom class="visual" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.02 0.02 0.02 1" mesh="wheel_type1"/>
+        <geom class="collision" type="mesh" rgba="0.02 0.02 0.02 1" mesh="wheel_type1"/>
+      </body>
+
+      <body name="rear_right_wheel_link" pos="-0.249 -0.29153 -0.0702" euler="3.14 0 0">
+        <inertial pos="0 0 0" mass="8" diaginertia="0.1171 0.1361 0.1171"/>
+        <joint name="rear_right_wheel" pos="0 0 0" axis="0 -1 0" actuatorfrcrange="-80 80"/>
+        <geom class="visual" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.02 0.02 0.02 1" mesh="wheel_type2"/>
+        <geom class="collision" type="mesh" rgba="0.02 0.02 0.02 1" mesh="wheel_type2"/>
+      </body>
+    </body>
+  </worldbody>
+  <actuator>
+    <velocity class="scout" name="velocity_front_right_wheel" joint="front_right_wheel" kv="10" ctrlrange="-20 20"/>
+    <velocity class="scout" name="velocity_front_left_wheel" joint="front_left_wheel" kv="10" ctrlrange="-20 20"/>
+    <velocity class="scout" name="velocity_rear_left_wheel" joint="rear_left_wheel" kv="10" ctrlrange="-20 20"/>
+    <velocity class="scout" name="velocity_rear_right_wheel" joint="rear_right_wheel" kv="10" ctrlrange="-20 20"/>
+  </actuator>
+</mujoco>
