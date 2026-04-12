@@ -1,15 +1,15 @@
 #include "manager/ros_bridge_process_manager.hpp"
 
+#include <sys/socket.h>
+#include <sys/wait.h>
+#include <unistd.h>
 #include <chrono>
 #include <csignal>
 #include <cstring>
 #include <iostream>
 #include <stdexcept>
 #include <string>
-#include <sys/socket.h>
-#include <sys/wait.h>
 #include <thread>
-#include <unistd.h>
 #include <utility>
 #include <vector>
 
@@ -25,29 +25,21 @@ constexpr std::chrono::milliseconds kStartupProbeDelay(300);
 constexpr std::chrono::milliseconds kShutdownPollDelay(50);
 constexpr int kShutdownPollCount = 20;
 
-std::runtime_error SystemError(const std::string& message) {
-  return std::runtime_error(message + ": " + std::strerror(errno));
-}
+std::runtime_error SystemError(const std::string& message) { return std::runtime_error(message + ": " + std::strerror(errno)); }
 
 }  // namespace
 
-RosBridgeProcessManager::RosBridgeProcessManager(
-    const QuadrotorConfig& config,
-    RosBridgeLaunchConfig launch_config)
-    : config_(config),
-      launch_config_(std::move(launch_config)) {
+RosBridgeProcessManager::RosBridgeProcessManager(const QuadrotorConfig& config, RosBridgeLaunchConfig launch_config)
+    : config_(config), launch_config_(std::move(launch_config)) {
   for (const CameraStreamConfig& stream : BuildCameraStreamConfigs(config_.sensors)) {
     if (stream.channel_name.empty()) {
-      throw std::runtime_error(
-          "Camera stream '" + stream.name + "' must define an internal channel name.");
+      throw std::runtime_error("Camera stream '" + stream.name + "' must define an internal channel name.");
     }
     camera_channel_names_.push_back(stream.channel_name);
   }
 }
 
-RosBridgeProcessManager::~RosBridgeProcessManager() {
-  Stop();
-}
+RosBridgeProcessManager::~RosBridgeProcessManager() { Stop(); }
 
 void RosBridgeProcessManager::Start() {
   if (running_.load()) {
@@ -57,9 +49,7 @@ void RosBridgeProcessManager::Start() {
     throw std::runtime_error("ROS bridge executable path is empty.");
   }
   if (!std::filesystem::exists(launch_config_.executable_path)) {
-    throw std::runtime_error(
-        "ROS bridge executable does not exist: " +
-        launch_config_.executable_path.string());
+    throw std::runtime_error("ROS bridge executable does not exist: " + launch_config_.executable_path.string());
   }
 
   int telemetry_fds[2] = {-1, -1};
@@ -176,8 +166,7 @@ void RosBridgeProcessManager::Stop() {
         waitpid(child_pid_, &status, 0);
       }
     } else if (result < 0 && errno != ECHILD && was_running) {
-      std::cerr << "ausim warning: waitpid failed while stopping ROS bridge: "
-                << std::strerror(errno) << '\n';
+      std::cerr << "ausim warning: waitpid failed while stopping ROS bridge: " << std::strerror(errno) << '\n';
     }
     child_pid_ = -1;
   }
@@ -234,11 +223,9 @@ void RosBridgeProcessManager::CameraLoop() {
         continue;
       }
 
-      const ipc::CameraImageMetadataPacket metadata =
-          converts::ToCameraImageMetadataPacket(*frame, static_cast<std::uint32_t>(i));
+      const ipc::CameraImageMetadataPacket metadata = converts::ToCameraImageMetadataPacket(*frame, static_cast<std::uint32_t>(i));
       const bool sent =
-          ipc::WriteFully(image_send_fd_, &metadata, sizeof(metadata)) &&
-          ipc::WriteFully(image_send_fd_, frame->data.data(), frame->data.size());
+          ipc::WriteFully(image_send_fd_, &metadata, sizeof(metadata)) && ipc::WriteFully(image_send_fd_, frame->data.data(), frame->data.size());
       if (!sent) {
         if (running_.load()) {
           std::cerr << "ausim warning: image socket send failed\n";
@@ -268,14 +255,10 @@ void RosBridgeProcessManager::EnsureChildStillRunning(const char* stage) const {
   }
 
   if (WIFEXITED(status)) {
-    throw std::runtime_error(
-        "ROS bridge process exited during " + std::string(stage) +
-        " with code " + std::to_string(WEXITSTATUS(status)) + ".");
+    throw std::runtime_error("ROS bridge process exited during " + std::string(stage) + " with code " + std::to_string(WEXITSTATUS(status)) + ".");
   }
   if (WIFSIGNALED(status)) {
-    throw std::runtime_error(
-        "ROS bridge process exited during " + std::string(stage) +
-        " with signal " + std::to_string(WTERMSIG(status)) + ".");
+    throw std::runtime_error("ROS bridge process exited during " + std::string(stage) + " with signal " + std::to_string(WTERMSIG(status)) + ".");
   }
 
   throw std::runtime_error("ROS bridge process exited unexpectedly during " + std::string(stage) + ".");

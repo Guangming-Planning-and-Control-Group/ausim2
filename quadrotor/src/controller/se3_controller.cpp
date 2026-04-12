@@ -21,24 +21,17 @@ Eigen::Matrix3d BuildBodyFromAircraft(const Eigen::Vector3d& aircraft_forward_ax
   return body_from_aircraft;
 }
 
-Eigen::Vector3d ProjectOntoPlane(const Eigen::Vector3d& vector, const Eigen::Vector3d& normal) {
-  return vector - normal * normal.dot(vector);
-}
+Eigen::Vector3d ProjectOntoPlane(const Eigen::Vector3d& vector, const Eigen::Vector3d& normal) { return vector - normal * normal.dot(vector); }
 
 }  // namespace
 
-void SE3Controller::setCurrentState(const State& state) {
-  current_state_ = state;
-}
+void SE3Controller::setCurrentState(const State& state) { current_state_ = state; }
 
-void SE3Controller::setGoalState(const State& state) {
-  goal_state_ = state;
-}
+void SE3Controller::setGoalState(const State& state) { goal_state_ = state; }
 
 void SE3Controller::setAircraftForwardAxis(const Eigen::Vector3d& axis) {
   if (axis.head<2>().norm() < 1e-6 || std::abs(axis.z()) > 1e-6) {
-    throw std::runtime_error(
-        "aircraft forward axis must be horizontal and have a non-zero xy component.");
+    throw std::runtime_error("aircraft forward axis must be horizontal and have a non-zero xy component.");
   }
   body_from_aircraft_ = BuildBodyFromAircraft(axis);
 }
@@ -53,9 +46,7 @@ std::pair<Eigen::Vector3d, Eigen::Vector3d> SE3Controller::updateLinearError() c
   return {e_x, e_v};
 }
 
-SE3Controller::AngularError SE3Controller::updateAngularError(
-    const Eigen::Vector3d& trans_control,
-    const Eigen::Vector3d& forward) const {
+SE3Controller::AngularError SE3Controller::updateAngularError(const Eigen::Vector3d& trans_control, const Eigen::Vector3d& forward) const {
   if (!goal_state_.has_value() || !current_state_.has_value()) {
     throw std::runtime_error("SE3Controller state is not initialized.");
   }
@@ -82,8 +73,7 @@ SE3Controller::AngularError SE3Controller::updateAngularError(
     proj_fwd_des = ProjectOntoPlane(R_curr * body_from_aircraft_.col(0), goal_z);
   }
   if (proj_fwd_des.norm() < 1e-6) {
-    const Eigen::Vector3d fallback =
-        std::abs(goal_z.z()) < 0.9 ? Eigen::Vector3d::UnitZ() : Eigen::Vector3d::UnitX();
+    const Eigen::Vector3d fallback = std::abs(goal_z.z()) < 0.9 ? Eigen::Vector3d::UnitZ() : Eigen::Vector3d::UnitX();
     proj_fwd_des = ProjectOntoPlane(fallback, goal_z);
   }
   proj_fwd_des.normalize();
@@ -98,39 +88,30 @@ SE3Controller::AngularError SE3Controller::updateAngularError(
 
   AngularError error;
   error.thrust = goal_z_norm;
-  error.attitude =
-      0.5 * math::veeMap(R_goal.transpose() * R_curr - R_curr.transpose() * R_goal);
-  error.angular_rate =
-      current_state_->omega - R_curr.transpose() * R_goal * goal_state_->omega;
+  error.attitude = 0.5 * math::veeMap(R_goal.transpose() * R_curr - R_curr.transpose() * R_goal);
+  error.angular_rate = current_state_->omega - R_curr.transpose() * R_goal * goal_state_->omega;
   return error;
 }
 
-ControlCommand SE3Controller::controlUpdate(
-    const State& current_state,
-    const State& goal_state,
-    double dt,
-    const Eigen::Vector3d& forward) {
+ControlCommand SE3Controller::controlUpdate(const State& current_state, const State& goal_state, double dt, const Eigen::Vector3d& forward) {
   (void)dt;
   current_state_ = current_state;
   goal_state_ = goal_state;
 
   const auto [e_x, e_v] = updateLinearError();
-  const Eigen::Vector3d position_error =
-      control_mode == ControlMode::kPosition ? e_x : Eigen::Vector3d::Zero();
+  const Eigen::Vector3d position_error = control_mode == ControlMode::kPosition ? e_x : Eigen::Vector3d::Zero();
 
-  const Eigen::Vector3d trans_control(
-      -kx * position_error.x() - kv * e_v.x() + goal_state_->velocity.x(),
-      -kx * position_error.y() - kv * e_v.y() + goal_state_->velocity.y(),
-      -kx * position_error.z() - kv * e_v.z() + goal_state_->velocity.z());
+  const Eigen::Vector3d trans_control(-kx * position_error.x() - kv * e_v.x() + goal_state_->velocity.x(),
+                                      -kx * position_error.y() - kv * e_v.y() + goal_state_->velocity.y(),
+                                      -kx * position_error.z() - kv * e_v.z() + goal_state_->velocity.z());
 
   const AngularError angular_error = updateAngularError(trans_control, forward);
 
   ControlCommand command;
   command.thrust = angular_error.thrust;
-  command.angular = Eigen::Vector3d(
-      -kR * angular_error.attitude.x() - kw * angular_error.angular_rate.x() + goal_state_->omega.x(),
-      -kR * angular_error.attitude.y() - kw * angular_error.angular_rate.y() + goal_state_->omega.y(),
-      -kR * angular_error.attitude.z() - kw * angular_error.angular_rate.z() + goal_state_->omega.z());
+  command.angular = Eigen::Vector3d(-kR * angular_error.attitude.x() - kw * angular_error.angular_rate.x() + goal_state_->omega.x(),
+                                    -kR * angular_error.attitude.y() - kw * angular_error.angular_rate.y() + goal_state_->omega.y(),
+                                    -kR * angular_error.attitude.z() - kw * angular_error.angular_rate.z() + goal_state_->omega.z());
   return command;
 }
 

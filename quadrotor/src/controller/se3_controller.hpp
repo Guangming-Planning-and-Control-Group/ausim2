@@ -29,11 +29,7 @@ class SE3Controller {
   void setGoalState(const State& state);
   void setAircraftForwardAxis(const Eigen::Vector3d& axis);
 
-  ControlCommand controlUpdate(
-      const State& current_state,
-      const State& goal_state,
-      double dt,
-      const Eigen::Vector3d& forward);
+  ControlCommand controlUpdate(const State& current_state, const State& goal_state, double dt, const Eigen::Vector3d& forward);
 
  private:
   struct AngularError {
@@ -43,15 +39,9 @@ class SE3Controller {
   };
 
   std::pair<Eigen::Vector3d, Eigen::Vector3d> updateLinearError() const;
-  AngularError updateAngularError(
-      const Eigen::Vector3d& trans_control,
-      const Eigen::Vector3d& forward) const;
+  AngularError updateAngularError(const Eigen::Vector3d& trans_control, const Eigen::Vector3d& forward) const;
 
-  Eigen::Matrix3d body_from_aircraft_ =
-      (Eigen::Matrix3d() << 0.0, -1.0, 0.0,
-                            1.0,  0.0, 0.0,
-                            0.0,  0.0, 1.0)
-          .finished();
+  Eigen::Matrix3d body_from_aircraft_ = (Eigen::Matrix3d() << 0.0, -1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0).finished();
   std::optional<State> goal_state_;
   std::optional<State> current_state_;
 };

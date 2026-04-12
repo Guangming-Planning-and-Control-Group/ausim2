@@ -15,10 +15,7 @@ namespace fs = std::filesystem;
 namespace ausim {
 namespace {
 
-fs::path DefaultSceneXmlPath() {
-  return (fs::path(QUADROTOR_SOURCE_DIR).parent_path() / "assets" / "crazyfile" / "scene.xml")
-      .lexically_normal();
-}
+fs::path DefaultSceneXmlPath() { return (fs::path(QUADROTOR_SOURCE_DIR).parent_path() / "assets" / "crazyfile" / "scene.xml").lexically_normal(); }
 
 template <typename T>
 void AssignIfPresent(const YAML::Node& node, const char* key, T* value) {
@@ -44,12 +41,10 @@ fs::path ResolvePath(const fs::path& config_path, const fs::path& maybe_relative
 Eigen::Vector3d NormalizeAircraftForwardAxis(const Eigen::Vector3d& axis) {
   const Eigen::Vector3d horizontal_axis(axis.x(), axis.y(), 0.0);
   if (horizontal_axis.norm() < 1e-6) {
-    throw std::runtime_error(
-        "model.aircraft_forward_axis must have a non-zero horizontal component.");
+    throw std::runtime_error("model.aircraft_forward_axis must have a non-zero horizontal component.");
   }
   if (std::abs(axis.z()) > 1e-6) {
-    throw std::runtime_error(
-        "model.aircraft_forward_axis must stay in the horizontal plane.");
+    throw std::runtime_error("model.aircraft_forward_axis must stay in the horizontal plane.");
   }
   return horizontal_axis.normalized();
 }
@@ -57,12 +52,8 @@ Eigen::Vector3d NormalizeAircraftForwardAxis(const Eigen::Vector3d& axis) {
 std::string DeriveDepthTopic(const std::string& color_topic) {
   constexpr std::string_view kImageRawSuffix = "/image_raw";
   if (color_topic.size() >= kImageRawSuffix.size() &&
-      color_topic.compare(
-          color_topic.size() - kImageRawSuffix.size(),
-          kImageRawSuffix.size(),
-          kImageRawSuffix) == 0) {
-    return color_topic.substr(0, color_topic.size() - kImageRawSuffix.size()) +
-           "/depth/image_raw";
+      color_topic.compare(color_topic.size() - kImageRawSuffix.size(), kImageRawSuffix.size(), kImageRawSuffix) == 0) {
+    return color_topic.substr(0, color_topic.size() - kImageRawSuffix.size()) + "/depth/image_raw";
   }
   if (color_topic.empty()) {
     return "camera/depth/image_raw";
@@ -89,20 +80,15 @@ CameraStreamConfig BuildDepthStream(const SensorConfig& sensor) {
   stream.name = sensor.name + "_depth";
   stream.kind = CameraStreamKind::kDepth;
   stream.camera_name = sensor.source_name;
-  stream.sensor_name =
-      sensor.depth.sensor_name.empty() ? sensor.source_name + "_depth"
-                                       : sensor.depth.sensor_name;
+  stream.sensor_name = sensor.depth.sensor_name.empty() ? sensor.source_name + "_depth" : sensor.depth.sensor_name;
   stream.data_type = sensor.depth.data_type;
   stream.channel_name = stream.sensor_name;
-  stream.frame_id =
-      sensor.depth.frame_id.empty() ? sensor.frame_id : sensor.depth.frame_id;
-  stream.topic =
-      sensor.depth.topic.empty() ? DeriveDepthTopic(sensor.topic) : sensor.depth.topic;
+  stream.frame_id = sensor.depth.frame_id.empty() ? sensor.frame_id : sensor.depth.frame_id;
+  stream.topic = sensor.depth.topic.empty() ? DeriveDepthTopic(sensor.topic) : sensor.depth.topic;
   stream.width = sensor.width;
   stream.height = sensor.height;
   stream.rate_hz = sensor.depth.rate_hz > 0.0 ? sensor.depth.rate_hz : sensor.rate_hz;
-  stream.compute_rate_hz =
-      sensor.depth.compute_rate_hz > 0.0 ? sensor.depth.compute_rate_hz : stream.rate_hz;
+  stream.compute_rate_hz = sensor.depth.compute_rate_hz > 0.0 ? sensor.depth.compute_rate_hz : stream.rate_hz;
   stream.worker_threads = sensor.depth.worker_threads;
   return stream;
 }
@@ -140,11 +126,7 @@ void LoadSensors(const YAML::Node& sensors_node, std::vector<SensorConfig>* sens
   }
 }
 
-void ApplyConfigRoot(
-    const YAML::Node& root,
-    const fs::path& config_path,
-    QuadrotorConfig* config,
-    bool apply_global_simulation_config = true) {
+void ApplyConfigRoot(const YAML::Node& root, const fs::path& config_path, QuadrotorConfig* config, bool apply_global_simulation_config = true) {
   if (!root || !root.IsMap()) {
     return;
   }
@@ -164,8 +146,7 @@ void ApplyConfigRoot(
   AssignIfPresent(model_node, "body_name", &config->model.vehicle_body_name);
   if (model_node && model_node["aircraft_forward_axis"]) {
     config->model.aircraft_forward_axis =
-        NormalizeAircraftForwardAxis(
-            LoadVector3(model_node["aircraft_forward_axis"], config->model.aircraft_forward_axis));
+        NormalizeAircraftForwardAxis(LoadVector3(model_node["aircraft_forward_axis"], config->model.aircraft_forward_axis));
   }
 
   if (apply_global_simulation_config) {
@@ -198,8 +179,7 @@ void ApplyConfigRoot(
     if (dynamic_obstacle_node) {
       AssignIfPresent(dynamic_obstacle_node, "enabled", &config->dynamic_obstacle.enabled);
       if (dynamic_obstacle_node["config_path"]) {
-        config->dynamic_obstacle.config_path =
-            ResolvePath(config_path, dynamic_obstacle_node["config_path"].as<std::string>()).string();
+        config->dynamic_obstacle.config_path = ResolvePath(config_path, dynamic_obstacle_node["config_path"].as<std::string>()).string();
       }
     }
   }
@@ -264,11 +244,8 @@ void ApplyConfigRoot(
   }
 }
 
-std::optional<fs::path> ResolveRobotConfigPath(
-    const YAML::Node& root,
-    const fs::path& config_path,
-    const fs::path& explicit_robot_path,
-    bool require_robot_config) {
+std::optional<fs::path> ResolveRobotConfigPath(const YAML::Node& root, const fs::path& config_path, const fs::path& explicit_robot_path,
+                                               bool require_robot_config) {
   if (!explicit_robot_path.empty()) {
     return fs::absolute(explicit_robot_path);
   }
@@ -279,16 +256,12 @@ std::optional<fs::path> ResolveRobotConfigPath(
   }
 
   if (require_robot_config) {
-    throw std::runtime_error(
-        "Simulation config must define 'robot_config' to select the robot model.");
+    throw std::runtime_error("Simulation config must define 'robot_config' to select the robot model.");
   }
   return std::nullopt;
 }
 
-QuadrotorConfig LoadConfigFile(
-    const fs::path& path,
-    const fs::path& explicit_robot_path = {},
-    bool require_robot_config = false) {
+QuadrotorConfig LoadConfigFile(const fs::path& path, const fs::path& explicit_robot_path = {}, bool require_robot_config = false) {
   const fs::path config_path = fs::absolute(path);
   if (!fs::exists(config_path)) {
     throw std::runtime_error("Config file does not exist: " + config_path.string());
@@ -299,19 +272,13 @@ QuadrotorConfig LoadConfigFile(
   config.model.scene_xml = DefaultSceneXmlPath();
   ApplyConfigRoot(root, config_path, &config, true);
 
-  const std::optional<fs::path> robot_config_path =
-      ResolveRobotConfigPath(root, config_path, explicit_robot_path, require_robot_config);
+  const std::optional<fs::path> robot_config_path = ResolveRobotConfigPath(root, config_path, explicit_robot_path, require_robot_config);
   if (robot_config_path.has_value()) {
     const fs::path resolved_robot_config_path = fs::absolute(*robot_config_path);
     if (!fs::exists(resolved_robot_config_path)) {
-      throw std::runtime_error(
-          "Robot config file does not exist: " + resolved_robot_config_path.string());
+      throw std::runtime_error("Robot config file does not exist: " + resolved_robot_config_path.string());
     }
-    ApplyConfigRoot(
-        YAML::LoadFile(resolved_robot_config_path.string()),
-        resolved_robot_config_path,
-        &config,
-        false);
+    ApplyConfigRoot(YAML::LoadFile(resolved_robot_config_path.string()), resolved_robot_config_path, &config, false);
   }
 
   return config;
@@ -319,18 +286,13 @@ QuadrotorConfig LoadConfigFile(
 
 }  // namespace
 
-QuadrotorConfig LoadConfigFromYaml(const std::string& path) {
-  return LoadConfigFile(path);
-}
+QuadrotorConfig LoadConfigFromYaml(const std::string& path) { return LoadConfigFile(path); }
 
-QuadrotorConfig LoadConfigFromYaml(
-    const std::string& sim_config_path,
-    const std::string& robot_config_path) {
+QuadrotorConfig LoadConfigFromYaml(const std::string& sim_config_path, const std::string& robot_config_path) {
   return LoadConfigFile(sim_config_path, robot_config_path, true);
 }
 
-std::vector<CameraStreamConfig> BuildCameraStreamConfigs(
-    const std::vector<SensorConfig>& sensors) {
+std::vector<CameraStreamConfig> BuildCameraStreamConfigs(const std::vector<SensorConfig>& sensors) {
   std::vector<CameraStreamConfig> streams;
   for (const SensorConfig& sensor : sensors) {
     if (!sensor.enabled || sensor.type != "camera") {

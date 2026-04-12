@@ -180,11 +180,8 @@ struct QuadrotorConfig {
 using SimConfig = QuadrotorConfig;
 
 QuadrotorConfig LoadConfigFromYaml(const std::string& path);
-QuadrotorConfig LoadConfigFromYaml(
-    const std::string& sim_config_path,
-    const std::string& robot_config_path);
-std::vector<CameraStreamConfig> BuildCameraStreamConfigs(
-    const std::vector<SensorConfig>& sensors);
+QuadrotorConfig LoadConfigFromYaml(const std::string& sim_config_path, const std::string& robot_config_path);
+std::vector<CameraStreamConfig> BuildCameraStreamConfigs(const std::vector<SensorConfig>& sensors);
 
 }  // namespace ausim
 

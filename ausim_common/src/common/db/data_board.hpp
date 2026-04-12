@@ -37,11 +37,9 @@ class DataBoardManager {
     }
 
     try {
-      return SecurityDataRef<T, P>(
-          std::any_cast<std::shared_ptr<SecurityData<T>>>(it->second));
+      return SecurityDataRef<T, P>(std::any_cast<std::shared_ptr<SecurityData<T>>>(it->second));
     } catch (const std::bad_any_cast& error) {
-      throw std::runtime_error(
-          "DataBoard type mismatch for key '" + key + "': " + error.what());
+      throw std::runtime_error("DataBoard type mismatch for key '" + key + "': " + error.what());
     }
   }
 

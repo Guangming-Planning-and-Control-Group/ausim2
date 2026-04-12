@@ -4,11 +4,8 @@
 
 namespace quadrotor {
 
-QuadrotorApp::QuadrotorApp(
-    QuadrotorConfig config,
-    RosBridgeLaunchConfig bridge_launch_config)
-    : config_(std::move(config)),
-      bridge_launch_config_(std::move(bridge_launch_config)) {}
+QuadrotorApp::QuadrotorApp(QuadrotorConfig config, RosBridgeLaunchConfig bridge_launch_config)
+    : config_(std::move(config)), bridge_launch_config_(std::move(bridge_launch_config)) {}
 
 int QuadrotorApp::Run() {
   RosBridgeProcessManager bridge_manager(config_, bridge_launch_config_);

@@ -11,11 +11,7 @@ namespace ausim {
 
 class OdomDataPublisher : public ITelemetryPublisher {
  public:
-  OdomDataPublisher(
-      const std::shared_ptr<rclcpp::Node>& node,
-      std::string topic_name,
-      std::string frame_id,
-      std::string child_frame_id);
+  OdomDataPublisher(const std::shared_ptr<rclcpp::Node>& node, std::string topic_name, std::string frame_id, std::string child_frame_id);
 
   void Publish(const ipc::TelemetryPacket& packet) override;
 

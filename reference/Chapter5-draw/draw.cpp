@@ -9,12 +9,12 @@
 #include <iostream>
 
 // MuJoCo data structures
-mjModel *m = NULL; // MuJoCo model
-mjData *d = NULL;  // MuJoCo data
-mjvCamera cam;     // abstract camera
-mjvOption opt;     // visualization options
-mjvScene scn;      // abstract scene
-mjrContext con;    // custom GPU context
+mjModel *m = NULL;  // MuJoCo model
+mjData *d = NULL;   // MuJoCo data
+mjvCamera cam;      // abstract camera
+mjvOption opt;      // visualization options
+mjvScene scn;       // abstract scene
+mjrContext con;     // custom GPU context
 
 // mouse interaction
 bool button_left = false;
@@ -24,8 +24,7 @@ double lastx = 0;
 double lasty = 0;
 
 // keyboard callback
-void keyboard(GLFWwindow *window, int key, int scancdataode, int act,
-              int mods) {
+void keyboard(GLFWwindow *window, int key, int scancdataode, int act, int mods) {
   // backspace: reset simulation
   if (act == GLFW_PRESS && key == GLFW_KEY_BACKSPACE) {
     mj_resetData(m, d);
@@ -36,12 +35,9 @@ void keyboard(GLFWwindow *window, int key, int scancdataode, int act,
 // mouse button callback
 void mouse_button(GLFWwindow *window, int button, int act, int mods) {
   // update button state
-  button_left =
-      (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS);
-  button_middle =
-      (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS);
-  button_right =
-      (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS);
+  button_left = (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS);
+  button_middle = (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS);
+  button_right = (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS);
 
   // update mouse position
   glfwGetCursorPos(window, &lastx, &lasty);
@@ -65,8 +61,7 @@ void mouse_move(GLFWwindow *window, double xpos, double ypos) {
   glfwGetWindowSize(window, &width, &height);
 
   // get shift key state
-  bool mod_shift = (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS ||
-                    glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS);
+  bool mod_shift = (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS);
 
   // determine action based on mouse button
   mjtMouse action;
@@ -88,8 +83,7 @@ void scroll(GLFWwindow *window, double xoffset, double yoffset) {
   mjv_moveCamera(m, mjMOUSE_ZOOM, 0, -0.05 * yoffset, &scn, &cam);
 }
 
-std::vector<float> get_sensor_data(const mjModel *model, const mjData *data,
-                                   const std::string &sensor_name) {
+std::vector<float> get_sensor_data(const mjModel *model, const mjData *data, const std::string &sensor_name) {
   int sensor_id = mj_name2id(model, mjOBJ_SENSOR, sensor_name.c_str());
   if (sensor_id == -1) {
     std::cout << "no found sensor" << std::endl;
@@ -104,8 +98,7 @@ std::vector<float> get_sensor_data(const mjModel *model, const mjData *data,
 }
 
 /*--------绘制直线--------*/
-void draw_line(mjvScene *scn, mjtNum *from, mjtNum *to, mjtNum width,
-               float *rgba) {
+void draw_line(mjvScene *scn, mjtNum *from, mjtNum *to, mjtNum width, float *rgba) {
   scn->ngeom += 1;
   mjvGeom *geom = scn->geoms + scn->ngeom - 1;
   mjv_initGeom(geom, mjGEOM_SPHERE, NULL, NULL, NULL, rgba);
@@ -113,8 +106,7 @@ void draw_line(mjvScene *scn, mjtNum *from, mjtNum *to, mjtNum width,
 }
 
 /*--------绘制箭头--------*/
-void draw_arrow(mjvScene *scn, mjtNum *from, mjtNum *to, mjtNum width,
-                float rgba[4]) {
+void draw_arrow(mjvScene *scn, mjtNum *from, mjtNum *to, mjtNum width, float rgba[4]) {
   scn->ngeom += 1;
   mjvGeom *geom = scn->geoms + scn->ngeom - 1;
   mjv_initGeom(geom, mjGEOM_SPHERE, NULL, NULL, NULL, rgba);
@@ -122,8 +114,7 @@ void draw_arrow(mjvScene *scn, mjtNum *from, mjtNum *to, mjtNum width,
 }
 
 /*--------绘制几何体--------*/
-void draw_geom(mjvScene *scn, int type, mjtNum *size, mjtNum *pos, mjtNum *mat,
-               float rgba[4]) {
+void draw_geom(mjvScene *scn, int type, mjtNum *size, mjtNum *pos, mjtNum *mat, float rgba[4]) {
   scn->ngeom += 1;
   mjvGeom *geom = scn->geoms + scn->ngeom - 1;
   mjv_initGeom(geom, type, size, pos, mat, rgba);
@@ -166,7 +157,6 @@ int main(int argc, const char **argv) {
   float cnt = 0;
   // run main loop, target real-time simulation and 60 fps rendering
   while (!glfwWindowShouldClose(window)) {
-
     d->ctrl[0] = std::sin(cnt);
     d->ctrl[1] = std::cos(cnt);
     d->ctrl[2] = std::sin(cnt);
@@ -191,7 +181,7 @@ int main(int argc, const char **argv) {
 
     mjtNum size[3] = {0.1, 0, 0};
     mjtNum pos[3] = {0, 0, 1.0};
-    mjtNum mat[9] = {1, 0, 0, 0, 1, 0, 0, 0, 1};//坐标系，空间向量
+    mjtNum mat[9] = {1, 0, 0, 0, 1, 0, 0, 0, 1};  //坐标系，空间向量
     draw_geom(&scn, mjGEOM_SPHERE, size, pos, mat, color);
     /*--------3D绘制--------*/
 
@@ -213,8 +203,7 @@ int main(int argc, const char **argv) {
     /*--------2D绘制--------*/
     mjr_text(mjFONT_NORMAL, "Albusgive", &con, 0, 0.9, 1, 0, 1);
     mjrRect viewport2 = {50, 100, 50, 50};
-    mjr_overlay(mjFONT_NORMAL, mjGRID_TOPLEFT, viewport, "github", "Albusgive",
-                &con);
+    mjr_overlay(mjFONT_NORMAL, mjGRID_TOPLEFT, viewport, "github", "Albusgive", &con);
     mjr_rectangle(viewport2, 0.5, 0, 1, 0.6);
     mjrRect viewport3 = {100, 200, 150, 50};
     mjr_label(viewport3, mjFONT_NORMAL, "Albusgive", 0, 1, 1, 1, 0, 0, 0, &con);

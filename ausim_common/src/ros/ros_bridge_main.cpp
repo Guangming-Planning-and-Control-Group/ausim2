@@ -54,12 +54,9 @@ ausim::QuadrotorConfig LoadConfig(const CliOptions& cli) {
     sim_config_path = ResolveDefaultConfigPath("sim_config.yaml");
   }
   if (sim_config_path.empty()) {
-    throw std::runtime_error(
-        "Unable to locate default simulation config. Expected quadrotor/cfg/sim_config.yaml.");
+    throw std::runtime_error("Unable to locate default simulation config. Expected quadrotor/cfg/sim_config.yaml.");
   }
-  return ausim::LoadConfigFromYaml(
-      sim_config_path.string(),
-      cli.robot_config_path.string());
+  return ausim::LoadConfigFromYaml(sim_config_path.string(), cli.robot_config_path.string());
 }
 
 }  // namespace
@@ -112,8 +109,7 @@ int main(int argc, char** argv) {
     }
 
     if (cli.telemetry_fd < 0 || cli.command_fd < 0 || cli.image_fd < 0) {
-      throw std::runtime_error(
-          "--telemetry-fd, --command-fd, and --image-fd are all required.");
+      throw std::runtime_error("--telemetry-fd, --command-fd, and --image-fd are all required.");
     }
 
     const ausim::QuadrotorConfig config = LoadConfig(cli);

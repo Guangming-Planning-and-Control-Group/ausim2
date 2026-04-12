@@ -1,7 +1,7 @@
 #pragma once
 
-#include <string>
 #include <nav_msgs/msg/odometry.hpp>
+#include <string>
 
 #include "data/odom.hpp"
 

@@ -121,8 +121,7 @@ bool ValidateImageMetadata(const ipc::CameraImageMetadataPacket& metadata) {
     return false;
   }
 
-  return metadata.step == metadata.width * bytes_per_pixel &&
-         metadata.data_size == metadata.step * metadata.height;
+  return metadata.step == metadata.width * bytes_per_pixel && metadata.data_size == metadata.step * metadata.height;
 }
 
 void EnsureWritableRosHome() {
@@ -154,34 +153,21 @@ void RosStartupDebugLog(const std::string& message) {
 
 // Builds the fixed set of telemetry publishers from config.
 // Each publisher captures its own frame strings and handles conversion internally.
-std::vector<std::unique_ptr<ITelemetryPublisher>> BuildPublishers(
-    const std::shared_ptr<rclcpp::Node>& node,
-    const RosBridgeConfig& config,
-    const std::string& odom_frame,
-    const std::string& base_frame,
-    const std::string& imu_frame) {
+std::vector<std::unique_ptr<ITelemetryPublisher>> BuildPublishers(const std::shared_ptr<rclcpp::Node>& node, const RosBridgeConfig& config,
+                                                                  const std::string& odom_frame, const std::string& base_frame,
+                                                                  const std::string& imu_frame) {
   std::vector<std::unique_ptr<ITelemetryPublisher>> publishers;
 
-  publishers.push_back(std::make_unique<OdomDataPublisher>(
-      node,
-      ResolveTopicName(config, config.interfaces.odom_topic),
-      odom_frame,
-      base_frame));
+  publishers.push_back(std::make_unique<OdomDataPublisher>(node, ResolveTopicName(config, config.interfaces.odom_topic), odom_frame, base_frame));
 
-  publishers.push_back(std::make_unique<ImuDataPublisher>(
-      node,
-      ResolveTopicName(config, config.interfaces.imu_topic),
-      imu_frame));
+  publishers.push_back(std::make_unique<ImuDataPublisher>(node, ResolveTopicName(config, config.interfaces.imu_topic), imu_frame));
 
   if (config.ros2.publish_clock) {
-    publishers.push_back(std::make_unique<ClockDataPublisher>(
-        node,
-        ResolveTopicName(config, config.interfaces.clock_topic)));
+    publishers.push_back(std::make_unique<ClockDataPublisher>(node, ResolveTopicName(config, config.interfaces.clock_topic)));
   }
 
   if (config.ros2.publish_tf) {
-    publishers.push_back(
-        std::make_unique<TransformDataPublisher>(node, odom_frame, base_frame));
+    publishers.push_back(std::make_unique<TransformDataPublisher>(node, odom_frame, base_frame));
   }
 
   return publishers;
@@ -190,14 +176,9 @@ std::vector<std::unique_ptr<ITelemetryPublisher>> BuildPublishers(
 class RosBridgeProcess {
  public:
   RosBridgeProcess(RosBridgeConfig config, int telemetry_fd, int command_fd, int image_fd)
-      : config_(std::move(config)),
-        telemetry_fd_(telemetry_fd),
-        command_fd_(command_fd),
-        image_fd_(image_fd) {}
+      : config_(std::move(config)), telemetry_fd_(telemetry_fd), command_fd_(command_fd), image_fd_(image_fd) {}
 
-  ~RosBridgeProcess() {
-    Stop();
-  }
+  ~RosBridgeProcess() { Stop(); }
 
   int Run() {
     Start();
@@ -233,15 +214,12 @@ class RosBridgeProcess {
       const std::string odom_frame = ResolveFrameId(config_, config_.frames.odom);
       const std::string base_frame = ResolveFrameId(config_, config_.frames.base);
       const std::string imu_frame = ResolveFrameId(config_, config_.frames.imu);
-      const std::string cmd_vel_topic =
-          ResolveTopicName(config_, config_.interfaces.cmd_vel_topic);
+      const std::string cmd_vel_topic = ResolveTopicName(config_, config_.interfaces.cmd_vel_topic);
 
       publishers_ = BuildPublishers(node_, config_, odom_frame, base_frame, imu_frame);
 
-      subscribers_.push_back(std::make_unique<CmdVelCommandSubscriber>(
-          node_,
-          cmd_vel_topic,
-          [this](const data::CmdVelData& message) { PublishCommand(message); }));
+      subscribers_.push_back(
+          std::make_unique<CmdVelCommandSubscriber>(node_, cmd_vel_topic, [this](const data::CmdVelData& message) { PublishCommand(message); }));
 
       // Sensor publishers driven by sensors[] config.
       // Add a new else-if branch here when implementing a new sensor type.
@@ -257,19 +235,13 @@ class RosBridgeProcess {
         } else if (sensor.type == "camera") {
           continue;
         } else {
-          RCLCPP_WARN(
-              node_->get_logger(),
-              "Sensor '%s' of type '%s' is not implemented yet.",
-              sensor.name.c_str(),
-              sensor.type.c_str());
+          RCLCPP_WARN(node_->get_logger(), "Sensor '%s' of type '%s' is not implemented yet.", sensor.name.c_str(), sensor.type.c_str());
         }
       }
 
       for (const CameraStreamConfig& stream : BuildCameraStreamConfigs(config_.sensors)) {
-        image_publishers_.push_back(std::make_unique<ImageDataPublisher>(
-            node_,
-            ResolveTopicName(config_, stream.topic),
-            ResolveFrameId(config_, stream.frame_id)));
+        image_publishers_.push_back(
+            std::make_unique<ImageDataPublisher>(node_, ResolveTopicName(config_, stream.topic), ResolveFrameId(config_, stream.frame_id)));
         latest_camera_frames_.push_back(nullptr);
         last_published_camera_sequences_.push_back(0);
         camera_frame_published_.push_back(false);
@@ -278,14 +250,11 @@ class RosBridgeProcess {
       executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>();
       executor_->add_node(node_);
 
-      const auto period = std::chrono::duration_cast<std::chrono::nanoseconds>(
-          std::chrono::duration<double>(1.0 / config_.ros2.publish_rate_hz));
-      telemetry_timer_ = node_->create_wall_timer(
-          period,
-          [this]() {
-            PublishTelemetry();
-            PublishCameraFrames();
-          });
+      const auto period = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(1.0 / config_.ros2.publish_rate_hz));
+      telemetry_timer_ = node_->create_wall_timer(period, [this]() {
+        PublishTelemetry();
+        PublishCameraFrames();
+      });
 
       telemetry_thread_ = std::thread([this]() { TelemetryLoop(); });
       if (!image_publishers_.empty()) {
@@ -295,9 +264,7 @@ class RosBridgeProcess {
       RosStartupDebugLog("ROS bridge child started");
     } catch (const std::exception& error) {
       Stop();
-      throw std::runtime_error(
-          "Failed to start ROS bridge child (RMW_IMPLEMENTATION=" +
-          ActiveRmwImplementation() + "): " + error.what());
+      throw std::runtime_error("Failed to start ROS bridge child (RMW_IMPLEMENTATION=" + ActiveRmwImplementation() + "): " + error.what());
     }
   }
 
@@ -385,14 +352,12 @@ class RosBridgeProcess {
 
       if (metadata.sensor_index >= latest_camera_frames_.size()) {
         std::vector<std::uint8_t> discarded(metadata.data_size);
-        if (!discarded.empty() &&
-            !ipc::ReadFully(image_fd_, discarded.data(), discarded.size())) {
+        if (!discarded.empty() && !ipc::ReadFully(image_fd_, discarded.data(), discarded.size())) {
           RequestStop();
           return;
         }
         if (!stop_requested_.load()) {
-          std::cerr << "ausim_ros_bridge warning: received image for unknown sensor index "
-                    << metadata.sensor_index << '\n';
+          std::cerr << "ausim_ros_bridge warning: received image for unknown sensor index " << metadata.sensor_index << '\n';
         }
         continue;
       }
@@ -409,8 +374,7 @@ class RosBridgeProcess {
         continue;
       }
 
-      auto frame = std::make_shared<CameraFrame>(
-          converts::ToCameraFrame(metadata, std::move(pixels)));
+      auto frame = std::make_shared<CameraFrame>(converts::ToCameraFrame(metadata, std::move(pixels)));
       std::lock_guard<std::mutex> lock(image_mutex_);
       latest_camera_frames_[metadata.sensor_index] = std::move(frame);
     }

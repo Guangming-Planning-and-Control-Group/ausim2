@@ -18,9 +18,7 @@ struct RosBridgeLaunchConfig {
 
 class RosBridgeProcessManager {
  public:
-  RosBridgeProcessManager(
-      const QuadrotorConfig& config,
-      RosBridgeLaunchConfig launch_config);
+  RosBridgeProcessManager(const QuadrotorConfig& config, RosBridgeLaunchConfig launch_config);
   ~RosBridgeProcessManager();
 
   void Start();

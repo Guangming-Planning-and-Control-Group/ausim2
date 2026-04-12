@@ -1,9 +1,9 @@
 #pragma once
 
+#include <unistd.h>
 #include <cerrno>
 #include <cstddef>
 #include <cstdint>
-#include <unistd.h>
 
 namespace ausim::ipc {
 

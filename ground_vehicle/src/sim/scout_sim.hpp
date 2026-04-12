@@ -7,8 +7,8 @@
 #include <string>
 #include <thread>
 
-#include <Eigen/Core>
 #include <mujoco/mujoco.h>
+#include <Eigen/Core>
 
 #include "config/scout_config.hpp"
 #include "control/differential_drive_controller.hpp"
@@ -52,18 +52,10 @@ class ScoutSim {
   void CleanupViewer();
   void PhysicsThreadMain();
   void PhysicsLoop(mujoco::Simulate& sim);
-  bool LoadModelIntoViewer(
-      mujoco::Simulate& sim,
-      const std::filesystem::path& model_path,
-      bool replace_existing);
-  void InstallModelPointers(
-      mjModel* new_model,
-      mjData* new_data,
-      const std::filesystem::path& model_path,
-      bool replace_existing);
+  bool LoadModelIntoViewer(mujoco::Simulate& sim, const std::filesystem::path& model_path, bool replace_existing);
+  void InstallModelPointers(mjModel* new_model, mjData* new_data, const std::filesystem::path& model_path, bool replace_existing);
   bool ShouldContinue() const;
-  void SleepToMatchRealtime(
-      const std::chrono::high_resolution_clock::time_point& step_start) const;
+  void SleepToMatchRealtime(const std::chrono::high_resolution_clock::time_point& step_start) const;
   static void HandleSigint(int signal);
 
   ScoutConfig config_;

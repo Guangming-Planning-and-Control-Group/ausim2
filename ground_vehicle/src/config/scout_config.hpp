@@ -21,9 +21,7 @@ struct WheelActuatorBindingConfig {
   std::string rear_left = "velocity_rear_left_wheel";
   std::string rear_right = "velocity_rear_right_wheel";
 
-  std::array<std::string, 4> AsArray() const {
-    return {front_right, front_left, rear_left, rear_right};
-  }
+  std::array<std::string, 4> AsArray() const { return {front_right, front_left, rear_left, rear_right}; }
 };
 
 struct ScoutBindingConfig {
@@ -60,8 +58,6 @@ struct ScoutConfig {
 };
 
 ScoutConfig LoadScoutConfigFromYaml(const std::string& path);
-ScoutConfig LoadScoutConfigFromYaml(
-    const std::string& sim_config_path,
-    const std::string& robot_config_path);
+ScoutConfig LoadScoutConfigFromYaml(const std::string& sim_config_path, const std::string& robot_config_path);
 
 }  // namespace ground_vehicle

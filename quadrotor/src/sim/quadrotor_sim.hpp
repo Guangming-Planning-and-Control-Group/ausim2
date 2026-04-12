@@ -9,16 +9,16 @@
 #include <thread>
 #include <vector>
 
-#include <Eigen/Core>
 #include <mujoco/mujoco.h>
+#include <Eigen/Core>
 
 #include "config/quadrotor_config.hpp"
+#include "dynamic_obs_generator/dynamic_obstacle_manager.hpp"
 #include "runtime/vehicle_runtime.hpp"
 #include "sim/camera_renderer.hpp"
 #include "sim/mujoco_actuator_writer.hpp"
 #include "sim/mujoco_bindings.hpp"
 #include "sim/mujoco_state_reader.hpp"
-#include "dynamic_obs_generator/dynamic_obstacle_manager.hpp"
 
 namespace mujoco {
 class Simulate;
@@ -54,15 +54,8 @@ class QuadrotorSim {
   void CleanupViewer();
   void PhysicsThreadMain();
   void PhysicsLoop(mujoco::Simulate& sim);
-  bool LoadModelIntoViewer(
-      mujoco::Simulate& sim,
-      const std::filesystem::path& model_path,
-      bool replace_existing);
-  void InstallModelPointers(
-      mjModel* new_model,
-      mjData* new_data,
-      const std::filesystem::path& model_path,
-      bool replace_existing);
+  bool LoadModelIntoViewer(mujoco::Simulate& sim, const std::filesystem::path& model_path, bool replace_existing);
+  void InstallModelPointers(mjModel* new_model, mjData* new_data, const std::filesystem::path& model_path, bool replace_existing);
   void ConfigureDefaultCamera();
   void ResolveCameraSensors(const mjModel* model);
   void ApplyDepthPluginPerformanceConfig(mjModel* model) const;
@@ -73,9 +66,7 @@ class QuadrotorSim {
   std::string ValidateModel(const mjModel* candidate) const;
   int ComputeControlDecimation() const;
   bool ShouldContinueHeadless() const;
-  void SleepToMatchRealtime(
-      const std::chrono::high_resolution_clock::time_point& step_start,
-      double simulated_seconds) const;
+  void SleepToMatchRealtime(const std::chrono::high_resolution_clock::time_point& step_start, double simulated_seconds) const;
   static void HandleSigint(int signal);
   bool IsDepthStreamRenderable(const CameraStreamRuntime& stream) const;
   bool HasDueDepthStreamAfterStep(double next_sim_time) const;

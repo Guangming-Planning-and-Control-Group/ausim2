@@ -10,9 +10,7 @@ data::ClockData ToClockData(double stamp_seconds) {
   return out;
 }
 
-void Convert(rosgraph_msgs::msg::Clock& out, const data::ClockData& in) {
-  out.clock = ToRosTime(in.stamp_seconds);
-}
+void Convert(rosgraph_msgs::msg::Clock& out, const data::ClockData& in) { out.clock = ToRosTime(in.stamp_seconds); }
 
 rosgraph_msgs::msg::Clock ToRosMessage(const data::ClockData& in) {
   rosgraph_msgs::msg::Clock out;

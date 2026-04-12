@@ -9,36 +9,25 @@ Eigen::Vector3d ReadVector3(const mjData* data, const SensorBinding& binding) {
   if (!binding.resolved || binding.dim < 3) {
     return Eigen::Vector3d::Zero();
   }
-  return Eigen::Vector3d(
-      data->sensordata[binding.adr + 0],
-      data->sensordata[binding.adr + 1],
-      data->sensordata[binding.adr + 2]);
+  return Eigen::Vector3d(data->sensordata[binding.adr + 0], data->sensordata[binding.adr + 1], data->sensordata[binding.adr + 2]);
 }
 
 Eigen::Quaterniond ReadQuaternion(const mjData* data, const SensorBinding& binding) {
   if (!binding.resolved || binding.dim < 4) {
     return Eigen::Quaterniond::Identity();
   }
-  return Eigen::Quaterniond(
-      data->sensordata[binding.adr + 0],
-      data->sensordata[binding.adr + 1],
-      data->sensordata[binding.adr + 2],
-      data->sensordata[binding.adr + 3]);
+  return Eigen::Quaterniond(data->sensordata[binding.adr + 0], data->sensordata[binding.adr + 1], data->sensordata[binding.adr + 2],
+                            data->sensordata[binding.adr + 3]);
 }
 
 double GravityMagnitude(const mjModel* model) {
-  return std::sqrt(
-      model->opt.gravity[0] * model->opt.gravity[0] +
-      model->opt.gravity[1] * model->opt.gravity[1] +
-      model->opt.gravity[2] * model->opt.gravity[2]);
+  return std::sqrt(model->opt.gravity[0] * model->opt.gravity[0] + model->opt.gravity[1] * model->opt.gravity[1] +
+                   model->opt.gravity[2] * model->opt.gravity[2]);
 }
 
 }  // namespace
 
-RuntimeInput MujocoStateReader::Read(
-    const mjModel* model,
-    const mjData* data,
-    const MujocoBindings& bindings) const {
+RuntimeInput MujocoStateReader::Read(const mjModel* model, const mjData* data, const MujocoBindings& bindings) const {
   RuntimeInput input;
   input.sim_time = data->time;
   input.gravity_magnitude = GravityMagnitude(model);
@@ -61,8 +50,7 @@ RuntimeInput MujocoStateReader::Read(
   if (bindings.quaternion_sensor().resolved) {
     input.current_state.quaternion = ReadQuaternion(data, bindings.quaternion_sensor());
   } else if (model->nq >= 7) {
-    input.current_state.quaternion =
-        Eigen::Quaterniond(data->qpos[3], data->qpos[4], data->qpos[5], data->qpos[6]);
+    input.current_state.quaternion = Eigen::Quaterniond(data->qpos[3], data->qpos[4], data->qpos[5], data->qpos[6]);
   }
   input.current_state.quaternion.normalize();
   input.imu.orientation = input.current_state.quaternion;

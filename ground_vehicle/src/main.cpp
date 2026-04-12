@@ -77,12 +77,9 @@ ground_vehicle::ScoutConfig LoadConfig(const CliOptions& cli) {
     sim_config_path = ResolveDefaultConfigPath("sim_config.yaml");
   }
   if (sim_config_path.empty()) {
-    throw std::runtime_error(
-        "Unable to locate default simulation config. Expected ground_vehicle/cfg/sim_config.yaml.");
+    throw std::runtime_error("Unable to locate default simulation config. Expected ground_vehicle/cfg/sim_config.yaml.");
   }
-  return ground_vehicle::LoadScoutConfigFromYaml(
-      sim_config_path.string(),
-      cli.robot_config_path.string());
+  return ground_vehicle::LoadScoutConfigFromYaml(sim_config_path.string(), cli.robot_config_path.string());
 }
 
 }  // namespace
@@ -128,8 +125,7 @@ int main(int argc, char** argv) {
     if (cli.merged_config_path.empty() && cli.sim_config_path.empty()) {
       cli.sim_config_path = ResolveDefaultConfigPath("sim_config.yaml");
       if (cli.sim_config_path.empty()) {
-        throw std::runtime_error(
-            "Unable to locate default simulation config. Expected ground_vehicle/cfg/sim_config.yaml.");
+        throw std::runtime_error("Unable to locate default simulation config. Expected ground_vehicle/cfg/sim_config.yaml.");
       }
     }
 
@@ -141,8 +137,7 @@ int main(int argc, char** argv) {
       config.common.viewer.enabled = false;
     }
 
-    if (const char* scene_override = std::getenv("AUSIM_SCENE_XML_OVERRIDE");
-        scene_override != nullptr && scene_override[0] != '\0') {
+    if (const char* scene_override = std::getenv("AUSIM_SCENE_XML_OVERRIDE"); scene_override != nullptr && scene_override[0] != '\0') {
       config.common.model.scene_xml = fs::absolute(scene_override);
     }
 
@@ -160,12 +155,10 @@ int main(int argc, char** argv) {
       }
 
       ausim::RosBridgeLaunchConfig bridge_launch_config;
-      bridge_launch_config.executable_path =
-          self_executable.parent_path() / "ausim_ros_bridge";
+      bridge_launch_config.executable_path = self_executable.parent_path() / "ausim_ros_bridge";
       bridge_launch_config.config_arguments = BuildBridgeConfigArguments(cli);
 
-      bridge_manager = std::make_unique<ausim::RosBridgeProcessManager>(
-          config.common, std::move(bridge_launch_config));
+      bridge_manager = std::make_unique<ausim::RosBridgeProcessManager>(config.common, std::move(bridge_launch_config));
       bridge_manager->Start();
     }
 

@@ -41,7 +41,7 @@ constexpr int kLoadErrorLength = 1024;
 constexpr int kHeadlessStepsPerCycle = 5;
 
 #ifndef GROUND_VEHICLE_MUJOCO_PLUGIN_FALLBACK_DIR
-#define GROUND_VEHICLE_MUJOCO_PLUGIN_FALLBACK_DIR ""
+  #define GROUND_VEHICLE_MUJOCO_PLUGIN_FALLBACK_DIR ""
 #endif
 
 std::optional<fs::path> ResolveBundledPluginDirectory() {
@@ -66,14 +66,10 @@ struct ModelLoadResult {
 
 bool ContainsDecoderPlugin(const fs::path& directory) {
   std::error_code error;
-  return fs::exists(directory / "libobj_decoder.so", error) ||
-         fs::exists(directory / "libstl_decoder.so", error);
+  return fs::exists(directory / "libobj_decoder.so", error) || fs::exists(directory / "libstl_decoder.so", error);
 }
 
-void AppendPluginDirectory(
-    std::vector<fs::path>& directories,
-    const fs::path& directory,
-    bool skip_decoder_directory = false) {
+void AppendPluginDirectory(std::vector<fs::path>& directories, const fs::path& directory, bool skip_decoder_directory = false) {
   if (directory.empty()) {
     return;
   }
@@ -94,9 +90,7 @@ void AppendPluginDirectory(
   directories.push_back(directory);
 }
 
-void AppendPluginDirectoriesFromEnv(
-    std::vector<fs::path>& directories,
-    bool skip_decoder_directories) {
+void AppendPluginDirectoriesFromEnv(std::vector<fs::path>& directories, bool skip_decoder_directories) {
   const char* plugin_dirs = std::getenv("MUJOCO_PLUGIN_DIR");
   if (plugin_dirs == nullptr || plugin_dirs[0] == '\0') {
     return;
@@ -115,8 +109,7 @@ void LoadMuJoCoPlugins() {
   std::vector<fs::path> plugin_directories;
 
   const fs::path fallback_decoder_dir(GROUND_VEHICLE_MUJOCO_PLUGIN_FALLBACK_DIR);
-  const bool fallback_has_decoders =
-      !fallback_decoder_dir.empty() && ContainsDecoderPlugin(fallback_decoder_dir);
+  const bool fallback_has_decoders = !fallback_decoder_dir.empty() && ContainsDecoderPlugin(fallback_decoder_dir);
 
   AppendPluginDirectory(plugin_directories, fallback_decoder_dir);
   AppendPluginDirectoriesFromEnv(plugin_directories, fallback_has_decoders);
@@ -141,9 +134,7 @@ void TrimTrailingNewline(char* buffer) {
   }
 }
 
-void SetLoadError(mj::Simulate& sim, const std::string& message) {
-  std::snprintf(sim.load_error, sizeof(sim.load_error), "%s", message.c_str());
-}
+void SetLoadError(mj::Simulate& sim, const std::string& message) { std::snprintf(sim.load_error, sizeof(sim.load_error), "%s", message.c_str()); }
 
 bool HasGraphicalDisplay() {
 #if defined(__linux__)
@@ -169,8 +160,7 @@ bool CanInitializeOfficialViewer(std::string* reason) {
   }
 
   glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-  GLFWwindow* probe_window =
-      glfwCreateWindow(64, 64, "scout-viewer-probe", nullptr, nullptr);
+  GLFWwindow* probe_window = glfwCreateWindow(64, 64, "scout-viewer-probe", nullptr, nullptr);
   if (probe_window == nullptr) {
     glfwTerminate();
     if (reason != nullptr) {
@@ -235,27 +225,20 @@ Eigen::Vector3d ReadVector3(const mjData* data, const SensorBinding& binding) {
   if (!binding.resolved || binding.dim < 3) {
     return Eigen::Vector3d::Zero();
   }
-  return Eigen::Vector3d(
-      data->sensordata[binding.adr + 0],
-      data->sensordata[binding.adr + 1],
-      data->sensordata[binding.adr + 2]);
+  return Eigen::Vector3d(data->sensordata[binding.adr + 0], data->sensordata[binding.adr + 1], data->sensordata[binding.adr + 2]);
 }
 
 Eigen::Quaterniond ReadQuaternion(const mjData* data, const SensorBinding& binding) {
   if (!binding.resolved || binding.dim < 4) {
     return Eigen::Quaterniond::Identity();
   }
-  return Eigen::Quaterniond(
-      data->sensordata[binding.adr + 0],
-      data->sensordata[binding.adr + 1],
-      data->sensordata[binding.adr + 2],
-      data->sensordata[binding.adr + 3]);
+  return Eigen::Quaterniond(data->sensordata[binding.adr + 0], data->sensordata[binding.adr + 1], data->sensordata[binding.adr + 2],
+                            data->sensordata[binding.adr + 3]);
 }
 
 std::string VectorToString(const Eigen::Vector3d& vector) {
   std::ostringstream stream;
-  stream << std::fixed << std::setprecision(3)
-         << "(" << vector.x() << ", " << vector.y() << ", " << vector.z() << ")";
+  stream << std::fixed << std::setprecision(3) << "(" << vector.x() << ", " << vector.y() << ", " << vector.z() << ")";
   return stream.str();
 }
 
@@ -272,8 +255,7 @@ ScoutSim::ScoutSim(ScoutConfig config)
     throw std::runtime_error("robot.count must be a positive integer.");
   }
   if (config_.common.robot.count != 1) {
-    throw std::runtime_error(
-        "robot.count > 1 is not implemented yet. Current scout runtime supports one vehicle.");
+    throw std::runtime_error("robot.count > 1 is not implemented yet. Current scout runtime supports one vehicle.");
   }
 }
 
@@ -306,19 +288,14 @@ void ScoutSim::LoadModel() {
 
   if (!load_result.message.empty()) {
     if (load_result.pause_after_load) {
-      std::cout << "Model compiled, but simulation warning:\n  "
-                << load_result.message << '\n';
+      std::cout << "Model compiled, but simulation warning:\n  " << load_result.message << '\n';
     } else {
       std::cout << load_result.message << '\n';
     }
   }
 }
 
-void ScoutSim::InstallModelPointers(
-    mjModel* new_model,
-    mjData* new_data,
-    const fs::path& model_path,
-    bool replace_existing) {
+void ScoutSim::InstallModelPointers(mjModel* new_model, mjData* new_data, const fs::path& model_path, bool replace_existing) {
   if (new_model == nullptr || new_data == nullptr) {
     throw std::runtime_error("Cannot install null MuJoCo model/data.");
   }
@@ -415,8 +392,7 @@ void ScoutSim::Step() {
 }
 
 void ScoutSim::ApplyControl() {
-  const std::optional<ausim::VelocityCommand> command =
-      ausim::ReadFreshVelocityCommand(config_.common.ros2.command_timeout);
+  const std::optional<ausim::VelocityCommand> command = ausim::ReadFreshVelocityCommand(config_.common.ros2.command_timeout);
 
   double linear_x = 0.0;
   double angular_z = 0.0;
@@ -439,35 +415,23 @@ void ScoutSim::PublishTelemetry(bool log_state) {
   snapshot.sim_time = data_->time;
 
   if (freejoint_qpos_adr_ >= 0 && freejoint_qpos_adr_ + 6 < model_->nq) {
-    snapshot.state.position = Eigen::Vector3d(
-        data_->qpos[freejoint_qpos_adr_ + 0],
-        data_->qpos[freejoint_qpos_adr_ + 1],
-        data_->qpos[freejoint_qpos_adr_ + 2]);
-    snapshot.state.quaternion = Eigen::Quaterniond(
-        data_->qpos[freejoint_qpos_adr_ + 3],
-        data_->qpos[freejoint_qpos_adr_ + 4],
-        data_->qpos[freejoint_qpos_adr_ + 5],
-        data_->qpos[freejoint_qpos_adr_ + 6]);
+    snapshot.state.position =
+        Eigen::Vector3d(data_->qpos[freejoint_qpos_adr_ + 0], data_->qpos[freejoint_qpos_adr_ + 1], data_->qpos[freejoint_qpos_adr_ + 2]);
+    snapshot.state.quaternion = Eigen::Quaterniond(data_->qpos[freejoint_qpos_adr_ + 3], data_->qpos[freejoint_qpos_adr_ + 4],
+                                                   data_->qpos[freejoint_qpos_adr_ + 5], data_->qpos[freejoint_qpos_adr_ + 6]);
     snapshot.state.quaternion.normalize();
   }
 
   if (freejoint_dof_adr_ >= 0 && freejoint_dof_adr_ + 5 < model_->nv) {
-    snapshot.state.velocity = Eigen::Vector3d(
-        data_->qvel[freejoint_dof_adr_ + 0],
-        data_->qvel[freejoint_dof_adr_ + 1],
-        data_->qvel[freejoint_dof_adr_ + 2]);
-    snapshot.state.omega = Eigen::Vector3d(
-        data_->qvel[freejoint_dof_adr_ + 3],
-        data_->qvel[freejoint_dof_adr_ + 4],
-        data_->qvel[freejoint_dof_adr_ + 5]);
+    snapshot.state.velocity =
+        Eigen::Vector3d(data_->qvel[freejoint_dof_adr_ + 0], data_->qvel[freejoint_dof_adr_ + 1], data_->qvel[freejoint_dof_adr_ + 2]);
+    snapshot.state.omega =
+        Eigen::Vector3d(data_->qvel[freejoint_dof_adr_ + 3], data_->qvel[freejoint_dof_adr_ + 4], data_->qvel[freejoint_dof_adr_ + 5]);
   }
 
-  snapshot.imu.orientation =
-      quaternion_sensor_.resolved ? ReadQuaternion(data_, quaternion_sensor_)
-                                  : snapshot.state.quaternion;
+  snapshot.imu.orientation = quaternion_sensor_.resolved ? ReadQuaternion(data_, quaternion_sensor_) : snapshot.state.quaternion;
   snapshot.imu.orientation.normalize();
-  snapshot.imu.angular_velocity =
-      gyro_sensor_.resolved ? ReadVector3(data_, gyro_sensor_) : snapshot.state.omega;
+  snapshot.imu.angular_velocity = gyro_sensor_.resolved ? ReadVector3(data_, gyro_sensor_) : snapshot.state.omega;
   if (accelerometer_sensor_.resolved) {
     snapshot.imu.linear_acceleration = ReadVector3(data_, accelerometer_sensor_);
     snapshot.imu.has_linear_acceleration = true;
@@ -491,12 +455,9 @@ void ScoutSim::LogStateIfNeeded(const ausim::TelemetrySnapshot& snapshot) const 
 
   const auto& speeds = last_wheel_speeds_.rad_per_second;
   std::ostringstream stream;
-  stream << "t=" << std::fixed << std::setprecision(3) << snapshot.sim_time
-         << " pos=" << VectorToString(snapshot.state.position)
-         << " vel=" << VectorToString(snapshot.state.velocity)
-         << " wheels(fr,fl,rl,rr)=("
-         << std::setprecision(2) << speeds[0] << ", " << speeds[1] << ", "
-         << speeds[2] << ", " << speeds[3] << ")"
+  stream << "t=" << std::fixed << std::setprecision(3) << snapshot.sim_time << " pos=" << VectorToString(snapshot.state.position)
+         << " vel=" << VectorToString(snapshot.state.velocity) << " wheels(fr,fl,rl,rr)=(" << std::setprecision(2) << speeds[0] << ", " << speeds[1]
+         << ", " << speeds[2] << ", " << speeds[3] << ")"
          << " source=" << snapshot.goal_source;
   std::cout << stream.str() << '\n';
   next_log_time_ = snapshot.sim_time + config_.common.simulation.print_interval;
@@ -513,8 +474,7 @@ void ScoutSim::Run() {
       if (!config_.common.viewer.fallback_to_headless) {
         throw std::runtime_error("Official simulate viewer unavailable: " + viewer_error);
       }
-      std::cerr << "viewer unavailable, falling back to headless: "
-                << viewer_error << '\n';
+      std::cerr << "viewer unavailable, falling back to headless: " << viewer_error << '\n';
     } else {
       InitializeViewer();
     }
@@ -528,10 +488,8 @@ void ScoutSim::Run() {
     if (model_ == nullptr || data_ == nullptr) {
       LoadModel();
     }
-    std::cout << "Running Scout MuJoCo simulation with model: "
-              << config_.common.model.scene_xml << '\n';
-    std::cout << "Duration: " << config_.common.simulation.duration
-              << " s, dt: " << config_.common.simulation.dt << " s\n";
+    std::cout << "Running Scout MuJoCo simulation with model: " << config_.common.model.scene_xml << '\n';
+    std::cout << "Duration: " << config_.common.simulation.duration << " s, dt: " << config_.common.simulation.dt << " s\n";
     RunHeadless();
   }
 
@@ -539,10 +497,8 @@ void ScoutSim::Run() {
   active_instance_ = nullptr;
 
   if (data_ != nullptr) {
-    std::cout << "Scout simulation finished at t=" << std::fixed << std::setprecision(3)
-              << data_->time << " s, final position="
-              << VectorToString(Eigen::Vector3d(data_->qpos[0], data_->qpos[1], data_->qpos[2]))
-              << '\n';
+    std::cout << "Scout simulation finished at t=" << std::fixed << std::setprecision(3) << data_->time
+              << " s, final position=" << VectorToString(Eigen::Vector3d(data_->qpos[0], data_->qpos[1], data_->qpos[2])) << '\n';
   }
 }
 
@@ -557,8 +513,7 @@ void ScoutSim::RunHeadless() {
 }
 
 void ScoutSim::RunWithViewer() {
-  std::cout << "Running Scout MuJoCo simulation with official simulate viewer: "
-            << config_.common.model.scene_xml << '\n';
+  std::cout << "Running Scout MuJoCo simulation with official simulate viewer: " << config_.common.model.scene_xml << '\n';
 
   physics_thread_ = std::thread(&ScoutSim::PhysicsThreadMain, this);
   viewer_->RenderLoop();
@@ -599,11 +554,9 @@ void ScoutSim::ConfigureDefaultCamera() {
     return;
   }
 
-  const int track_camera_id =
-      mj_name2id(model_, mjOBJ_CAMERA, config_.common.simulation.track_camera_name.c_str());
+  const int track_camera_id = mj_name2id(model_, mjOBJ_CAMERA, config_.common.simulation.track_camera_name.c_str());
   if (track_camera_id < 0) {
-    std::cerr << "scout warning: configured track camera '"
-              << config_.common.simulation.track_camera_name
+    std::cerr << "scout warning: configured track camera '" << config_.common.simulation.track_camera_name
               << "' was not found; using free camera instead.\n";
     return;
   }
@@ -621,12 +574,8 @@ void ScoutSim::InitializeViewer() {
     return;
   }
 
-  viewer_ = std::make_unique<mj::Simulate>(
-      std::make_unique<mj::GlfwAdapter>(),
-      &camera_,
-      &visualization_options_,
-      &perturbation_,
-      /* is_passive = */ false);
+  viewer_ = std::make_unique<mj::Simulate>(std::make_unique<mj::GlfwAdapter>(), &camera_, &visualization_options_, &perturbation_,
+                                           /* is_passive = */ false);
 
   const int mjui_enabled = config_.common.viewer.mjui_enabled ? 1 : 0;
   viewer_->ui0_enable = mjui_enabled;
@@ -680,10 +629,7 @@ void ScoutSim::PhysicsThreadMain() {
   }
 }
 
-bool ScoutSim::LoadModelIntoViewer(
-    mj::Simulate& sim,
-    const fs::path& model_path,
-    bool replace_existing) {
+bool ScoutSim::LoadModelIntoViewer(mj::Simulate& sim, const fs::path& model_path, bool replace_existing) {
   sim.LoadMessage(model_path.string().c_str());
 
   const ModelLoadResult load_result = LoadModelFile(model_path);
@@ -743,9 +689,7 @@ void ScoutSim::PhysicsLoop(mj::Simulate& sim) {
       LoadModelIntoViewer(sim, fs::path(sim.filename), true);
     }
 
-    if (config_.common.simulation.duration > 0.0 &&
-        data_ != nullptr &&
-        data_->time >= config_.common.simulation.duration) {
+    if (config_.common.simulation.duration > 0.0 && data_ != nullptr && data_->time >= config_.common.simulation.duration) {
       sim.exitrequest.store(true);
       break;
     }
@@ -768,14 +712,9 @@ void ScoutSim::PhysicsLoop(mj::Simulate& sim) {
       const double elapsed_sim = data_->time - sync_sim;
       const double slowdown = 100.0 / sim.percentRealTime[sim.real_time_index];
 
-      const bool misaligned =
-          std::abs(Seconds(elapsed_cpu).count() / slowdown - elapsed_sim) > kSyncMisalign;
+      const bool misaligned = std::abs(Seconds(elapsed_cpu).count() / slowdown - elapsed_sim) > kSyncMisalign;
 
-      if (elapsed_sim < 0.0 ||
-          elapsed_cpu.count() < 0 ||
-          sync_cpu.time_since_epoch().count() == 0 ||
-          misaligned ||
-          sim.speed_changed) {
+      if (elapsed_sim < 0.0 || elapsed_cpu.count() < 0 || sync_cpu.time_since_epoch().count() == 0 || misaligned || sim.speed_changed) {
         sync_cpu = start_cpu;
         sync_sim = data_->time;
         sim.speed_changed = false;
@@ -794,15 +733,12 @@ void ScoutSim::PhysicsLoop(mj::Simulate& sim) {
       } else {
         bool measured = false;
         const mjtNum previous_sim = data_->time;
-        const double refresh_time =
-            kSimRefreshFraction / std::max(1, sim.refresh_rate);
+        const double refresh_time = kSimRefreshFraction / std::max(1, sim.refresh_rate);
 
-        while (Seconds((data_->time - sync_sim) * slowdown) <
-                   mj::Simulate::Clock::now() - sync_cpu &&
+        while (Seconds((data_->time - sync_sim) * slowdown) < mj::Simulate::Clock::now() - sync_cpu &&
                mj::Simulate::Clock::now() - start_cpu < Seconds(refresh_time)) {
           if (!measured && elapsed_sim > 0.0) {
-            sim.measured_slowdown =
-                std::chrono::duration<double>(elapsed_cpu).count() / elapsed_sim;
+            sim.measured_slowdown = std::chrono::duration<double>(elapsed_cpu).count() / elapsed_sim;
             measured = true;
           }
 
@@ -821,8 +757,7 @@ void ScoutSim::PhysicsLoop(mj::Simulate& sim) {
           if (data_->time < previous_sim) {
             break;
           }
-          if (config_.common.simulation.duration > 0.0 &&
-              data_->time >= config_.common.simulation.duration) {
+          if (config_.common.simulation.duration > 0.0 && data_->time >= config_.common.simulation.duration) {
             sim.exitrequest.store(true);
             break;
           }
@@ -851,11 +786,9 @@ bool ScoutSim::ShouldContinue() const {
   return duration <= 0.0 || data_->time < duration;
 }
 
-void ScoutSim::SleepToMatchRealtime(
-    const std::chrono::high_resolution_clock::time_point& step_start) const {
-  const auto target = step_start + std::chrono::duration_cast<
-      std::chrono::high_resolution_clock::duration>(
-      std::chrono::duration<double>(model_->opt.timestep * kHeadlessStepsPerCycle));
+void ScoutSim::SleepToMatchRealtime(const std::chrono::high_resolution_clock::time_point& step_start) const {
+  const auto target = step_start + std::chrono::duration_cast<std::chrono::high_resolution_clock::duration>(
+                                       std::chrono::duration<double>(model_->opt.timestep * kHeadlessStepsPerCycle));
   std::this_thread::sleep_until(target);
 }
 

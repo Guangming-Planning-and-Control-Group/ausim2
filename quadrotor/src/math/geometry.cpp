@@ -4,13 +4,9 @@
 
 namespace quadrotor::math {
 
-Eigen::Matrix3d quaternionToRotationMatrix(const Eigen::Quaterniond& quaternion) {
-  return quaternion.normalized().toRotationMatrix();
-}
+Eigen::Matrix3d quaternionToRotationMatrix(const Eigen::Quaterniond& quaternion) { return quaternion.normalized().toRotationMatrix(); }
 
-Eigen::Vector3d veeMap(const Eigen::Matrix3d& matrix) {
-  return Eigen::Vector3d(matrix(2, 1), matrix(0, 2), matrix(1, 0));
-}
+Eigen::Vector3d veeMap(const Eigen::Matrix3d& matrix) { return Eigen::Vector3d(matrix(2, 1), matrix(0, 2), matrix(1, 0)); }
 
 Eigen::Matrix3d hatMap(const Eigen::Vector3d& vector) {
   Eigen::Matrix3d result = Eigen::Matrix3d::Zero();
@@ -23,9 +19,7 @@ Eigen::Matrix3d hatMap(const Eigen::Vector3d& vector) {
   return result;
 }
 
-Eigen::Matrix3d skewSym(const Eigen::Vector3d& vector) {
-  return hatMap(vector);
-}
+Eigen::Matrix3d skewSym(const Eigen::Vector3d& vector) { return hatMap(vector); }
 
 Eigen::Matrix3d so3LieToMat(const Eigen::Vector3d& vector) {
   const double theta = vector.norm();
@@ -36,9 +30,7 @@ Eigen::Matrix3d so3LieToMat(const Eigen::Vector3d& vector) {
   return Eigen::Matrix3d::Identity() + A * wx + B * wx * wx;
 }
 
-std::pair<Eigen::Matrix3d, Eigen::Vector3d> se3LieToRotTrans3(
-    const Eigen::Vector3d& w,
-    const Eigen::Vector3d& u) {
+std::pair<Eigen::Matrix3d, Eigen::Vector3d> se3LieToRotTrans3(const Eigen::Vector3d& w, const Eigen::Vector3d& u) {
   const double theta = w.norm();
   const double A = theta > 1e-3 ? std::sin(theta) / theta : 1.0;
   const double B = theta > 1e-3 ? (1.0 - std::cos(theta)) / (theta * theta) : 0.5;

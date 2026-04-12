@@ -52,18 +52,13 @@ class SecurityData {
 template <typename T, Permission Perm>
 class SecurityDataRef {
  public:
-  explicit SecurityDataRef(std::shared_ptr<SecurityData<T>> data = nullptr)
-      : data_(std::move(data)) {}
+  explicit SecurityDataRef(std::shared_ptr<SecurityData<T>> data = nullptr) : data_(std::move(data)) {}
 
   explicit operator bool() const { return data_ != nullptr; }
 
-  bool IsValid() const {
-    return data_ != nullptr && data_->IsValid();
-  }
+  bool IsValid() const { return data_ != nullptr && data_->IsValid(); }
 
-  std::optional<T> ReadOptional() const {
-    return data_ == nullptr ? std::nullopt : data_->ReadOptional();
-  }
+  std::optional<T> ReadOptional() const { return data_ == nullptr ? std::nullopt : data_->ReadOptional(); }
 
   T operator()() const {
     const std::optional<T> value = ReadOptional();

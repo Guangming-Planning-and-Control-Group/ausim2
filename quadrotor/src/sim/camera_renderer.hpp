@@ -17,14 +17,7 @@ class CameraRenderer {
 
   bool Initialize(mjModel* model, int max_width, int max_height, std::string* error);
   bool RefreshModel(mjModel* model, int max_width, int max_height, std::string* error);
-  bool RenderRgb(
-      const mjModel* model,
-      mjData* data,
-      int camera_id,
-      int width,
-      int height,
-      std::vector<std::uint8_t>* rgb_pixels,
-      std::string* error);
+  bool RenderRgb(const mjModel* model, mjData* data, int camera_id, int width, int height, std::vector<std::uint8_t>* rgb_pixels, std::string* error);
   bool available() const { return window_ != nullptr && context_initialized_ && scene_initialized_; }
 
  private:

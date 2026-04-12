@@ -11,10 +11,7 @@ class MujocoActuatorWriter {
  public:
   explicit MujocoActuatorWriter(const VehicleParams& params);
 
-  void WriteMotorInputs(
-      const MujocoBindings& bindings,
-      mjData* data,
-      const Eigen::Vector4d& motor_speed_krpm) const;
+  void WriteMotorInputs(const MujocoBindings& bindings, mjData* data, const Eigen::Vector4d& motor_speed_krpm) const;
 
  private:
   double CalcMotorForce(double krpm) const;

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <string>
 #include <sensor_msgs/msg/imu.hpp>
+#include <string>
 
 #include "data/imu.hpp"
 

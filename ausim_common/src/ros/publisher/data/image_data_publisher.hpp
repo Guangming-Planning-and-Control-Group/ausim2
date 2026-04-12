@@ -11,10 +11,7 @@ namespace ausim {
 
 class ImageDataPublisher {
  public:
-  ImageDataPublisher(
-      const std::shared_ptr<rclcpp::Node>& node,
-      std::string topic_name,
-      std::string frame_id);
+  ImageDataPublisher(const std::shared_ptr<rclcpp::Node>& node, std::string topic_name, std::string frame_id);
 
   void Publish(const CameraFrame& frame);
 

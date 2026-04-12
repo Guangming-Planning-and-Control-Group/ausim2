@@ -27,9 +27,7 @@ void AssignError(std::string* error, std::string message) {
 
 }  // namespace
 
-CameraRenderer::~CameraRenderer() {
-  FreeResources();
-}
+CameraRenderer::~CameraRenderer() { FreeResources(); }
 
 bool CameraRenderer::Initialize(mjModel* model, int max_width, int max_height, std::string* error) {
   return RefreshModel(model, max_width, max_height, error);
@@ -77,14 +75,8 @@ bool CameraRenderer::RefreshModel(mjModel* model, int max_width, int max_height,
   return true;
 }
 
-bool CameraRenderer::RenderRgb(
-    const mjModel* model,
-    mjData* data,
-    int camera_id,
-    int width,
-    int height,
-    std::vector<std::uint8_t>* rgb_pixels,
-    std::string* error) {
+bool CameraRenderer::RenderRgb(const mjModel* model, mjData* data, int camera_id, int width, int height, std::vector<std::uint8_t>* rgb_pixels,
+                               std::string* error) {
   if (model == nullptr || data == nullptr || rgb_pixels == nullptr) {
     AssignError(error, "camera renderer received invalid input");
     return false;
@@ -126,8 +118,7 @@ bool CameraRenderer::RenderRgb(
   const std::size_t row_bytes = static_cast<std::size_t>(width) * 3u;
   for (int row = 0; row < height / 2; ++row) {
     auto top = rgb_pixels->begin() + static_cast<std::ptrdiff_t>(row) * static_cast<std::ptrdiff_t>(row_bytes);
-    auto bottom = rgb_pixels->begin() +
-                  static_cast<std::ptrdiff_t>(height - 1 - row) * static_cast<std::ptrdiff_t>(row_bytes);
+    auto bottom = rgb_pixels->begin() + static_cast<std::ptrdiff_t>(height - 1 - row) * static_cast<std::ptrdiff_t>(row_bytes);
     std::swap_ranges(top, top + static_cast<std::ptrdiff_t>(row_bytes), bottom);
   }
 

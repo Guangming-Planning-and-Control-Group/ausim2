@@ -13,20 +13,15 @@ enum class ExampleMode {
   kCircular = 2,
 };
 
-double AircraftHeadingFromQuaternion(
-    const Eigen::Quaterniond& quaternion,
-    const Eigen::Vector3d& aircraft_forward_axis) {
+double AircraftHeadingFromQuaternion(const Eigen::Quaterniond& quaternion, const Eigen::Vector3d& aircraft_forward_axis) {
   const Eigen::Vector3d forward_world = quaternion.normalized() * aircraft_forward_axis;
   return std::atan2(forward_world.y(), forward_world.x());
 }
 
-Eigen::Vector3d ForwardFromYaw(double yaw) {
-  return Eigen::Vector3d(std::cos(yaw), std::sin(yaw), 0.0);
-}
+Eigen::Vector3d ForwardFromYaw(double yaw) { return Eigen::Vector3d(std::cos(yaw), std::sin(yaw), 0.0); }
 
 Eigen::Vector3d RotateLocalVelocityToWorld(const Eigen::Vector3d& local_velocity, double yaw) {
-  const Eigen::Matrix2d yaw_rotation =
-      (Eigen::Matrix2d() << std::cos(yaw), -std::sin(yaw), std::sin(yaw), std::cos(yaw)).finished();
+  const Eigen::Matrix2d yaw_rotation = (Eigen::Matrix2d() << std::cos(yaw), -std::sin(yaw), std::sin(yaw), std::cos(yaw)).finished();
   const Eigen::Vector2d world_xy = yaw_rotation * local_velocity.head<2>();
   return Eigen::Vector3d(world_xy.x(), world_xy.y(), local_velocity.z());
 }
@@ -39,8 +34,7 @@ GoalReference DemoGoalProvider::Evaluate(const GoalContext& context) {
   GoalReference goal;
   goal.state.quaternion = Eigen::Quaterniond::Identity();
   goal.forward = config_.hover_goal.heading;
-  goal.control_mode =
-      static_cast<SE3Controller::ControlMode>(config_.simulation.control_mode);
+  goal.control_mode = static_cast<SE3Controller::ControlMode>(config_.simulation.control_mode);
   goal.source = "demo";
 
   const bool velocity_mode = goal.control_mode == SE3Controller::ControlMode::kVelocity;
@@ -72,12 +66,10 @@ GoalReference DemoGoalProvider::Evaluate(const GoalContext& context) {
 
   if (velocity_mode) {
     const Eigen::Vector2d base_xy(config_.hover_goal.velocity.x(), config_.hover_goal.velocity.y());
-    const Eigen::Matrix2d rotation =
-        (Eigen::Matrix2d() << cosine, -sine, sine, cosine).finished();
+    const Eigen::Matrix2d rotation = (Eigen::Matrix2d() << cosine, -sine, sine, cosine).finished();
     const Eigen::Vector2d rotated_xy = rotation * base_xy;
     const double vertical_velocity =
-        config_.hover_goal.velocity.z() +
-        circle.height_gain * (config_.hover_goal.position.z() - context.current_state.position.z());
+        config_.hover_goal.velocity.z() + circle.height_gain * (config_.hover_goal.position.z() - context.current_state.position.z());
 
     goal.state.velocity = Eigen::Vector3d(rotated_xy.x(), rotated_xy.y(), vertical_velocity);
     if (rotated_xy.norm() > 1e-6) {
@@ -94,10 +86,8 @@ CommandGoalProvider::CommandGoalProvider(const QuadrotorConfig& config)
       aircraft_forward_axis_(config.model.aircraft_forward_axis) {}
 
 GoalReference CommandGoalProvider::Evaluate(const GoalContext& context) {
-  const std::optional<VelocityCommand> command =
-      ReadFreshVelocityCommand(command_timeout_seconds_);
-  const double current_yaw =
-      AircraftHeadingFromQuaternion(context.current_state.quaternion, aircraft_forward_axis_);
+  const std::optional<VelocityCommand> command = ReadFreshVelocityCommand(command_timeout_seconds_);
+  const double current_yaw = AircraftHeadingFromQuaternion(context.current_state.quaternion, aircraft_forward_axis_);
 
   // Capture spawn state on first call.
   if (!initialized_) {

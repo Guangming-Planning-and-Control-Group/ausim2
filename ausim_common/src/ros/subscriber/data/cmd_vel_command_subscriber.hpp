@@ -1,7 +1,7 @@
 #pragma once
 
-#include <geometry_msgs/msg/twist.hpp>
 #include <functional>
+#include <geometry_msgs/msg/twist.hpp>
 #include <memory>
 #include <rclcpp/rclcpp.hpp>
 #include <string>
@@ -13,10 +13,7 @@ namespace ausim {
 
 class CmdVelCommandSubscriber : public ICommandSubscriber {
  public:
-  CmdVelCommandSubscriber(
-      const std::shared_ptr<rclcpp::Node>& node,
-      std::string topic_name,
-      std::function<void(const data::CmdVelData&)> on_message);
+  CmdVelCommandSubscriber(const std::shared_ptr<rclcpp::Node>& node, std::string topic_name, std::function<void(const data::CmdVelData&)> on_message);
 
  private:
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr subscription_;

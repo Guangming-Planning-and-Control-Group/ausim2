@@ -21,8 +21,7 @@ struct WheelGeometry {
 
 }  // namespace
 
-DifferentialDriveController::DifferentialDriveController(DifferentialDriveConfig config)
-    : config_(config) {
+DifferentialDriveController::DifferentialDriveController(DifferentialDriveConfig config) : config_(config) {
   if (config_.wheel_radius <= 0.0) {
     throw std::runtime_error("ground_vehicle.wheel_radius must be positive.");
   }
@@ -63,10 +62,7 @@ WheelSpeeds DifferentialDriveController::Compute(double linear_x, double angular
     (void)tangential_velocity_y;
 
     const double wheel_linear_velocity = v + tangential_velocity_x;
-    speeds.rad_per_second[i] =
-        ClampSymmetric(
-            wheel.joint_sign * wheel_linear_velocity / config_.wheel_radius,
-            config_.max_wheel_speed);
+    speeds.rad_per_second[i] = ClampSymmetric(wheel.joint_sign * wheel_linear_velocity / config_.wheel_radius, config_.max_wheel_speed);
   }
 
   return speeds;

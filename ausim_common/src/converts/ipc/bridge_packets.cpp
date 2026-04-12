@@ -6,13 +6,9 @@
 namespace ausim::converts {
 namespace {
 
-data::Vector3 BuildVector3(const std::array<double, 3>& value) {
-  return data::Vector3{value[0], value[1], value[2]};
-}
+data::Vector3 BuildVector3(const std::array<double, 3>& value) { return data::Vector3{value[0], value[1], value[2]}; }
 
-data::Quaternion BuildQuaternion(const std::array<double, 4>& value) {
-  return data::Quaternion{value[0], value[1], value[2], value[3]};
-}
+data::Quaternion BuildQuaternion(const std::array<double, 4>& value) { return data::Quaternion{value[0], value[1], value[2], value[3]}; }
 
 data::Header BuildHeader(double stamp_seconds, const std::string& frame_id) {
   data::Header header;
@@ -21,13 +17,9 @@ data::Header BuildHeader(double stamp_seconds, const std::string& frame_id) {
   return header;
 }
 
-Eigen::Vector3d ToEigenVector3(const std::array<double, 3>& value) {
-  return Eigen::Vector3d(value[0], value[1], value[2]);
-}
+Eigen::Vector3d ToEigenVector3(const std::array<double, 3>& value) { return Eigen::Vector3d(value[0], value[1], value[2]); }
 
-Eigen::Quaterniond ToEigenQuaternion(const std::array<double, 4>& value) {
-  return Eigen::Quaterniond(value[0], value[1], value[2], value[3]);
-}
+Eigen::Quaterniond ToEigenQuaternion(const std::array<double, 4>& value) { return Eigen::Quaterniond(value[0], value[1], value[2], value[3]); }
 
 }  // namespace
 
@@ -46,9 +38,7 @@ ipc::VelocityCommandPacket ToVelocityCommandPacket(const data::CmdVelData& messa
   return packet;
 }
 
-VelocityCommand ToVelocityCommand(
-    const ipc::VelocityCommandPacket& packet,
-    std::chrono::steady_clock::time_point received_time) {
+VelocityCommand ToVelocityCommand(const ipc::VelocityCommandPacket& packet, std::chrono::steady_clock::time_point received_time) {
   VelocityCommand command;
   command.linear = ToEigenVector3(packet.linear);
   command.angular = ToEigenVector3(packet.angular);
@@ -100,9 +90,7 @@ ipc::TelemetryPacket ToTelemetryPacket(const TelemetrySnapshot& snapshot) {
   return packet;
 }
 
-ipc::CameraImageMetadataPacket ToCameraImageMetadataPacket(
-    const CameraFrame& frame,
-    std::uint32_t sensor_index) {
+ipc::CameraImageMetadataPacket ToCameraImageMetadataPacket(const CameraFrame& frame, std::uint32_t sensor_index) {
   ipc::CameraImageMetadataPacket packet;
   packet.sim_time = frame.sim_time;
   packet.sensor_index = sensor_index;
@@ -115,9 +103,7 @@ ipc::CameraImageMetadataPacket ToCameraImageMetadataPacket(
   return packet;
 }
 
-CameraFrame ToCameraFrame(
-    const ipc::CameraImageMetadataPacket& packet,
-    std::vector<std::uint8_t> pixels) {
+CameraFrame ToCameraFrame(const ipc::CameraImageMetadataPacket& packet, std::vector<std::uint8_t> pixels) {
   CameraFrame frame;
   frame.sim_time = packet.sim_time;
   frame.sequence = packet.sequence;
@@ -129,10 +115,7 @@ CameraFrame ToCameraFrame(
   return frame;
 }
 
-data::OdomData ToOdomData(
-    const ipc::TelemetryPacket& packet,
-    const std::string& frame_id,
-    const std::string& child_frame_id) {
+data::OdomData ToOdomData(const ipc::TelemetryPacket& packet, const std::string& frame_id, const std::string& child_frame_id) {
   data::OdomData message;
   message.header = BuildHeader(packet.sim_time, frame_id);
   message.child_frame_id = child_frame_id;
@@ -153,10 +136,7 @@ data::ImuData ToImuData(const ipc::TelemetryPacket& packet, const std::string& f
   return message;
 }
 
-data::TransformData ToTransformData(
-    const ipc::TelemetryPacket& packet,
-    const std::string& frame_id,
-    const std::string& child_frame_id) {
+data::TransformData ToTransformData(const ipc::TelemetryPacket& packet, const std::string& frame_id, const std::string& child_frame_id) {
   data::TransformData message;
   message.header = BuildHeader(packet.sim_time, frame_id);
   message.child_frame_id = child_frame_id;

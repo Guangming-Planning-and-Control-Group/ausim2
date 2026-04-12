@@ -101,10 +101,8 @@ int main(int argc, char** argv) {
       }
     }
 
-    if (!cli.merged_config_path.empty() &&
-        (!cli.sim_config_path.empty() || !cli.robot_config_path.empty())) {
-      throw std::runtime_error(
-          "Use either --config or --sim-config, with optional --robot-config override.");
+    if (!cli.merged_config_path.empty() && (!cli.sim_config_path.empty() || !cli.robot_config_path.empty())) {
+      throw std::runtime_error("Use either --config or --sim-config, with optional --robot-config override.");
     }
 
     quadrotor::QuadrotorConfig config;
@@ -115,12 +113,9 @@ int main(int argc, char** argv) {
         cli.sim_config_path = ResolveDefaultConfigPath("sim_config.yaml");
       }
       if (cli.sim_config_path.empty()) {
-        throw std::runtime_error(
-            "Unable to locate default simulation config. Expected quadrotor/cfg/sim_config.yaml.");
+        throw std::runtime_error("Unable to locate default simulation config. Expected quadrotor/cfg/sim_config.yaml.");
       }
-      config = quadrotor::LoadConfigFromYaml(
-          cli.sim_config_path.string(),
-          cli.robot_config_path.string());
+      config = quadrotor::LoadConfigFromYaml(cli.sim_config_path.string(), cli.robot_config_path.string());
     }
 
     if (cli.force_viewer) {
@@ -130,8 +125,7 @@ int main(int argc, char** argv) {
       config.viewer.enabled = false;
     }
 
-    if (const char* scene_override = std::getenv("AUSIM_SCENE_XML_OVERRIDE");
-        scene_override != nullptr && scene_override[0] != '\0') {
+    if (const char* scene_override = std::getenv("AUSIM_SCENE_XML_OVERRIDE"); scene_override != nullptr && scene_override[0] != '\0') {
       config.model.scene_xml = fs::absolute(scene_override);
     }
 
@@ -147,8 +141,7 @@ int main(int argc, char** argv) {
     }
 
     quadrotor::RosBridgeLaunchConfig bridge_launch_config;
-    bridge_launch_config.executable_path =
-        self_executable.parent_path() / "ausim_ros_bridge";
+    bridge_launch_config.executable_path = self_executable.parent_path() / "ausim_ros_bridge";
     bridge_launch_config.config_arguments = BuildBridgeConfigArguments(cli);
 
     quadrotor::QuadrotorApp app(std::move(config), std::move(bridge_launch_config));

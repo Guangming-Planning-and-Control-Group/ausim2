@@ -5,15 +5,12 @@
 
 namespace ground_vehicle {
 
-WheelActuatorWriter::WheelActuatorWriter(WheelActuatorBindingConfig config)
-    : config_(std::move(config)),
-      actuator_names_(config_.AsArray()) {}
+WheelActuatorWriter::WheelActuatorWriter(WheelActuatorBindingConfig config) : config_(std::move(config)), actuator_names_(config_.AsArray()) {}
 
 std::string WheelActuatorWriter::ValidateModel(const mjModel* model) const {
   for (const std::string& actuator_name : actuator_names_) {
     if (mj_name2id(model, mjOBJ_ACTUATOR, actuator_name.c_str()) < 0) {
-      return "Model is incompatible with the scout controller: missing actuator '" +
-             actuator_name + "'";
+      return "Model is incompatible with the scout controller: missing actuator '" + actuator_name + "'";
     }
   }
   return {};

@@ -11,10 +11,8 @@ db::SecurityDataRef<VelocityCommand, db::Permission::ReadOnly> VelocityCommandRe
 db::SecurityDataRef<VelocityCommand, db::Permission::ReadWrite> VelocityCommandWriter();
 db::SecurityDataRef<TelemetrySnapshot, db::Permission::ReadOnly> TelemetrySnapshotReader();
 db::SecurityDataRef<TelemetrySnapshot, db::Permission::ReadWrite> TelemetrySnapshotWriter();
-db::SecurityDataRef<CameraFrame, db::Permission::ReadOnly> CameraFrameReader(
-    const std::string& channel_name);
-db::SecurityDataRef<CameraFrame, db::Permission::ReadWrite> CameraFrameWriter(
-    const std::string& channel_name);
+db::SecurityDataRef<CameraFrame, db::Permission::ReadOnly> CameraFrameReader(const std::string& channel_name);
+db::SecurityDataRef<CameraFrame, db::Permission::ReadWrite> CameraFrameWriter(const std::string& channel_name);
 
 std::optional<VelocityCommand> ReadVelocityCommand();
 std::optional<VelocityCommand> ReadFreshVelocityCommand(double timeout_seconds);

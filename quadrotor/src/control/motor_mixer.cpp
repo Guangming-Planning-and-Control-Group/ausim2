@@ -8,10 +8,9 @@
 namespace quadrotor {
 
 MotorMixer::MotorMixer(const MixerParams& params) : params_(params) {
-  mat_ << params_.Ct, params_.Ct, params_.Ct, params_.Ct,
-      params_.Ct * params_.L, -params_.Ct * params_.L, -params_.Ct * params_.L, params_.Ct * params_.L,
-      -params_.Ct * params_.L, -params_.Ct * params_.L, params_.Ct * params_.L, params_.Ct * params_.L,
-      -params_.Cd, params_.Cd, -params_.Cd, params_.Cd;
+  mat_ << params_.Ct, params_.Ct, params_.Ct, params_.Ct, params_.Ct * params_.L, -params_.Ct * params_.L, -params_.Ct * params_.L,
+      params_.Ct * params_.L, -params_.Ct * params_.L, -params_.Ct * params_.L, params_.Ct * params_.L, params_.Ct * params_.L, -params_.Cd,
+      params_.Cd, -params_.Cd, params_.Cd;
   inv_mat_ = mat_.inverse();
 }
 
@@ -31,8 +30,7 @@ Eigen::Vector4d MotorMixer::calculate(double thrust, double mx, double my, doubl
   double min_trim_scale = 1.0;
 
   if (max_value > params_.max_speed * params_.max_speed) {
-    max_trim_scale =
-        (params_.max_speed * params_.max_speed - ref_value) / (max_value - ref_value);
+    max_trim_scale = (params_.max_speed * params_.max_speed - ref_value) / (max_value - ref_value);
   }
   if (min_value < 0.0) {
     min_trim_scale = ref_value / (ref_value - min_value);
@@ -61,13 +59,10 @@ Eigen::Vector4d MotorMixer::calculate(double thrust, double mx, double my, doubl
   double min_trim_scale_z = 1.0;
 
   if (z_max_value > params_.max_speed * params_.max_speed) {
-    max_trim_scale_z =
-        (params_.max_speed * params_.max_speed - motor_speed_sq[max_index]) /
-        (z_max_value - motor_speed_sq[max_index]);
+    max_trim_scale_z = (params_.max_speed * params_.max_speed - motor_speed_sq[max_index]) / (z_max_value - motor_speed_sq[max_index]);
   }
   if (z_min_value < 0.0) {
-    min_trim_scale_z =
-        motor_speed_sq[min_index] / (motor_speed_sq[min_index] - z_min_value);
+    min_trim_scale_z = motor_speed_sq[min_index] / (motor_speed_sq[min_index] - z_min_value);
   }
 
   const double scale_z = std::min(max_trim_scale_z, min_trim_scale_z);
