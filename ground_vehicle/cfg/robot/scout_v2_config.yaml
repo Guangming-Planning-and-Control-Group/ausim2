@@ -1,0 +1,43 @@
+robot:
+  count: 1
+
+identity:
+  vehicle_id: scout_v2
+  namespace: /scout1
+  frame_prefix: scout1
+
+model:
+  scene_xml: ../../../assets/scout_v2/scene.xml
+  body_name: base_link
+
+bindings:
+  freejoint_name: floating_base_joint
+  wheel_actuators:
+    front_right: velocity_front_right_wheel
+    front_left: velocity_front_left_wheel
+    rear_left: velocity_rear_left_wheel
+    rear_right: velocity_rear_right_wheel
+  state:
+    gyro_sensor: body_gyro
+    accel_sensor: body_linacc
+    quat_sensor: body_quat
+
+ground_vehicle:
+  wheel_radius: 0.165
+  track_width: 0.58306
+  max_linear_speed: 1.5
+  max_angular_speed: 2.0
+  max_wheel_speed: 20.0
+  left_joint_sign: -1.0
+  right_joint_sign: 1.0
+
+interfaces:
+  cmd_vel_topic: cmd_vel
+  odom_topic: odom
+  imu_topic: imu/data
+  clock_topic: /clock
+
+frames:
+  odom: odom
+  base: base_link
+  imu: base_link

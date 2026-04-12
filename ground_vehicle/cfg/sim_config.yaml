@@ -1,0 +1,24 @@
+robot_config: robot/scout_v2_config.yaml
+
+simulation:
+  duration: 0.0
+  dt: 0.001
+  print_interval: 0.5
+  track_camera_name: ""
+
+viewer:
+  enabled: false
+  fallback_to_headless: true
+  mjui_enabled: false
+  vsync: true
+
+ros2:
+  node_name: scout_sim_bridge
+  use_sim_time: true
+  publish_rate_hz: 100.0
+  command_timeout: 0.5
+  publish_tf: true
+  publish_clock: true
+
+dynamic_obstacle:
+  enabled: false

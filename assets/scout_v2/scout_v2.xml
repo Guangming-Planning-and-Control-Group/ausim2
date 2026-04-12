@@ -1,5 +1,5 @@
 <mujoco model="scout_v2">
-  <compiler angle='radian' eulerseq="XYZ" meshdir="./meshes"
+  <compiler angle='radian' eulerseq="XYZ" meshdir="./assets"
     autolimits="true" />
 
   <option timestep="0.001" />
@@ -29,6 +29,7 @@
       <inertial pos="0 0 0" mass="50" diaginertia="2.288641 5.103976 3.431465"/>
       <geom class="visual" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.298039 0.298039 0.298039 1" mesh="base_link"/>
       <geom class="collision" type="mesh" rgba="0.298039 0.298039 0.298039 1" mesh="base_link"/>
+      <site name="imu" pos="0 0 0.05" group="3"/>
       <site name="front_mount" pos="0.325 0 0.112701" group="3"/>
       <site name="rear_mount" pos="-0.325 0 0.112701" group="3"/>
 
@@ -67,4 +68,9 @@
     <velocity class="scout" name="velocity_rear_left_wheel" joint="rear_left_wheel" kv="10" ctrlrange="-20 20"/>
     <velocity class="scout" name="velocity_rear_right_wheel" joint="rear_right_wheel" kv="10" ctrlrange="-20 20"/>
   </actuator>
+  <sensor>
+    <gyro name="body_gyro" site="imu"/>
+    <accelerometer name="body_linacc" site="imu"/>
+    <framequat name="body_quat" objtype="site" objname="imu"/>
+  </sensor>
 </mujoco>

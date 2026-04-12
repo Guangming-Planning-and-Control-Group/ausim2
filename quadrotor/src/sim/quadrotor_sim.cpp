@@ -56,13 +56,25 @@ std::optional<fs::path> ResolveBundledPluginDirectory() {
   return std::nullopt;
 }
 
-void AppendPluginDirectory(std::vector<fs::path>& directories, const fs::path& directory) {
+bool ContainsDecoderPlugin(const fs::path& directory) {
+  std::error_code error;
+  return fs::exists(directory / "libobj_decoder.so", error) ||
+         fs::exists(directory / "libstl_decoder.so", error);
+}
+
+void AppendPluginDirectory(
+    std::vector<fs::path>& directories,
+    const fs::path& directory,
+    bool skip_decoder_directory = false) {
   if (directory.empty()) {
     return;
   }
 
   std::error_code error;
   if (!fs::exists(directory, error) || !fs::is_directory(directory, error)) {
+    return;
+  }
+  if (skip_decoder_directory && ContainsDecoderPlugin(directory)) {
     return;
   }
 
@@ -74,7 +86,9 @@ void AppendPluginDirectory(std::vector<fs::path>& directories, const fs::path& d
   directories.push_back(directory);
 }
 
-void AppendPluginDirectoriesFromEnv(std::vector<fs::path>& directories) {
+void AppendPluginDirectoriesFromEnv(
+    std::vector<fs::path>& directories,
+    bool skip_decoder_directories) {
   const char* plugin_dirs = std::getenv("MUJOCO_PLUGIN_DIR");
   if (plugin_dirs == nullptr || plugin_dirs[0] == '\0') {
     return;
@@ -84,20 +98,23 @@ void AppendPluginDirectoriesFromEnv(std::vector<fs::path>& directories) {
   std::stringstream stream(plugin_dirs);
   while (std::getline(stream, token, ':')) {
     if (!token.empty()) {
-      AppendPluginDirectory(directories, fs::path(token));
+      AppendPluginDirectory(directories, fs::path(token), skip_decoder_directories);
     }
   }
 }
 
 void LoadMuJoCoPlugins() {
   std::vector<fs::path> plugin_directories;
-  AppendPluginDirectoriesFromEnv(plugin_directories);
+  const fs::path fallback_decoder_dir(QUADROTOR_MUJOCO_PLUGIN_FALLBACK_DIR);
+  const bool fallback_has_decoders =
+      !fallback_decoder_dir.empty() && ContainsDecoderPlugin(fallback_decoder_dir);
+
+  AppendPluginDirectory(plugin_directories, fallback_decoder_dir);
+  AppendPluginDirectoriesFromEnv(plugin_directories, fallback_has_decoders);
 
   if (const auto bundled_plugin_dir = ResolveBundledPluginDirectory()) {
     AppendPluginDirectory(plugin_directories, *bundled_plugin_dir);
   }
-
-  AppendPluginDirectory(plugin_directories, fs::path(QUADROTOR_MUJOCO_PLUGIN_FALLBACK_DIR));
 
   for (const fs::path& plugin_directory : plugin_directories) {
     const std::string plugin_dir_string = plugin_directory.string();

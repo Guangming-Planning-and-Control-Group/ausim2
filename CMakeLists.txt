@@ -4,8 +4,8 @@ project(QuadrotorWorkspace LANGUAGES CXX)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(MUJOCO_SOURCE_DIR "/home/x/mujoco/mujoco-3.6.0" CACHE PATH
-    "Path to a MuJoCo source checkout. The build will derive install/package paths from here.")
+set(MUJOCO_SOURCE_DIR "/opt/mujoco" CACHE PATH
+    "Path to a MuJoCo source checkout or install prefix. The build will derive install/package paths from here.")
 
 set(MUJOCO_RAY_CASTER_OUTPUT_DIR "${CMAKE_BINARY_DIR}/bin/mujoco_plugin" CACHE PATH
     "Directory where external MuJoCo plugins are emitted.")
@@ -35,3 +35,4 @@ resolve_mujoco_dependency(
 
 add_subdirectory(third_party/mujoco_ray_caster)
 add_subdirectory(quadrotor)
+add_subdirectory(ground_vehicle)
