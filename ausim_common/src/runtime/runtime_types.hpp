@@ -9,7 +9,7 @@
 
 #include "controller/state.hpp"
 
-namespace quadrotor {
+namespace ausim {
 
 struct ImuData {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -70,5 +70,17 @@ struct CameraFrame {
   CameraFrameFormat format = CameraFrameFormat::kRgb8;
   std::vector<std::uint8_t> data;
 };
+
+}  // namespace ausim
+
+namespace quadrotor {
+
+using ::ausim::CameraFrame;
+using ::ausim::CameraFrameBytesPerPixel;
+using ::ausim::CameraFrameFormat;
+using ::ausim::ImuData;
+using ::ausim::RuntimeInput;
+using ::ausim::TelemetrySnapshot;
+using ::ausim::VelocityCommand;
 
 }  // namespace quadrotor

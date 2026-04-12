@@ -2,7 +2,7 @@
 
 #include "converts/data/common.hpp"
 
-namespace quadrotor::converts {
+namespace ausim::converts {
 
 void Convert(nav_msgs::msg::Odometry& out, const data::OdomData& in) {
   out.header.stamp = ToRosTime(in.header.stamp_seconds);
@@ -20,4 +20,4 @@ nav_msgs::msg::Odometry ToRosMessage(const data::OdomData& in) {
   return out;
 }
 
-}  // namespace quadrotor::converts
+}  // namespace ausim::converts

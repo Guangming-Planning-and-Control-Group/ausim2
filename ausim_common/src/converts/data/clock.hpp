@@ -4,11 +4,11 @@
 
 #include "data/clock.hpp"
 
-namespace quadrotor::converts {
+namespace ausim::converts {
 
 data::ClockData ToClockData(double stamp_seconds);
 
 void Convert(rosgraph_msgs::msg::Clock& out, const data::ClockData& in);
 rosgraph_msgs::msg::Clock ToRosMessage(const data::ClockData& in);
 
-}  // namespace quadrotor::converts
+}  // namespace ausim::converts

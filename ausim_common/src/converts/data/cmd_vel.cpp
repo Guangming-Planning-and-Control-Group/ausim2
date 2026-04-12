@@ -1,6 +1,6 @@
 #include "converts/data/cmd_vel.hpp"
 
-namespace quadrotor::converts {
+namespace ausim::converts {
 
 void Convert(data::CmdVelData& out, const geometry_msgs::msg::Twist& in) {
   out.twist.linear.x = in.linear.x;
@@ -32,4 +32,4 @@ geometry_msgs::msg::Twist ToRosMessage(const data::CmdVelData& in) {
   return out;
 }
 
-}  // namespace quadrotor::converts
+}  // namespace ausim::converts

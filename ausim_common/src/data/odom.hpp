@@ -4,7 +4,7 @@
 
 #include "data/common.hpp"
 
-namespace quadrotor::data {
+namespace ausim::data {
 
 struct OdomData {
   Header header;
@@ -13,4 +13,4 @@ struct OdomData {
   Twist twist;
 };
 
-}  // namespace quadrotor::data
+}  // namespace ausim::data

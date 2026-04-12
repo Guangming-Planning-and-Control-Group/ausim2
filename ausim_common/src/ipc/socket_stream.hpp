@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <unistd.h>
 
-namespace quadrotor::ipc {
+namespace ausim::ipc {
 
 inline bool WriteFully(int fd, const void* data, std::size_t size) {
   const auto* bytes = static_cast<const std::uint8_t*>(data);
@@ -44,4 +44,4 @@ inline bool ReadFully(int fd, void* data, std::size_t size) {
   return true;
 }
 
-}  // namespace quadrotor::ipc
+}  // namespace ausim::ipc

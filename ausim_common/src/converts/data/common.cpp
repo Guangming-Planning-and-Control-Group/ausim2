@@ -3,7 +3,7 @@
 #include <cmath>
 #include <utility>
 
-namespace quadrotor::converts {
+namespace ausim::converts {
 
 data::Vector3 ToVector3(const Eigen::Vector3d& value) {
   return data::Vector3{value.x(), value.y(), value.z()};
@@ -45,4 +45,4 @@ void Convert(geometry_msgs::msg::Quaternion& out, const data::Quaternion& in) {
   out.z = in.z;
 }
 
-}  // namespace quadrotor::converts
+}  // namespace ausim::converts

@@ -5,7 +5,7 @@
 #include "converts/data/image.hpp"
 #include "converts/ipc/bridge_packets.hpp"
 
-namespace quadrotor {
+namespace ausim {
 
 ImageDataPublisher::ImageDataPublisher(
     const std::shared_ptr<rclcpp::Node>& node,
@@ -18,4 +18,4 @@ void ImageDataPublisher::Publish(const CameraFrame& frame) {
   publisher_->publish(converts::ToRosMessage(converts::ToImageData(frame, frame_id_)));
 }
 
-}  // namespace quadrotor
+}  // namespace ausim

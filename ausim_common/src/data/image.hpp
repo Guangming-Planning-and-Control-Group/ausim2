@@ -6,7 +6,7 @@
 
 #include "data/common.hpp"
 
-namespace quadrotor::data {
+namespace ausim::data {
 
 struct ImageData {
   Header header;
@@ -18,4 +18,4 @@ struct ImageData {
   std::vector<std::uint8_t> data;
 };
 
-}  // namespace quadrotor::data
+}  // namespace ausim::data

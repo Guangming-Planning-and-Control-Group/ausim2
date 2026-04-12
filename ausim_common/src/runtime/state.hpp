@@ -3,7 +3,7 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
-namespace quadrotor {
+namespace ausim {
 
 struct State {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -18,5 +18,12 @@ struct ControlCommand {
   double thrust = 0.0;
   Eigen::Vector3d angular = Eigen::Vector3d::Zero();
 };
+
+}  // namespace ausim
+
+namespace quadrotor {
+
+using ::ausim::ControlCommand;
+using ::ausim::State;
 
 }  // namespace quadrotor

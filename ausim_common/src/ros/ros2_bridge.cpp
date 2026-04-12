@@ -28,7 +28,7 @@
 #include "ros/subscriber/data/cmd_vel_command_subscriber.hpp"
 #include "ros/subscriber/i_command_subscriber.hpp"
 
-namespace quadrotor {
+namespace ausim {
 namespace {
 
 namespace fs = std::filesystem;
@@ -488,4 +488,4 @@ int RunRosBridgeProcess(const QuadrotorConfig& config, int telemetry_fd, int com
   return process.Run();
 }
 
-}  // namespace quadrotor
+}  // namespace ausim

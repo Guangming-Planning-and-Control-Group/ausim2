@@ -9,7 +9,7 @@
 #include "data/cmd_vel.hpp"
 #include "ros/subscriber/i_command_subscriber.hpp"
 
-namespace quadrotor {
+namespace ausim {
 
 class CmdVelCommandSubscriber : public ICommandSubscriber {
  public:
@@ -22,4 +22,4 @@ class CmdVelCommandSubscriber : public ICommandSubscriber {
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr subscription_;
 };
 
-}  // namespace quadrotor
+}  // namespace ausim

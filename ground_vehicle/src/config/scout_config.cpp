@@ -65,12 +65,32 @@ void ApplyScoutConfigRoot(const YAML::Node& root, ScoutConfig* config) {
 
   const YAML::Node drive_node = root["ground_vehicle"];
   AssignIfPresent(drive_node, "wheel_radius", &config->drive.wheel_radius);
+  AssignIfPresent(drive_node, "wheel_track", &config->drive.track_width);
   AssignIfPresent(drive_node, "track_width", &config->drive.track_width);
+  AssignIfPresent(drive_node, "wheel_base", &config->drive.axle_length);
+  AssignIfPresent(drive_node, "wheelbase", &config->drive.axle_length);
+  AssignIfPresent(drive_node, "axle_length", &config->drive.axle_length);
   AssignIfPresent(drive_node, "max_linear_speed", &config->drive.max_linear_speed);
   AssignIfPresent(drive_node, "max_angular_speed", &config->drive.max_angular_speed);
   AssignIfPresent(drive_node, "max_wheel_speed", &config->drive.max_wheel_speed);
-  AssignIfPresent(drive_node, "left_joint_sign", &config->drive.left_joint_sign);
-  AssignIfPresent(drive_node, "right_joint_sign", &config->drive.right_joint_sign);
+  if (drive_node) {
+    double left_joint_sign = config->drive.front_left_joint_sign;
+    double right_joint_sign = config->drive.front_right_joint_sign;
+    AssignIfPresent(drive_node, "left_joint_sign", &left_joint_sign);
+    AssignIfPresent(drive_node, "right_joint_sign", &right_joint_sign);
+    config->drive.front_left_joint_sign = left_joint_sign;
+    config->drive.rear_left_joint_sign = left_joint_sign;
+    config->drive.front_right_joint_sign = right_joint_sign;
+    config->drive.rear_right_joint_sign = right_joint_sign;
+  }
+  AssignIfPresent(
+      drive_node, "front_right_joint_sign", &config->drive.front_right_joint_sign);
+  AssignIfPresent(
+      drive_node, "front_left_joint_sign", &config->drive.front_left_joint_sign);
+  AssignIfPresent(
+      drive_node, "rear_left_joint_sign", &config->drive.rear_left_joint_sign);
+  AssignIfPresent(
+      drive_node, "rear_right_joint_sign", &config->drive.rear_right_joint_sign);
 }
 
 void ApplyScoutSpecificConfig(
@@ -102,7 +122,7 @@ void ApplyScoutSpecificConfig(
 
 ScoutConfig LoadScoutConfigFromYaml(const std::string& path) {
   ScoutConfig config;
-  config.common = quadrotor::LoadConfigFromYaml(path);
+  config.common = ausim::LoadConfigFromYaml(path);
   ApplyScoutSpecificConfig(path, {}, &config);
   return config;
 }
@@ -111,7 +131,7 @@ ScoutConfig LoadScoutConfigFromYaml(
     const std::string& sim_config_path,
     const std::string& robot_config_path) {
   ScoutConfig config;
-  config.common = quadrotor::LoadConfigFromYaml(sim_config_path, robot_config_path);
+  config.common = ausim::LoadConfigFromYaml(sim_config_path, robot_config_path);
   ApplyScoutSpecificConfig(sim_config_path, robot_config_path, &config);
   return config;
 }

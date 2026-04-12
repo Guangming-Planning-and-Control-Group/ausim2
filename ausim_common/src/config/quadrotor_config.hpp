@@ -7,7 +7,7 @@
 
 #include <Eigen/Core>
 
-namespace quadrotor {
+namespace ausim {
 
 struct VehicleIdentity {
   std::string vehicle_id = "quadrotor";
@@ -177,11 +177,41 @@ struct QuadrotorConfig {
   double torque_scale = 0.001;
 };
 
+using SimConfig = QuadrotorConfig;
+
 QuadrotorConfig LoadConfigFromYaml(const std::string& path);
 QuadrotorConfig LoadConfigFromYaml(
     const std::string& sim_config_path,
     const std::string& robot_config_path);
 std::vector<CameraStreamConfig> BuildCameraStreamConfigs(
     const std::vector<SensorConfig>& sensors);
+
+}  // namespace ausim
+
+namespace quadrotor {
+
+using ::ausim::ActuatorBindingConfig;
+using ::ausim::BuildCameraStreamConfigs;
+using ::ausim::CameraDepthConfig;
+using ::ausim::CameraStreamConfig;
+using ::ausim::CameraStreamKind;
+using ::ausim::CircleTrajectoryConfig;
+using ::ausim::ControllerGains;
+using ::ausim::DynamicObstacleConfig;
+using ::ausim::HoverGoal;
+using ::ausim::LoadConfigFromYaml;
+using ::ausim::ModelConfig;
+using ::ausim::QuadrotorConfig;
+using ::ausim::RobotConfig;
+using ::ausim::Ros2Config;
+using ::ausim::RosFrameConfig;
+using ::ausim::RosInterfaceConfig;
+using ::ausim::SensorConfig;
+using ::ausim::SimConfig;
+using ::ausim::SimulationConfig;
+using ::ausim::StateBindingConfig;
+using ::ausim::VehicleIdentity;
+using ::ausim::VehicleParams;
+using ::ausim::ViewerConfig;
 
 }  // namespace quadrotor

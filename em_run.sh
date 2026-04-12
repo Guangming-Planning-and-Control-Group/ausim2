@@ -3,10 +3,15 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PLUGIN_DIR="${SCRIPT_DIR}/build/bin/mujoco_plugin"
+BUNDLED_PLUGIN_DIR="${SCRIPT_DIR}/third_party/mujoco-3.6.0/bin/mujoco_plugin"
 GENERATOR="${SCRIPT_DIR}/third_party/dynamic_obs_generator/generate_scene_obstacles.py"
 TARGET_CONFIG="${SCRIPT_DIR}/.em_run_target"
 
-if [ -d "${PLUGIN_DIR}" ]; then
+if [ -d "${BUNDLED_PLUGIN_DIR}" ] && [ -d "${PLUGIN_DIR}" ]; then
+  export MUJOCO_PLUGIN_DIR="${BUNDLED_PLUGIN_DIR}:${PLUGIN_DIR}"
+elif [ -d "${BUNDLED_PLUGIN_DIR}" ]; then
+  export MUJOCO_PLUGIN_DIR="${BUNDLED_PLUGIN_DIR}"
+elif [ -d "${PLUGIN_DIR}" ]; then
   export MUJOCO_PLUGIN_DIR="${PLUGIN_DIR}"
 fi
 
@@ -39,7 +44,7 @@ choose_target() {
   echo "  2) scout"
 
   while true; do
-    read -r -p "输入编号或名称 [1]: " choice
+    read -r -p "输入编号或名称: " choice
     case "${choice}" in
       ""|1|quadrotor)
         selected="quadrotor"

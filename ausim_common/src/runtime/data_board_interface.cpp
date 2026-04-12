@@ -5,7 +5,7 @@
 
 #include "runtime/data_board_channels.hpp"
 
-namespace quadrotor {
+namespace ausim {
 namespace {
 
 std::string CameraFrameChannel(const std::string& channel_name) {
@@ -84,4 +84,4 @@ void WriteCameraFrame(const std::string& channel_name, const CameraFrame& frame)
   CameraFrameWriter(channel_name) = frame;
 }
 
-}  // namespace quadrotor
+}  // namespace ausim

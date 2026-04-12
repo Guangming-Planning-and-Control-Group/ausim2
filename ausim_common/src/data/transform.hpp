@@ -4,7 +4,7 @@
 
 #include "data/common.hpp"
 
-namespace quadrotor::data {
+namespace ausim::data {
 
 struct TransformData {
   Header header;
@@ -13,4 +13,4 @@ struct TransformData {
   Quaternion rotation;
 };
 
-}  // namespace quadrotor::data
+}  // namespace ausim::data

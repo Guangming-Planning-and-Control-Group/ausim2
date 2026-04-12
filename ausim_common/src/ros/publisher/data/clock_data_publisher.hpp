@@ -7,7 +7,7 @@
 
 #include "ros/publisher/i_telemetry_publisher.hpp"
 
-namespace quadrotor {
+namespace ausim {
 
 class ClockDataPublisher : public ITelemetryPublisher {
  public:
@@ -19,4 +19,4 @@ class ClockDataPublisher : public ITelemetryPublisher {
   rclcpp::Publisher<rosgraph_msgs::msg::Clock>::SharedPtr publisher_;
 };
 
-}  // namespace quadrotor
+}  // namespace ausim

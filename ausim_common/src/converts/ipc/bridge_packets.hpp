@@ -12,7 +12,7 @@
 #include "ipc/bridge_packets.hpp"
 #include "runtime/runtime_types.hpp"
 
-namespace quadrotor::converts {
+namespace ausim::converts {
 
 ipc::VelocityCommandPacket ToVelocityCommandPacket(const data::CmdVelData& message);
 VelocityCommand ToVelocityCommand(
@@ -39,4 +39,4 @@ data::TransformData ToTransformData(
 data::ClockData ToClockData(const ipc::TelemetryPacket& packet);
 data::ImageData ToImageData(const CameraFrame& frame, const std::string& frame_id);
 
-}  // namespace quadrotor::converts
+}  // namespace ausim::converts

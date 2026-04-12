@@ -5,7 +5,7 @@
 #include "converts/data/clock.hpp"
 #include "converts/ipc/bridge_packets.hpp"
 
-namespace quadrotor {
+namespace ausim {
 
 ClockDataPublisher::ClockDataPublisher(
     const std::shared_ptr<rclcpp::Node>& node,
@@ -16,4 +16,4 @@ void ClockDataPublisher::Publish(const ipc::TelemetryPacket& packet) {
   publisher_->publish(converts::ToRosMessage(converts::ToClockData(packet)));
 }
 
-}  // namespace quadrotor
+}  // namespace ausim

@@ -7,8 +7,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Resolve MuJoCo dependency if not already done
 if(NOT DEFINED MUJOCO_IMPORTED_TARGET)
-  set(MUJOCO_SOURCE_DIR "/home/x/mujoco/mujoco-3.6.0" CACHE PATH
-      "Path to a MuJoCo source checkout.")
+  set(MUJOCO_SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/../mujoco-3.6.0" CACHE PATH
+      "Path to the vendored MuJoCo 3.6.0 release prefix.")
   include("${CMAKE_CURRENT_LIST_DIR}/../mujoco_ray_caster/cmake/ResolveMuJoCo.cmake")
   resolve_mujoco_dependency(
     OUT_TARGET MUJOCO_IMPORTED_TARGET

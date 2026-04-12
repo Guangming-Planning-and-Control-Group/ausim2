@@ -5,7 +5,7 @@
 
 #include "converts/data/cmd_vel.hpp"
 
-namespace quadrotor {
+namespace ausim {
 
 CmdVelCommandSubscriber::CmdVelCommandSubscriber(
     const std::shared_ptr<rclcpp::Node>& node,
@@ -21,4 +21,4 @@ CmdVelCommandSubscriber::CmdVelCommandSubscriber(
             }
           })) {}
 
-}  // namespace quadrotor
+}  // namespace ausim

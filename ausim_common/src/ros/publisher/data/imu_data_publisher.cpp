@@ -5,7 +5,7 @@
 #include "converts/data/imu.hpp"
 #include "converts/ipc/bridge_packets.hpp"
 
-namespace quadrotor {
+namespace ausim {
 
 ImuDataPublisher::ImuDataPublisher(
     const std::shared_ptr<rclcpp::Node>& node,
@@ -18,4 +18,4 @@ void ImuDataPublisher::Publish(const ipc::TelemetryPacket& packet) {
   publisher_->publish(converts::ToRosMessage(converts::ToImuData(packet, frame_id_)));
 }
 
-}  // namespace quadrotor
+}  // namespace ausim

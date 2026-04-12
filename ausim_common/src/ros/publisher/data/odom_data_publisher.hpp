@@ -7,7 +7,7 @@
 
 #include "ros/publisher/i_telemetry_publisher.hpp"
 
-namespace quadrotor {
+namespace ausim {
 
 class OdomDataPublisher : public ITelemetryPublisher {
  public:
@@ -25,4 +25,4 @@ class OdomDataPublisher : public ITelemetryPublisher {
   std::string child_frame_id_;
 };
 
-}  // namespace quadrotor
+}  // namespace ausim

@@ -1,9 +1,9 @@
 #pragma once
 
-namespace quadrotor::data {
+namespace ausim::data {
 
 struct ClockData {
   double stamp_seconds = 0.0;
 };
 
-}  // namespace quadrotor::data
+}  // namespace ausim::data

@@ -5,7 +5,7 @@
 #include "converts/ipc/bridge_packets.hpp"
 #include "converts/data/transform.hpp"
 
-namespace quadrotor {
+namespace ausim {
 
 TransformDataPublisher::TransformDataPublisher(
     const std::shared_ptr<rclcpp::Node>& node,
@@ -20,4 +20,4 @@ void TransformDataPublisher::Publish(const ipc::TelemetryPacket& packet) {
       converts::ToRosMessage(converts::ToTransformData(packet, frame_id_, child_frame_id_)));
 }
 
-}  // namespace quadrotor
+}  // namespace ausim

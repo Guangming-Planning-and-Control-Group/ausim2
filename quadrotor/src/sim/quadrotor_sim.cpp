@@ -21,8 +21,8 @@
 
 #include <GLFW/glfw3.h>
 
-#include "mujoco_simulate/glfw_adapter.h"
-#include "mujoco_simulate/simulate.h"
+#include "mujoco-3.6.0/simulate/glfw_adapter.h"
+#include "mujoco-3.6.0/simulate/simulate.h"
 #include "runtime/data_board_interface.hpp"
 
 namespace fs = std::filesystem;
@@ -381,6 +381,7 @@ ModelLoadResult LoadModelFile(const fs::path& path) {
       result.message = load_error;
       return result;
     }
+    load_error[0] = '\0';
   } else {
     result.model = mj_loadXML(path.string().c_str(), nullptr, load_error, sizeof(load_error));
     TrimTrailingNewline(load_error);

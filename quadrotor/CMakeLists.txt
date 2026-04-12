@@ -15,26 +15,29 @@ find_package(yaml-cpp REQUIRED)
 find_package(glfw3 REQUIRED)
 
 set(QUADROTOR_THIRD_PARTY_DIR "${CMAKE_SOURCE_DIR}/third_party")
+set(QUADROTOR_MUJOCO_SIMULATE_DIR
+  "${QUADROTOR_THIRD_PARTY_DIR}/mujoco-3.6.0/simulate")
 
-add_library(quadrotor_mujoco_viewer STATIC
-  "${QUADROTOR_THIRD_PARTY_DIR}/mujoco_simulate/simulate.cc"
-  "${QUADROTOR_THIRD_PARTY_DIR}/mujoco_simulate/platform_ui_adapter.cc"
-  "${QUADROTOR_THIRD_PARTY_DIR}/mujoco_simulate/glfw_adapter.cc"
-  "${QUADROTOR_THIRD_PARTY_DIR}/mujoco_simulate/glfw_dispatch.cc"
+add_library(ausim_mujoco_viewer STATIC
+  "${QUADROTOR_MUJOCO_SIMULATE_DIR}/simulate.cc"
+  "${QUADROTOR_MUJOCO_SIMULATE_DIR}/platform_ui_adapter.cc"
+  "${QUADROTOR_MUJOCO_SIMULATE_DIR}/glfw_adapter.cc"
+  "${QUADROTOR_MUJOCO_SIMULATE_DIR}/glfw_dispatch.cc"
 )
 
-target_include_directories(quadrotor_mujoco_viewer
+add_library(quadrotor_mujoco_viewer ALIAS ausim_mujoco_viewer)
+
+target_include_directories(ausim_mujoco_viewer
   PUBLIC
     "${QUADROTOR_THIRD_PARTY_DIR}"
 )
 
-target_compile_features(quadrotor_mujoco_viewer PUBLIC cxx_std_17)
+target_compile_features(ausim_mujoco_viewer PUBLIC cxx_std_17)
 
-target_link_libraries(quadrotor_mujoco_viewer
+target_link_libraries(ausim_mujoco_viewer
   PUBLIC
     glfw
     "${MUJOCO_IMPORTED_TARGET}"
-    "${QUADROTOR_THIRD_PARTY_DIR}/mujoco_simulate/liblodepng.a"
 )
 
 add_subdirectory("${QUADROTOR_THIRD_PARTY_DIR}/dynamic_obs_generator" "dynamic_obs_generator_build")
@@ -70,7 +73,7 @@ target_link_libraries(quadrotor_sim_core
   glfw
   yaml-cpp
   ausim_common_runtime
-  quadrotor_mujoco_viewer
+  ausim_mujoco_viewer
   dynamic_obs_generator
   "${MUJOCO_IMPORTED_TARGET}"
 )
@@ -99,7 +102,7 @@ if(MUJOCO_RESOLVED_PLUGIN_DIR)
   )
 endif()
 
-install(TARGETS quadrotor quadrotor_sim_core quadrotor_mujoco_viewer
+install(TARGETS quadrotor quadrotor_sim_core ausim_mujoco_viewer
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib

@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace quadrotor::data {
+namespace ausim::data {
 
 struct Vector3 {
   double x = 0.0;
@@ -32,4 +32,4 @@ struct Twist {
   Vector3 angular;
 };
 
-}  // namespace quadrotor::data
+}  // namespace ausim::data

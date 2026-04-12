@@ -35,13 +35,12 @@ ausim2/
 - GLFW
 - ROS2 Humble
 
-MuJoCo 推荐按源码编译安装：
+MuJoCo 作为仓内 third-party release 包提供，无需额外下载或安装源码：
 
 ```bash
-cmake -S /home/x/mujoco/mujoco-3.6.0 -B /home/x/mujoco/mujoco-3.6.0/build \
-  -DCMAKE_INSTALL_PREFIX=/opt/mujoco
-cmake --build /home/x/mujoco/mujoco-3.6.0/build -j
-sudo cmake --install /home/x/mujoco/mujoco-3.6.0/build
+third_party/mujoco-3.6.0/include/mujoco
+third_party/mujoco-3.6.0/lib/libmujoco.so.3.6.0
+third_party/mujoco-3.6.0/bin/mujoco_plugin/
 ```
 
 项目构建：
@@ -49,21 +48,21 @@ sudo cmake --install /home/x/mujoco/mujoco-3.6.0/build
 ```bash
 sudo apt install build-essential cmake libeigen3-dev libyaml-cpp-dev libglfw3-dev
 source /opt/ros/humble/setup.bash
-cmake -S . -B build -DMUJOCO_SOURCE_DIR=/home/x/mujoco/mujoco-3.6.0
+cmake -S . -B build
 cmake --build build -j
 ```
 
-现在的搜索逻辑尽量只需要 `MUJOCO_SOURCE_DIR`：
+现在的 MuJoCo 依赖默认固定到仓内 release 包：
 
-- 先读 `${MUJOCO_SOURCE_DIR}/build/CMakeCache.txt`
-- 从里面提取 `CMAKE_INSTALL_PREFIX`
-- 自动尝试 `${install_prefix}/lib/cmake/mujoco`
-- 如果没装 package，再回退到 `${MUJOCO_SOURCE_DIR}/include` 和 `${MUJOCO_SOURCE_DIR}/build/lib/libmujoco.so`
+- 头文件：`third_party/mujoco-3.6.0/include`
+- 动态库：`third_party/mujoco-3.6.0/lib/libmujoco.so`
+- 官方插件：`third_party/mujoco-3.6.0/bin/mujoco_plugin`
+- 自定义插件输出：`build/bin/mujoco_plugin/libsensor_raycaster.so`
 
-只有高级场景才需要手工指定：
+如需检查本地绑定是否正常，可直接运行：
 
 ```bash
-cmake -S . -B build -Dmujoco_DIR=/path/to/mujoco/lib/cmake/mujoco
+./build/bin/mujoco_ray_caster_smoketest
 ```
 
 主工程会自动编译 `third_party/mujoco_ray_caster`，并把插件库输出到：
@@ -73,9 +72,7 @@ cmake -S . -B build -Dmujoco_DIR=/path/to/mujoco/lib/cmake/mujoco
 可选 smoke test：
 
 ```bash
-cmake -S . -B build \
-  -DMUJOCO_SOURCE_DIR=/path/to/mujoco-source \
-  -DMUJOCO_RAY_CASTER_BUILD_SMOKETEST=ON
+cmake -S . -B build -DMUJOCO_RAY_CASTER_BUILD_SMOKETEST=ON
 cmake --build build -j
 ./build/bin/mujoco_ray_caster_smoketest
 ```
@@ -111,7 +108,12 @@ cmake --build build -j
 ./build/bin/quadrotor --headless
 ```
 
-运行时会优先读取 `MUJOCO_PLUGIN_DIR`；如果未设置，则自动尝试加载可执行文件旁边的 `mujoco_plugin/` 目录，也就是默认的 `build/bin/mujoco_plugin/`。
+运行时会同时使用两组仓内插件目录：
+
+- `third_party/mujoco-3.6.0/bin/mujoco_plugin`：官方 decoder / builtin plugins
+- `build/bin/mujoco_plugin`：本工程编译出的 `libsensor_raycaster.so`
+
+`em_run.sh` 会自动导出这两个目录；直接运行可执行文件时，程序也会自动回退到这两处路径。
 
 也支持显式指定：
 

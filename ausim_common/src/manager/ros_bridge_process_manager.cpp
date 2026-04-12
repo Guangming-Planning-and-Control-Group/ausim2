@@ -18,7 +18,7 @@
 #include "ipc/socket_stream.hpp"
 #include "runtime/data_board_interface.hpp"
 
-namespace quadrotor {
+namespace ausim {
 namespace {
 
 constexpr std::chrono::milliseconds kStartupProbeDelay(300);
@@ -281,4 +281,4 @@ void RosBridgeProcessManager::EnsureChildStillRunning(const char* stage) const {
   throw std::runtime_error("ROS bridge process exited unexpectedly during " + std::string(stage) + ".");
 }
 
-}  // namespace quadrotor
+}  // namespace ausim

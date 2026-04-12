@@ -9,7 +9,7 @@
 
 #include "config/quadrotor_config.hpp"
 
-namespace quadrotor {
+namespace ausim {
 
 struct RosBridgeLaunchConfig {
   std::filesystem::path executable_path;
@@ -44,5 +44,12 @@ class RosBridgeProcessManager {
   std::thread camera_thread_;
   std::vector<std::string> camera_channel_names_;
 };
+
+}  // namespace ausim
+
+namespace quadrotor {
+
+using ::ausim::RosBridgeLaunchConfig;
+using ::ausim::RosBridgeProcessManager;
 
 }  // namespace quadrotor

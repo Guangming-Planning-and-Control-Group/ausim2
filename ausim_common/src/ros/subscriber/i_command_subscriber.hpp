@@ -1,10 +1,10 @@
 #pragma once
 
-namespace quadrotor {
+namespace ausim {
 
 class ICommandSubscriber {
  public:
   virtual ~ICommandSubscriber() = default;
 };
 
-}  // namespace quadrotor
+}  // namespace ausim

@@ -8,7 +8,7 @@
 #include <type_traits>
 #include <unistd.h>
 
-namespace quadrotor::ipc {
+namespace ausim::ipc {
 
 enum class PacketReceiveStatus {
   kPacket,
@@ -77,4 +77,4 @@ inline void ShutdownAndClose(int* fd) {
   *fd = -1;
 }
 
-}  // namespace quadrotor::ipc
+}  // namespace ausim::ipc

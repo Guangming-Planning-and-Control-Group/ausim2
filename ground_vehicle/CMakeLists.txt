@@ -39,6 +39,7 @@ target_link_libraries(ground_vehicle_sim_core
   glfw
   yaml-cpp
   ausim_common_runtime
+  ausim_mujoco_viewer
   "${MUJOCO_IMPORTED_TARGET}"
 )
 

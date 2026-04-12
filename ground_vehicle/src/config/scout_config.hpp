@@ -34,15 +34,27 @@ struct ScoutBindingConfig {
 struct DifferentialDriveConfig {
   double wheel_radius = 0.165;
   double track_width = 0.58306;
+  double axle_length = 0.498;
   double max_linear_speed = 1.5;
   double max_angular_speed = 2.0;
   double max_wheel_speed = 20.0;
-  double left_joint_sign = -1.0;
-  double right_joint_sign = 1.0;
+  double front_right_joint_sign = 1.0;
+  double front_left_joint_sign = -1.0;
+  double rear_left_joint_sign = -1.0;
+  double rear_right_joint_sign = 1.0;
+
+  std::array<double, 4> JointSigns() const {
+    return {
+        front_right_joint_sign,
+        front_left_joint_sign,
+        rear_left_joint_sign,
+        rear_right_joint_sign,
+    };
+  }
 };
 
 struct ScoutConfig {
-  quadrotor::QuadrotorConfig common;
+  ausim::SimConfig common;
   ScoutBindingConfig bindings;
   DifferentialDriveConfig drive;
 };

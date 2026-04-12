@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <type_traits>
 
-namespace quadrotor::ipc {
+namespace ausim::ipc {
 
 struct VelocityCommandPacket {
   std::array<double, 3> linear = {0.0, 0.0, 0.0};
@@ -38,4 +38,4 @@ static_assert(std::is_trivially_copyable_v<VelocityCommandPacket>);
 static_assert(std::is_trivially_copyable_v<TelemetryPacket>);
 static_assert(std::is_trivially_copyable_v<CameraImageMetadataPacket>);
 
-}  // namespace quadrotor::ipc
+}  // namespace ausim::ipc

@@ -4,18 +4,18 @@
 
 | 组件 | 路径 | 用途 |
 |------|------|------|
-| MuJoCo Simulate | `mujoco_simulate/` | MuJoCo 示例查看器 |
+| MuJoCo Simulate | `mujoco-3.6.0/simulate/` | MuJoCo 官方查看器源码（直接从 release 包编译） |
 | RayCaster Plugins | `mujoco_ray_caster/` | 激光雷达/深度相机传感器插件 |
 | Dynamic Obstacle Generator | `dynamic_obs_generator/` | 动态障碍物生成系统 |
 
 ---
 
-## 1. mujoco_simulate
+## 1. MuJoCo Simulate
 
-MuJoCo 官方的交互式仿真查看器，提供 OpenGL 可视化界面。
+当前工程直接编译 `mujoco-3.6.0/simulate/` 下的官方查看器源码，不再保留额外抓取的源码副本。
 
 ```
-mujoco_simulate/
+mujoco-3.6.0/simulate/
 ├── simulate.cc    # 主程序
 ├── simulate.h     # 头文件
 └── ...
@@ -23,6 +23,9 @@ mujoco_simulate/
 
 ### 用途
 功能完整的 MuJoCo 交互界面，支持模型加载、传感器绘图、性能分析。
+
+### 备注
+当前构建中已禁用 screenshot PNG 导出，因此不再需要 `lodepng` 依赖。
 
 ---
 

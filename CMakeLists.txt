@@ -4,8 +4,18 @@ project(QuadrotorWorkspace LANGUAGES CXX)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(MUJOCO_SOURCE_DIR "/opt/mujoco" CACHE PATH
-    "Path to a MuJoCo source checkout or install prefix. The build will derive install/package paths from here.")
+set(AUSIM_BUNDLED_MUJOCO_DIR "${CMAKE_SOURCE_DIR}/third_party/mujoco-3.6.0")
+if(NOT EXISTS "${AUSIM_BUNDLED_MUJOCO_DIR}/include/mujoco/mujoco.h" OR
+   NOT EXISTS "${AUSIM_BUNDLED_MUJOCO_DIR}/lib/libmujoco.so")
+  message(FATAL_ERROR
+    "Bundled MuJoCo 3.6.0 release package is missing. Expected headers and "
+    "libraries under ${AUSIM_BUNDLED_MUJOCO_DIR}.")
+endif()
+
+set(MUJOCO_SOURCE_DIR "${AUSIM_BUNDLED_MUJOCO_DIR}" CACHE PATH
+    "Path to the vendored MuJoCo 3.6.0 release prefix." FORCE)
+set(mujoco_DIR "" CACHE PATH
+    "Unused when building against the vendored MuJoCo 3.6.0 release package." FORCE)
 
 set(MUJOCO_RAY_CASTER_OUTPUT_DIR "${CMAKE_BINARY_DIR}/bin/mujoco_plugin" CACHE PATH
     "Directory where external MuJoCo plugins are emitted.")

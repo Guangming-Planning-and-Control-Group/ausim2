@@ -2,7 +2,7 @@
 
 #include "data/common.hpp"
 
-namespace quadrotor::data {
+namespace ausim::data {
 
 struct ImuData {
   Header header;
@@ -12,4 +12,4 @@ struct ImuData {
   bool has_linear_acceleration = false;
 };
 
-}  // namespace quadrotor::data
+}  // namespace ausim::data

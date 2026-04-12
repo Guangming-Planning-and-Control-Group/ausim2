@@ -5,7 +5,7 @@
 #include "common/db/data_board.hpp"
 #include "runtime/runtime_types.hpp"
 
-namespace quadrotor {
+namespace ausim {
 
 db::SecurityDataRef<VelocityCommand, db::Permission::ReadOnly> VelocityCommandReader();
 db::SecurityDataRef<VelocityCommand, db::Permission::ReadWrite> VelocityCommandWriter();
@@ -24,5 +24,23 @@ std::optional<TelemetrySnapshot> ReadTelemetrySnapshot();
 void WriteTelemetrySnapshot(const TelemetrySnapshot& snapshot);
 std::optional<CameraFrame> ReadCameraFrame(const std::string& channel_name);
 void WriteCameraFrame(const std::string& channel_name, const CameraFrame& frame);
+
+}  // namespace ausim
+
+namespace quadrotor {
+
+using ::ausim::CameraFrameReader;
+using ::ausim::CameraFrameWriter;
+using ::ausim::ReadCameraFrame;
+using ::ausim::ReadFreshVelocityCommand;
+using ::ausim::ReadTelemetrySnapshot;
+using ::ausim::ReadVelocityCommand;
+using ::ausim::TelemetrySnapshotReader;
+using ::ausim::TelemetrySnapshotWriter;
+using ::ausim::VelocityCommandReader;
+using ::ausim::VelocityCommandWriter;
+using ::ausim::WriteCameraFrame;
+using ::ausim::WriteTelemetrySnapshot;
+using ::ausim::WriteVelocityCommand;
 
 }  // namespace quadrotor

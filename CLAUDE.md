@@ -6,13 +6,16 @@
 
 ```bash
 source /opt/ros/humble/setup.bash
+cmake -S . -B build
 cmake --build build -j
 ```
 
-MuJoCo 不在默认路径（`/home/x/mujoco/mujoco-3.3.7/build`）时：
+MuJoCo 使用仓内 vendored release 包：
 
 ```bash
-cmake -S . -B build -Dmujoco_DIR=/path/to/mujoco/build
+third_party/mujoco-3.6.0/include/mujoco
+third_party/mujoco-3.6.0/lib/libmujoco.so.3.6.0
+third_party/mujoco-3.6.0/bin/mujoco_plugin/
 ```
 
 产物：`build/bin/quadrotor` 和 `build/bin/quadrotor_ros_bridge`。

@@ -7,7 +7,7 @@
 
 #include "runtime/runtime_types.hpp"
 
-namespace quadrotor {
+namespace ausim {
 
 class ImageDataPublisher {
  public:
@@ -23,4 +23,4 @@ class ImageDataPublisher {
   std::string frame_id_;
 };
 
-}  // namespace quadrotor
+}  // namespace ausim

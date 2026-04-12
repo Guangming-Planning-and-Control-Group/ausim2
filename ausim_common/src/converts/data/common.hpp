@@ -11,7 +11,7 @@
 
 #include "data/common.hpp"
 
-namespace quadrotor::converts {
+namespace ausim::converts {
 
 data::Vector3 ToVector3(const Eigen::Vector3d& value);
 data::Quaternion ToQuaternion(const Eigen::Quaterniond& value);
@@ -22,4 +22,4 @@ void Convert(geometry_msgs::msg::Point& out, const data::Vector3& in);
 void Convert(geometry_msgs::msg::Vector3& out, const data::Vector3& in);
 void Convert(geometry_msgs::msg::Quaternion& out, const data::Quaternion& in);
 
-}  // namespace quadrotor::converts
+}  // namespace ausim::converts

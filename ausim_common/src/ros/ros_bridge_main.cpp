@@ -44,9 +44,9 @@ void PrintUsage(const char* program_name) {
                "--telemetry-fd <fd> --command-fd <fd> --image-fd <fd>\n";
 }
 
-quadrotor::QuadrotorConfig LoadConfig(const CliOptions& cli) {
+ausim::QuadrotorConfig LoadConfig(const CliOptions& cli) {
   if (!cli.merged_config_path.empty()) {
-    return quadrotor::LoadConfigFromYaml(cli.merged_config_path.string());
+    return ausim::LoadConfigFromYaml(cli.merged_config_path.string());
   }
 
   fs::path sim_config_path = cli.sim_config_path;
@@ -57,7 +57,7 @@ quadrotor::QuadrotorConfig LoadConfig(const CliOptions& cli) {
     throw std::runtime_error(
         "Unable to locate default simulation config. Expected quadrotor/cfg/sim_config.yaml.");
   }
-  return quadrotor::LoadConfigFromYaml(
+  return ausim::LoadConfigFromYaml(
       sim_config_path.string(),
       cli.robot_config_path.string());
 }
@@ -116,8 +116,8 @@ int main(int argc, char** argv) {
           "--telemetry-fd, --command-fd, and --image-fd are all required.");
     }
 
-    const quadrotor::QuadrotorConfig config = LoadConfig(cli);
-    return quadrotor::RunRosBridgeProcess(config, cli.telemetry_fd, cli.command_fd, cli.image_fd);
+    const ausim::QuadrotorConfig config = LoadConfig(cli);
+    return ausim::RunRosBridgeProcess(config, cli.telemetry_fd, cli.command_fd, cli.image_fd);
   } catch (const std::exception& error) {
     std::cerr << "ausim_ros_bridge error: " << error.what() << '\n';
     return 1;

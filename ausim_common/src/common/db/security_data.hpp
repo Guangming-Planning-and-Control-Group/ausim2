@@ -8,7 +8,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace quadrotor::db {
+namespace ausim::db {
 
 enum class Permission { ReadOnly, ReadWrite };
 
@@ -97,4 +97,4 @@ class SecurityDataRef {
   std::shared_ptr<SecurityData<T>> data_;
 };
 
-}  // namespace quadrotor::db
+}  // namespace ausim::db

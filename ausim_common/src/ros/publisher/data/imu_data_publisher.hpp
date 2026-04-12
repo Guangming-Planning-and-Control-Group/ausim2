@@ -7,7 +7,7 @@
 
 #include "ros/publisher/i_telemetry_publisher.hpp"
 
-namespace quadrotor {
+namespace ausim {
 
 class ImuDataPublisher : public ITelemetryPublisher {
  public:
@@ -23,4 +23,4 @@ class ImuDataPublisher : public ITelemetryPublisher {
   std::string frame_id_;
 };
 
-}  // namespace quadrotor
+}  // namespace ausim

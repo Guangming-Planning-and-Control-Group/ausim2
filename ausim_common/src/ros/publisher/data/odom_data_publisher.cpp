@@ -5,7 +5,7 @@
 #include "converts/data/odom.hpp"
 #include "converts/ipc/bridge_packets.hpp"
 
-namespace quadrotor {
+namespace ausim {
 
 OdomDataPublisher::OdomDataPublisher(
     const std::shared_ptr<rclcpp::Node>& node,
@@ -21,4 +21,4 @@ void OdomDataPublisher::Publish(const ipc::TelemetryPacket& packet) {
       converts::ToRosMessage(converts::ToOdomData(packet, frame_id_, child_frame_id_)));
 }
 
-}  // namespace quadrotor
+}  // namespace ausim

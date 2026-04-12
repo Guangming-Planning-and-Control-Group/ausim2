@@ -2,7 +2,7 @@
 
 #include "converts/data/common.hpp"
 
-namespace quadrotor::converts {
+namespace ausim::converts {
 
 void Convert(geometry_msgs::msg::TransformStamped& out, const data::TransformData& in) {
   out.header.stamp = ToRosTime(in.header.stamp_seconds);
@@ -18,4 +18,4 @@ geometry_msgs::msg::TransformStamped ToRosMessage(const data::TransformData& in)
   return out;
 }
 
-}  // namespace quadrotor::converts
+}  // namespace ausim::converts

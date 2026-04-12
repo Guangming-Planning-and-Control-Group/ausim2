@@ -2,7 +2,7 @@
 
 #include "converts/data/common.hpp"
 
-namespace quadrotor::converts {
+namespace ausim::converts {
 
 void Convert(sensor_msgs::msg::Image& out, const data::ImageData& in) {
   out.header.stamp = ToRosTime(in.header.stamp_seconds);
@@ -21,4 +21,4 @@ sensor_msgs::msg::Image ToRosMessage(const data::ImageData& in) {
   return out;
 }
 
-}  // namespace quadrotor::converts
+}  // namespace ausim::converts

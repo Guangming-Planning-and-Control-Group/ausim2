@@ -10,7 +10,7 @@
 
 #include "common/db/security_data.hpp"
 
-namespace quadrotor::db {
+namespace ausim::db {
 
 class DataBoardManager {
  public:
@@ -70,4 +70,4 @@ class DataBoardManager {
 
 inline auto DataBoard = &DataBoardManager::Instance;
 
-}  // namespace quadrotor::db
+}  // namespace ausim::db

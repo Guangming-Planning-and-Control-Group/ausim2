@@ -25,11 +25,14 @@ bindings:
 ground_vehicle:
   wheel_radius: 0.165
   track_width: 0.58306
+  axle_length: 0.498
   max_linear_speed: 1.5
   max_angular_speed: 2.0
   max_wheel_speed: 20.0
-  left_joint_sign: -1.0
-  right_joint_sign: 1.0
+  front_right_joint_sign: 1.0
+  front_left_joint_sign: -1.0
+  rear_left_joint_sign: -1.0
+  rear_right_joint_sign: 1.0
 
 interfaces:
   cmd_vel_topic: cmd_vel

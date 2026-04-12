@@ -6,8 +6,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(MUJOCO_SOURCE_DIR "/home/x/mujoco/mujoco-3.6.0" CACHE PATH
-    "Path to a MuJoCo source checkout. The build will derive install/package paths from here.")
+set(MUJOCO_SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/../mujoco-3.6.0" CACHE PATH
+    "Path to the vendored MuJoCo 3.6.0 release prefix.")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/ResolveMuJoCo.cmake")
 resolve_mujoco_dependency(
   OUT_TARGET MUJOCO_IMPORTED_TARGET

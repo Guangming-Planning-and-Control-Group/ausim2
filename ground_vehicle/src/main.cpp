@@ -146,7 +146,7 @@ int main(int argc, char** argv) {
       config.common.model.scene_xml = fs::absolute(scene_override);
     }
 
-    std::unique_ptr<quadrotor::RosBridgeProcessManager> bridge_manager;
+    std::unique_ptr<ausim::RosBridgeProcessManager> bridge_manager;
     if (!cli.no_ros) {
       fs::path self_executable = fs::absolute(argv[0]);
       if (!fs::exists(self_executable)) {
@@ -159,12 +159,12 @@ int main(int argc, char** argv) {
         throw std::runtime_error("Unable to resolve current executable path.");
       }
 
-      quadrotor::RosBridgeLaunchConfig bridge_launch_config;
+      ausim::RosBridgeLaunchConfig bridge_launch_config;
       bridge_launch_config.executable_path =
           self_executable.parent_path() / "ausim_ros_bridge";
       bridge_launch_config.config_arguments = BuildBridgeConfigArguments(cli);
 
-      bridge_manager = std::make_unique<quadrotor::RosBridgeProcessManager>(
+      bridge_manager = std::make_unique<ausim::RosBridgeProcessManager>(
           config.common, std::move(bridge_launch_config));
       bridge_manager->Start();
     }

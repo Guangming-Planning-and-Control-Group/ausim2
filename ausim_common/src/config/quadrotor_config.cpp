@@ -12,7 +12,7 @@
 
 namespace fs = std::filesystem;
 
-namespace quadrotor {
+namespace ausim {
 namespace {
 
 fs::path DefaultSceneXmlPath() {
@@ -344,4 +344,4 @@ std::vector<CameraStreamConfig> BuildCameraStreamConfigs(
   return streams;
 }
 
-}  // namespace quadrotor
+}  // namespace ausim

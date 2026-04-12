@@ -3,7 +3,7 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
-namespace quadrotor::converts {
+namespace ausim::converts {
 namespace {
 
 data::Vector3 BuildVector3(const std::array<double, 3>& value) {
@@ -186,4 +186,4 @@ data::ImageData ToImageData(const CameraFrame& frame, const std::string& frame_i
   return message;
 }
 
-}  // namespace quadrotor::converts
+}  // namespace ausim::converts

@@ -2,10 +2,10 @@
 
 #include "data/common.hpp"
 
-namespace quadrotor::data {
+namespace ausim::data {
 
 struct CmdVelData {
   Twist twist;
 };
 
-}  // namespace quadrotor::data
+}  // namespace ausim::data

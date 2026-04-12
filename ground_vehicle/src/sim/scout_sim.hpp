@@ -3,7 +3,9 @@
 #include <atomic>
 #include <chrono>
 #include <filesystem>
+#include <memory>
 #include <string>
+#include <thread>
 
 #include <Eigen/Core>
 #include <mujoco/mujoco.h>
@@ -12,6 +14,10 @@
 #include "control/differential_drive_controller.hpp"
 #include "runtime/runtime_types.hpp"
 #include "sim/wheel_actuator_writer.hpp"
+
+namespace mujoco {
+class Simulate;
+}
 
 namespace ground_vehicle {
 
@@ -37,9 +43,24 @@ class ScoutSim {
   void ResolveSensor(SensorBinding* binding) const;
   void ApplyControl();
   void PublishTelemetry(bool log_state = true);
-  void LogStateIfNeeded(const quadrotor::TelemetrySnapshot& snapshot) const;
+  void LogStateIfNeeded(const ausim::TelemetrySnapshot& snapshot) const;
   void RunHeadless();
   void RunWithViewer();
+  void InitializeVisualizationState();
+  void ConfigureDefaultCamera();
+  void InitializeViewer();
+  void CleanupViewer();
+  void PhysicsThreadMain();
+  void PhysicsLoop(mujoco::Simulate& sim);
+  bool LoadModelIntoViewer(
+      mujoco::Simulate& sim,
+      const std::filesystem::path& model_path,
+      bool replace_existing);
+  void InstallModelPointers(
+      mjModel* new_model,
+      mjData* new_data,
+      const std::filesystem::path& model_path,
+      bool replace_existing);
   bool ShouldContinue() const;
   void SleepToMatchRealtime(
       const std::chrono::high_resolution_clock::time_point& step_start) const;
@@ -50,6 +71,11 @@ class ScoutSim {
   WheelActuatorWriter actuator_writer_;
   mjModel* model_ = nullptr;
   mjData* data_ = nullptr;
+  std::unique_ptr<mujoco::Simulate> viewer_;
+  std::thread physics_thread_;
+  mjvCamera camera_{};
+  mjvOption visualization_options_{};
+  mjvPerturb perturbation_{};
   int freejoint_qpos_adr_ = -1;
   int freejoint_dof_adr_ = -1;
   SensorBinding gyro_sensor_;
@@ -60,6 +86,7 @@ class ScoutSim {
   bool last_command_valid_ = false;
   mutable double next_log_time_ = 0.0;
   std::atomic_bool stop_requested_ = false;
+  bool visualization_state_initialized_ = false;
 
   static ScoutSim* active_instance_;
 };

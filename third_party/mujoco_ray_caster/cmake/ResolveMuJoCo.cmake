@@ -17,11 +17,16 @@ function(resolve_mujoco_dependency)
   endif()
 
   set(_install_prefix "")
-  if(MUJOCO_SOURCE_DIR AND EXISTS "${MUJOCO_SOURCE_DIR}/build/CMakeCache.txt")
-    file(STRINGS "${MUJOCO_SOURCE_DIR}/build/CMakeCache.txt" _install_prefix_line
-         REGEX "^CMAKE_INSTALL_PREFIX:PATH=" LIMIT_COUNT 1)
-    if(_install_prefix_line)
-      string(REPLACE "CMAKE_INSTALL_PREFIX:PATH=" "" _install_prefix "${_install_prefix_line}")
+  if(MUJOCO_SOURCE_DIR)
+    if(EXISTS "${MUJOCO_SOURCE_DIR}/include/mujoco/mujoco.h" AND
+       EXISTS "${MUJOCO_SOURCE_DIR}/lib/libmujoco.so")
+      set(_install_prefix "${MUJOCO_SOURCE_DIR}")
+    elseif(EXISTS "${MUJOCO_SOURCE_DIR}/build/CMakeCache.txt")
+      file(STRINGS "${MUJOCO_SOURCE_DIR}/build/CMakeCache.txt" _install_prefix_line
+           REGEX "^CMAKE_INSTALL_PREFIX:PATH=" LIMIT_COUNT 1)
+      if(_install_prefix_line)
+        string(REPLACE "CMAKE_INSTALL_PREFIX:PATH=" "" _install_prefix "${_install_prefix_line}")
+      endif()
     endif()
   endif()
 
@@ -41,10 +46,6 @@ function(resolve_mujoco_dependency)
 
     if(_install_prefix AND EXISTS "${_install_prefix}/lib/cmake/mujoco/mujocoConfig.cmake")
       list(APPEND _package_hints "${_install_prefix}/lib/cmake/mujoco")
-    endif()
-
-    if(EXISTS "/opt/mujoco/lib/cmake/mujoco/mujocoConfig.cmake")
-      list(APPEND _package_hints "/opt/mujoco/lib/cmake/mujoco")
     endif()
 
     list(REMOVE_DUPLICATES _package_hints)
@@ -92,7 +93,6 @@ function(resolve_mujoco_dependency)
     if(_install_prefix)
       list(APPEND _include_candidates "${_install_prefix}/include")
     endif()
-    list(APPEND _include_candidates "/opt/mujoco/include")
 
     foreach(_candidate_include IN LISTS _include_candidates)
       if(EXISTS "${_candidate_include}/mujoco/mujoco.h")
@@ -103,14 +103,16 @@ function(resolve_mujoco_dependency)
 
     set(_library_search_dirs)
     if(MUJOCO_SOURCE_DIR)
+      list(APPEND _library_search_dirs "${MUJOCO_SOURCE_DIR}/lib")
       list(APPEND _library_search_dirs "${MUJOCO_SOURCE_DIR}/build/lib")
     endif()
     if(_install_prefix)
       list(APPEND _library_search_dirs "${_install_prefix}/lib")
     endif()
-    list(APPEND _library_search_dirs "/opt/mujoco/lib")
     list(REMOVE_DUPLICATES _library_search_dirs)
 
+    unset(_manual_mujoco_library CACHE)
+    unset(_manual_mujoco_library)
     find_library(_manual_mujoco_library
       NAMES mujoco libmujoco
       PATHS ${_library_search_dirs}
@@ -125,6 +127,7 @@ function(resolve_mujoco_dependency)
       set_target_properties(mujoco::mujoco PROPERTIES
         IMPORTED_LOCATION "${_resolved_library}"
         INTERFACE_INCLUDE_DIRECTORIES "${_resolved_include_dir}"
+        INTERFACE_COMPILE_DEFINITIONS "mjUSEPLATFORMSIMD"
       )
       set(_resolved_target mujoco::mujoco)
     endif()
@@ -132,8 +135,8 @@ function(resolve_mujoco_dependency)
 
   if(NOT _resolved_target)
     message(FATAL_ERROR
-      "MuJoCo was not found. Pass -DMUJOCO_SOURCE_DIR=/path/to/mujoco-source, "
-      "or explicitly pass -Dmujoco_DIR=/path/to/mujoco/package-dir.")
+      "MuJoCo was not found in the vendored release package. Expected a valid "
+      "prefix at ${MUJOCO_SOURCE_DIR} containing include/mujoco and lib/libmujoco.so.")
   endif()
 
   if(_resolved_library)
@@ -148,9 +151,7 @@ function(resolve_mujoco_dependency)
       set(_resolved_plugin_dir "${_resolved_prefix}/bin/mujoco_plugin")
     endif()
   endif()
-  if(NOT _resolved_plugin_dir AND EXISTS "/opt/mujoco/bin/mujoco_plugin")
-    set(_resolved_plugin_dir "/opt/mujoco/bin/mujoco_plugin")
-  elseif(NOT _resolved_plugin_dir AND MUJOCO_SOURCE_DIR AND EXISTS "${MUJOCO_SOURCE_DIR}/bin/mujoco_plugin")
+  if(NOT _resolved_plugin_dir AND MUJOCO_SOURCE_DIR AND EXISTS "${MUJOCO_SOURCE_DIR}/bin/mujoco_plugin")
     set(_resolved_plugin_dir "${MUJOCO_SOURCE_DIR}/bin/mujoco_plugin")
   elseif(NOT _resolved_plugin_dir AND MUJOCO_SOURCE_DIR AND EXISTS "${MUJOCO_SOURCE_DIR}/build/lib/libobj_decoder.so")
     set(_resolved_plugin_dir "${MUJOCO_SOURCE_DIR}/build/lib")

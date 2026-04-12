@@ -4,19 +4,24 @@
 #include <chrono>
 #include <cmath>
 #include <csignal>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <filesystem>
 #include <iomanip>
 #include <iostream>
 #include <optional>
 #include <sstream>
 #include <stdexcept>
+#include <string>
 #include <thread>
 #include <utility>
 #include <vector>
 
 #include <GLFW/glfw3.h>
 
+#include "mujoco-3.6.0/simulate/glfw_adapter.h"
+#include "mujoco-3.6.0/simulate/simulate.h"
 #include "runtime/data_board_interface.hpp"
 
 namespace fs = std::filesystem;
@@ -26,16 +31,37 @@ namespace ground_vehicle {
 ScoutSim* ScoutSim::active_instance_ = nullptr;
 
 namespace {
+namespace mj = ::mujoco;
 
+using Seconds = std::chrono::duration<double>;
+
+constexpr double kSyncMisalign = 0.1;
+constexpr double kSimRefreshFraction = 0.7;
 constexpr int kLoadErrorLength = 1024;
+constexpr int kHeadlessStepsPerCycle = 5;
 
 #ifndef GROUND_VEHICLE_MUJOCO_PLUGIN_FALLBACK_DIR
 #define GROUND_VEHICLE_MUJOCO_PLUGIN_FALLBACK_DIR ""
 #endif
 
+std::optional<fs::path> ResolveBundledPluginDirectory() {
+#if defined(__linux__)
+  std::error_code error;
+  const fs::path executable_path = fs::read_symlink("/proc/self/exe", error);
+  if (!error && !executable_path.empty()) {
+    const fs::path plugin_dir = executable_path.parent_path() / "mujoco_plugin";
+    if (fs::exists(plugin_dir, error) && fs::is_directory(plugin_dir, error)) {
+      return plugin_dir;
+    }
+  }
+#endif
+  return std::nullopt;
+}
+
 struct ModelLoadResult {
   mjModel* model = nullptr;
   std::string message;
+  bool pause_after_load = false;
 };
 
 bool ContainsDecoderPlugin(const fs::path& directory) {
@@ -45,10 +71,10 @@ bool ContainsDecoderPlugin(const fs::path& directory) {
 }
 
 void AppendPluginDirectory(
-    std::vector<fs::path>* directories,
+    std::vector<fs::path>& directories,
     const fs::path& directory,
-    bool skip_decoder_directory) {
-  if (directories == nullptr || directory.empty()) {
+    bool skip_decoder_directory = false) {
+  if (directory.empty()) {
     return;
   }
 
@@ -59,16 +85,17 @@ void AppendPluginDirectory(
   if (skip_decoder_directory && ContainsDecoderPlugin(directory)) {
     return;
   }
-  for (const fs::path& existing : *directories) {
+
+  for (const fs::path& existing : directories) {
     if (existing == directory) {
       return;
     }
   }
-  directories->push_back(directory);
+  directories.push_back(directory);
 }
 
 void AppendPluginDirectoriesFromEnv(
-    std::vector<fs::path>* directories,
+    std::vector<fs::path>& directories,
     bool skip_decoder_directories) {
   const char* plugin_dirs = std::getenv("MUJOCO_PLUGIN_DIR");
   if (plugin_dirs == nullptr || plugin_dirs[0] == '\0') {
@@ -91,39 +118,117 @@ void LoadMuJoCoPlugins() {
   const bool fallback_has_decoders =
       !fallback_decoder_dir.empty() && ContainsDecoderPlugin(fallback_decoder_dir);
 
-  AppendPluginDirectory(&plugin_directories, fallback_decoder_dir, false);
-  AppendPluginDirectoriesFromEnv(&plugin_directories, fallback_has_decoders);
+  AppendPluginDirectory(plugin_directories, fallback_decoder_dir);
+  AppendPluginDirectoriesFromEnv(plugin_directories, fallback_has_decoders);
+
+  if (const auto bundled_plugin_dir = ResolveBundledPluginDirectory()) {
+    AppendPluginDirectory(plugin_directories, *bundled_plugin_dir);
+  }
 
   for (const fs::path& plugin_directory : plugin_directories) {
     mj_loadAllPluginLibraries(plugin_directory.string().c_str(), nullptr);
   }
 }
 
+void TrimTrailingNewline(char* buffer) {
+  if (buffer == nullptr) {
+    return;
+  }
+
+  const std::size_t length = std::strlen(buffer);
+  if (length > 0 && buffer[length - 1] == '\n') {
+    buffer[length - 1] = '\0';
+  }
+}
+
+void SetLoadError(mj::Simulate& sim, const std::string& message) {
+  std::snprintf(sim.load_error, sizeof(sim.load_error), "%s", message.c_str());
+}
+
+bool HasGraphicalDisplay() {
+#if defined(__linux__)
+  return std::getenv("DISPLAY") != nullptr || std::getenv("WAYLAND_DISPLAY") != nullptr;
+#else
+  return true;
+#endif
+}
+
+bool CanInitializeOfficialViewer(std::string* reason) {
+  if (!HasGraphicalDisplay()) {
+    if (reason != nullptr) {
+      *reason = "no graphical display detected";
+    }
+    return false;
+  }
+
+  if (!glfwInit()) {
+    if (reason != nullptr) {
+      *reason = "could not initialize GLFW";
+    }
+    return false;
+  }
+
+  glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+  GLFWwindow* probe_window =
+      glfwCreateWindow(64, 64, "scout-viewer-probe", nullptr, nullptr);
+  if (probe_window == nullptr) {
+    glfwTerminate();
+    if (reason != nullptr) {
+      *reason = "could not create GLFW window";
+    }
+    return false;
+  }
+
+  glfwDestroyWindow(probe_window);
+  glfwTerminate();
+  return true;
+}
+
 ModelLoadResult LoadModelFile(const fs::path& path) {
   LoadMuJoCoPlugins();
-
   ModelLoadResult result;
+
   char load_error[kLoadErrorLength] = "Could not load binary model";
+  const auto load_start = mj::Simulate::Clock::now();
 
   if (path.extension() == ".mjb") {
     result.model = mj_loadModel(path.string().c_str(), nullptr);
-    if (result.model == nullptr) {
+    if (!result.model) {
       result.message = load_error;
+      return result;
     }
-    return result;
+    load_error[0] = '\0';
+  } else {
+    result.model = mj_loadXML(path.string().c_str(), nullptr, load_error, sizeof(load_error));
+    TrimTrailingNewline(load_error);
+    if (!result.model) {
+      result.message = load_error;
+      return result;
+    }
   }
 
-  result.model = mj_loadXML(path.string().c_str(), nullptr, load_error, sizeof(load_error));
+  const double load_seconds = Seconds(mj::Simulate::Clock::now() - load_start).count();
   if (load_error[0] != '\0') {
-    const std::size_t length = std::strlen(load_error);
-    if (length > 0 && load_error[length - 1] == '\n') {
-      load_error[length - 1] = '\0';
+    result.pause_after_load = true;
+    result.message = load_error;
+  } else if (load_seconds > 0.25) {
+    char message[kLoadErrorLength];
+    std::snprintf(message, sizeof(message), "Model loaded in %.2g seconds", load_seconds);
+    result.message = message;
+  }
+
+  return result;
+}
+
+const char* Diverged(int disableflags, const mjData* data) {
+  if (disableflags & mjDSBL_AUTORESET) {
+    for (mjtWarning warning : {mjWARN_BADQACC, mjWARN_BADQVEL, mjWARN_BADQPOS}) {
+      if (data->warning[warning].number > 0) {
+        return mju_warningText(warning, data->warning[warning].lastinfo);
+      }
     }
   }
-  if (result.model == nullptr) {
-    result.message = load_error;
-  }
-  return result;
+  return nullptr;
 }
 
 Eigen::Vector3d ReadVector3(const mjData* data, const SensorBinding& binding) {
@@ -154,25 +259,6 @@ std::string VectorToString(const Eigen::Vector3d& vector) {
   return stream.str();
 }
 
-bool HasGraphicalDisplay() {
-#if defined(__linux__)
-  return std::getenv("DISPLAY") != nullptr || std::getenv("WAYLAND_DISPLAY") != nullptr;
-#else
-  return true;
-#endif
-}
-
-void ConfigureDefaultCamera(mjvCamera* camera) {
-  mjv_defaultCamera(camera);
-  camera->type = mjCAMERA_FREE;
-  camera->lookat[0] = 0.0;
-  camera->lookat[1] = 0.0;
-  camera->lookat[2] = 0.25;
-  camera->distance = 3.0;
-  camera->azimuth = 135.0;
-  camera->elevation = -25.0;
-}
-
 }  // namespace
 
 ScoutSim::ScoutSim(ScoutConfig config)
@@ -195,6 +281,7 @@ ScoutSim::~ScoutSim() {
   if (active_instance_ == this) {
     active_instance_ = nullptr;
   }
+  CleanupViewer();
   if (data_ != nullptr) {
     mj_deleteData(data_);
   }
@@ -209,24 +296,64 @@ void ScoutSim::LoadModel() {
     throw std::runtime_error("Failed to load model: " + load_result.message);
   }
 
-  const std::string actuator_error = actuator_writer_.ValidateModel(load_result.model);
-  if (!actuator_error.empty()) {
-    mj_deleteModel(load_result.model);
-    throw std::runtime_error(actuator_error);
-  }
-
-  load_result.model->opt.timestep = config_.common.simulation.dt;
   mjData* new_data = mj_makeData(load_result.model);
   if (new_data == nullptr) {
     mj_deleteModel(load_result.model);
     throw std::runtime_error("Failed to allocate mjData.");
   }
 
-  model_ = load_result.model;
+  InstallModelPointers(load_result.model, new_data, config_.common.model.scene_xml, true);
+
+  if (!load_result.message.empty()) {
+    if (load_result.pause_after_load) {
+      std::cout << "Model compiled, but simulation warning:\n  "
+                << load_result.message << '\n';
+    } else {
+      std::cout << load_result.message << '\n';
+    }
+  }
+}
+
+void ScoutSim::InstallModelPointers(
+    mjModel* new_model,
+    mjData* new_data,
+    const fs::path& model_path,
+    bool replace_existing) {
+  if (new_model == nullptr || new_data == nullptr) {
+    throw std::runtime_error("Cannot install null MuJoCo model/data.");
+  }
+
+  const std::string actuator_error = actuator_writer_.ValidateModel(new_model);
+  if (!actuator_error.empty()) {
+    throw std::runtime_error(actuator_error);
+  }
+
+  mjModel* old_model = model_;
+  mjData* old_data = data_;
+
+  new_model->opt.timestep = config_.common.simulation.dt;
+  model_ = new_model;
   data_ = new_data;
+  config_.common.model.scene_xml = fs::absolute(model_path);
+
   ResolveBindings();
+  ConfigureDefaultCamera();
+  next_log_time_ = 0.0;
+  last_wheel_speeds_ = WheelSpeeds{};
+  last_command_source_ = "hold";
+  last_command_valid_ = false;
+  active_instance_ = this;
   mj_forward(model_, data_);
   PublishTelemetry(false);
+
+  if (replace_existing) {
+    if (old_data != nullptr && old_data != new_data) {
+      mj_deleteData(old_data);
+    }
+    if (old_model != nullptr && old_model != new_model) {
+      mj_deleteModel(old_model);
+    }
+  }
 }
 
 void ScoutSim::ResolveBindings() {
@@ -288,8 +415,8 @@ void ScoutSim::Step() {
 }
 
 void ScoutSim::ApplyControl() {
-  const std::optional<quadrotor::VelocityCommand> command =
-      quadrotor::ReadFreshVelocityCommand(config_.common.ros2.command_timeout);
+  const std::optional<ausim::VelocityCommand> command =
+      ausim::ReadFreshVelocityCommand(config_.common.ros2.command_timeout);
 
   double linear_x = 0.0;
   double angular_z = 0.0;
@@ -308,7 +435,7 @@ void ScoutSim::ApplyControl() {
 }
 
 void ScoutSim::PublishTelemetry(bool log_state) {
-  quadrotor::TelemetrySnapshot snapshot;
+  ausim::TelemetrySnapshot snapshot;
   snapshot.sim_time = data_->time;
 
   if (freejoint_qpos_adr_ >= 0 && freejoint_qpos_adr_ + 6 < model_->nq) {
@@ -348,13 +475,13 @@ void ScoutSim::PublishTelemetry(bool log_state) {
 
   snapshot.goal_source = last_command_source_;
   snapshot.has_goal = last_command_valid_;
-  quadrotor::WriteTelemetrySnapshot(snapshot);
+  ausim::WriteTelemetrySnapshot(snapshot);
   if (log_state) {
     LogStateIfNeeded(snapshot);
   }
 }
 
-void ScoutSim::LogStateIfNeeded(const quadrotor::TelemetrySnapshot& snapshot) const {
+void ScoutSim::LogStateIfNeeded(const ausim::TelemetrySnapshot& snapshot) const {
   if (config_.common.simulation.print_interval <= 0.0) {
     return;
   }
@@ -378,107 +505,342 @@ void ScoutSim::LogStateIfNeeded(const quadrotor::TelemetrySnapshot& snapshot) co
 void ScoutSim::Run() {
   stop_requested_.store(false);
   active_instance_ = this;
-  std::signal(SIGINT, &ScoutSim::HandleSigint);
-
-  std::cout << "Running Scout MuJoCo simulation with model: "
-            << config_.common.model.scene_xml << '\n';
-  std::cout << "Duration: " << config_.common.simulation.duration
-            << " s, dt: " << config_.common.simulation.dt << " s\n";
-
-  if (model_ == nullptr || data_ == nullptr) {
-    LoadModel();
-  }
+  InitializeVisualizationState();
 
   if (config_.common.viewer.enabled) {
-    if (HasGraphicalDisplay()) {
-      RunWithViewer();
-    } else if (config_.common.viewer.fallback_to_headless) {
-      std::cerr << "viewer unavailable, falling back to headless: no graphical display detected\n";
-      RunHeadless();
+    std::string viewer_error;
+    if (!CanInitializeOfficialViewer(&viewer_error)) {
+      if (!config_.common.viewer.fallback_to_headless) {
+        throw std::runtime_error("Official simulate viewer unavailable: " + viewer_error);
+      }
+      std::cerr << "viewer unavailable, falling back to headless: "
+                << viewer_error << '\n';
     } else {
-      throw std::runtime_error("OpenGL viewer unavailable: no graphical display detected.");
+      InitializeViewer();
     }
+  }
+
+  std::signal(SIGINT, &ScoutSim::HandleSigint);
+
+  if (viewer_) {
+    RunWithViewer();
   } else {
+    if (model_ == nullptr || data_ == nullptr) {
+      LoadModel();
+    }
+    std::cout << "Running Scout MuJoCo simulation with model: "
+              << config_.common.model.scene_xml << '\n';
+    std::cout << "Duration: " << config_.common.simulation.duration
+              << " s, dt: " << config_.common.simulation.dt << " s\n";
     RunHeadless();
   }
 
   std::signal(SIGINT, SIG_DFL);
   active_instance_ = nullptr;
 
-  std::cout << "Scout simulation finished at t=" << std::fixed << std::setprecision(3)
-            << data_->time << " s, final position="
-            << VectorToString(Eigen::Vector3d(data_->qpos[0], data_->qpos[1], data_->qpos[2]))
-            << '\n';
+  if (data_ != nullptr) {
+    std::cout << "Scout simulation finished at t=" << std::fixed << std::setprecision(3)
+              << data_->time << " s, final position="
+              << VectorToString(Eigen::Vector3d(data_->qpos[0], data_->qpos[1], data_->qpos[2]))
+              << '\n';
+  }
 }
 
 void ScoutSim::RunHeadless() {
   while (ShouldContinue()) {
     const auto step_start = std::chrono::high_resolution_clock::now();
-    Step();
+    for (int i = 0; i < kHeadlessStepsPerCycle && ShouldContinue(); ++i) {
+      Step();
+    }
     SleepToMatchRealtime(step_start);
   }
 }
 
 void ScoutSim::RunWithViewer() {
-  if (!glfwInit()) {
-    if (config_.common.viewer.fallback_to_headless) {
-      std::cerr << "viewer unavailable, falling back to headless: could not initialize GLFW\n";
-      RunHeadless();
+  std::cout << "Running Scout MuJoCo simulation with official simulate viewer: "
+            << config_.common.model.scene_xml << '\n';
+
+  physics_thread_ = std::thread(&ScoutSim::PhysicsThreadMain, this);
+  viewer_->RenderLoop();
+
+  if (physics_thread_.joinable()) {
+    physics_thread_.join();
+  }
+
+  viewer_.reset();
+}
+
+void ScoutSim::InitializeVisualizationState() {
+  if (visualization_state_initialized_) {
+    return;
+  }
+
+  mjv_defaultCamera(&camera_);
+  mjv_defaultOption(&visualization_options_);
+  mjv_defaultPerturb(&perturbation_);
+  visualization_state_initialized_ = true;
+}
+
+void ScoutSim::ConfigureDefaultCamera() {
+  if (model_ == nullptr) {
+    return;
+  }
+
+  mjv_defaultCamera(&camera_);
+  camera_.type = mjCAMERA_FREE;
+  camera_.lookat[0] = 0.0;
+  camera_.lookat[1] = 0.0;
+  camera_.lookat[2] = 0.25;
+  camera_.distance = 3.0;
+  camera_.azimuth = 135.0;
+  camera_.elevation = -25.0;
+
+  if (config_.common.simulation.track_camera_name.empty()) {
+    return;
+  }
+
+  const int track_camera_id =
+      mj_name2id(model_, mjOBJ_CAMERA, config_.common.simulation.track_camera_name.c_str());
+  if (track_camera_id < 0) {
+    std::cerr << "scout warning: configured track camera '"
+              << config_.common.simulation.track_camera_name
+              << "' was not found; using free camera instead.\n";
+    return;
+  }
+
+  camera_.type = mjCAMERA_FIXED;
+  camera_.fixedcamid = track_camera_id;
+  camera_.trackbodyid = -1;
+  if (viewer_) {
+    viewer_->camera = 2 + track_camera_id;
+  }
+}
+
+void ScoutSim::InitializeViewer() {
+  if (viewer_) {
+    return;
+  }
+
+  viewer_ = std::make_unique<mj::Simulate>(
+      std::make_unique<mj::GlfwAdapter>(),
+      &camera_,
+      &visualization_options_,
+      &perturbation_,
+      /* is_passive = */ false);
+
+  const int mjui_enabled = config_.common.viewer.mjui_enabled ? 1 : 0;
+  viewer_->ui0_enable = mjui_enabled;
+  viewer_->ui1_enable = mjui_enabled;
+  if (!config_.common.viewer.mjui_enabled) {
+    viewer_->help = 0;
+    viewer_->info = 0;
+    viewer_->profiler = 0;
+    viewer_->sensor = 0;
+  }
+
+  viewer_->vsync = config_.common.viewer.vsync ? 1 : 0;
+}
+
+void ScoutSim::CleanupViewer() {
+  if (viewer_) {
+    viewer_->exitrequest.store(true);
+  }
+
+  if (physics_thread_.joinable()) {
+    physics_thread_.join();
+  }
+
+  viewer_.reset();
+}
+
+void ScoutSim::PhysicsThreadMain() {
+  try {
+    if (viewer_ == nullptr) {
       return;
     }
-    throw std::runtime_error("OpenGL viewer unavailable: could not initialize GLFW.");
-  }
 
-  GLFWwindow* window = glfwCreateWindow(1200, 900, "Scout MuJoCo Simulation", nullptr, nullptr);
-  if (window == nullptr) {
-    glfwTerminate();
-    if (config_.common.viewer.fallback_to_headless) {
-      std::cerr << "viewer unavailable, falling back to headless: could not create GLFW window\n";
-      RunHeadless();
+    if (model_ != nullptr && data_ != nullptr) {
+      const std::string displayed_filename = config_.common.model.scene_xml.string();
+      viewer_->Load(model_, data_, displayed_filename.c_str());
+      const std::unique_lock<std::recursive_mutex> lock(viewer_->mtx);
+      mj_forward(model_, data_);
+      SetLoadError(*viewer_, "");
+    } else if (!LoadModelIntoViewer(*viewer_, config_.common.model.scene_xml, false)) {
+      viewer_->exitrequest.store(true);
       return;
     }
-    throw std::runtime_error("OpenGL viewer unavailable: could not create GLFW window.");
+
+    PhysicsLoop(*viewer_);
+    viewer_->exitrequest.store(true);
+  } catch (const std::exception& error) {
+    if (viewer_) {
+      SetLoadError(*viewer_, error.what());
+      viewer_->exitrequest.store(true);
+    }
+  }
+}
+
+bool ScoutSim::LoadModelIntoViewer(
+    mj::Simulate& sim,
+    const fs::path& model_path,
+    bool replace_existing) {
+  sim.LoadMessage(model_path.string().c_str());
+
+  const ModelLoadResult load_result = LoadModelFile(model_path);
+  if (load_result.model == nullptr) {
+    SetLoadError(sim, load_result.message);
+    sim.LoadMessageClear();
+    return false;
   }
 
-  glfwMakeContextCurrent(window);
-  glfwSwapInterval(config_.common.viewer.vsync ? 1 : 0);
-
-  mjvCamera camera;
-  ConfigureDefaultCamera(&camera);
-  mjvOption visualization_options;
-  mjv_defaultOption(&visualization_options);
-  mjvScene scene;
-  mjv_defaultScene(&scene);
-  mjv_makeScene(model_, &scene, 2000);
-  mjrContext context;
-  mjr_defaultContext(&context);
-  mjr_makeContext(model_, &context, mjFONTSCALE_150);
-
-  while (ShouldContinue() && !glfwWindowShouldClose(window)) {
-    const auto step_start = std::chrono::high_resolution_clock::now();
-    Step();
-
-    mjrRect viewport{0, 0, 0, 0};
-    glfwGetFramebufferSize(window, &viewport.width, &viewport.height);
-    mjv_updateScene(
-        model_,
-        data_,
-        &visualization_options,
-        nullptr,
-        &camera,
-        mjCAT_ALL,
-        &scene);
-    mjr_render(viewport, &scene, &context);
-
-    glfwSwapBuffers(window);
-    glfwPollEvents();
-    SleepToMatchRealtime(step_start);
+  const std::string actuator_error = actuator_writer_.ValidateModel(load_result.model);
+  if (!actuator_error.empty()) {
+    mj_deleteModel(load_result.model);
+    SetLoadError(sim, actuator_error);
+    sim.LoadMessageClear();
+    return false;
   }
 
-  mjr_freeContext(&context);
-  mjv_freeScene(&scene);
-  glfwDestroyWindow(window);
-  glfwTerminate();
+  load_result.model->opt.timestep = config_.common.simulation.dt;
+  mjData* new_data = mj_makeData(load_result.model);
+  if (new_data == nullptr) {
+    mj_deleteModel(load_result.model);
+    SetLoadError(sim, "Failed to allocate mjData.");
+    sim.LoadMessageClear();
+    return false;
+  }
+
+  sim.Load(load_result.model, new_data, model_path.string().c_str());
+  {
+    const std::unique_lock<std::recursive_mutex> lock(sim.mtx);
+    InstallModelPointers(load_result.model, new_data, model_path, replace_existing);
+  }
+
+  if (!load_result.message.empty()) {
+    SetLoadError(sim, load_result.message);
+  } else {
+    SetLoadError(sim, "");
+  }
+  if (load_result.pause_after_load) {
+    sim.run = 0;
+  }
+  return true;
+}
+
+void ScoutSim::PhysicsLoop(mj::Simulate& sim) {
+  std::chrono::time_point<mj::Simulate::Clock> sync_cpu;
+  mjtNum sync_sim = 0;
+
+  while (!sim.exitrequest.load() && !stop_requested_.load()) {
+    if (sim.droploadrequest.load()) {
+      const fs::path dropped_file = sim.dropfilename;
+      LoadModelIntoViewer(sim, dropped_file, true);
+      sim.droploadrequest.store(false);
+    }
+
+    if (sim.uiloadrequest.load()) {
+      sim.uiloadrequest.fetch_sub(1);
+      LoadModelIntoViewer(sim, fs::path(sim.filename), true);
+    }
+
+    if (config_.common.simulation.duration > 0.0 &&
+        data_ != nullptr &&
+        data_->time >= config_.common.simulation.duration) {
+      sim.exitrequest.store(true);
+      break;
+    }
+
+    if (sim.run && sim.busywait) {
+      std::this_thread::yield();
+    } else {
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+
+    const std::unique_lock<std::recursive_mutex> lock(sim.mtx);
+    if (model_ == nullptr || data_ == nullptr) {
+      continue;
+    }
+
+    if (sim.run) {
+      bool stepped = false;
+      const auto start_cpu = mj::Simulate::Clock::now();
+      const auto elapsed_cpu = start_cpu - sync_cpu;
+      const double elapsed_sim = data_->time - sync_sim;
+      const double slowdown = 100.0 / sim.percentRealTime[sim.real_time_index];
+
+      const bool misaligned =
+          std::abs(Seconds(elapsed_cpu).count() / slowdown - elapsed_sim) > kSyncMisalign;
+
+      if (elapsed_sim < 0.0 ||
+          elapsed_cpu.count() < 0 ||
+          sync_cpu.time_since_epoch().count() == 0 ||
+          misaligned ||
+          sim.speed_changed) {
+        sync_cpu = start_cpu;
+        sync_sim = data_->time;
+        sim.speed_changed = false;
+
+        sim.InjectNoise(sim.key);
+        ApplyControl();
+        mj_step(model_, data_);
+        PublishTelemetry();
+
+        if (const char* message = Diverged(model_->opt.disableflags, data_)) {
+          sim.run = 0;
+          SetLoadError(sim, message);
+        } else {
+          stepped = true;
+        }
+      } else {
+        bool measured = false;
+        const mjtNum previous_sim = data_->time;
+        const double refresh_time =
+            kSimRefreshFraction / std::max(1, sim.refresh_rate);
+
+        while (Seconds((data_->time - sync_sim) * slowdown) <
+                   mj::Simulate::Clock::now() - sync_cpu &&
+               mj::Simulate::Clock::now() - start_cpu < Seconds(refresh_time)) {
+          if (!measured && elapsed_sim > 0.0) {
+            sim.measured_slowdown =
+                std::chrono::duration<double>(elapsed_cpu).count() / elapsed_sim;
+            measured = true;
+          }
+
+          sim.InjectNoise(sim.key);
+          ApplyControl();
+          mj_step(model_, data_);
+          PublishTelemetry();
+
+          if (const char* message = Diverged(model_->opt.disableflags, data_)) {
+            sim.run = 0;
+            SetLoadError(sim, message);
+            break;
+          }
+
+          stepped = true;
+          if (data_->time < previous_sim) {
+            break;
+          }
+          if (config_.common.simulation.duration > 0.0 &&
+              data_->time >= config_.common.simulation.duration) {
+            sim.exitrequest.store(true);
+            break;
+          }
+        }
+      }
+
+      if (stepped) {
+        sim.AddToHistory();
+      }
+    } else {
+      mj_forward(model_, data_);
+      if (sim.pause_update) {
+        mju_copy(data_->qacc_warmstart, data_->qacc, model_->nv);
+      }
+      sim.speed_changed = true;
+      PublishTelemetry(false);
+    }
+  }
 }
 
 bool ScoutSim::ShouldContinue() const {
@@ -493,13 +855,16 @@ void ScoutSim::SleepToMatchRealtime(
     const std::chrono::high_resolution_clock::time_point& step_start) const {
   const auto target = step_start + std::chrono::duration_cast<
       std::chrono::high_resolution_clock::duration>(
-      std::chrono::duration<double>(model_->opt.timestep));
+      std::chrono::duration<double>(model_->opt.timestep * kHeadlessStepsPerCycle));
   std::this_thread::sleep_until(target);
 }
 
 void ScoutSim::HandleSigint(int signal) {
   if (signal == SIGINT && active_instance_ != nullptr) {
     active_instance_->stop_requested_.store(true);
+    if (active_instance_->viewer_ != nullptr) {
+      active_instance_->viewer_->exitrequest.store(true);
+    }
   }
 }
 

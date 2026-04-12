@@ -2,7 +2,7 @@
 
 #include "ipc/bridge_packets.hpp"
 
-namespace quadrotor {
+namespace ausim {
 
 class ITelemetryPublisher {
  public:
@@ -10,4 +10,4 @@ class ITelemetryPublisher {
   virtual void Publish(const ipc::TelemetryPacket& packet) = 0;
 };
 
-}  // namespace quadrotor
+}  // namespace ausim
