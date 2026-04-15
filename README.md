@@ -111,3 +111,5 @@ source /opt/ros/humble/setup.bash
 
 - [quadrotor/README.md](quadrotor/README.md)
 - [third_party/README.md](third_party/README.md)
+
+Designed by zdyukino
