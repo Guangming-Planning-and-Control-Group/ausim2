@@ -12,7 +12,8 @@
               <geom group="2" type="mesh" contype="0" conaffinity="0" density="0"/>
           </default>
           <default class="collision">
-              <geom group="3" type="mesh"/>
+              <geom group="3" type="mesh" condim="6" friction="1.2 0.1 0.01"
+                    solref="0.015 1.2" solimp="0.9 0.95 0.001"/>
           </default>
       </default>
   </default>
