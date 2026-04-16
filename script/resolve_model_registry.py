@@ -46,6 +46,25 @@ def shell_quote(value: str) -> str:
     return shlex.quote(value)
 
 
+def infer_family(registry_path: Path) -> str:
+    try:
+        return registry_path.parent.parent.name
+    except IndexError as exc:
+        fail(f"unable to infer family from registry path: {registry_path}")
+        raise exc
+
+
+def infer_executable(repo_root: Path, family: str) -> Path:
+    executable_by_family = {
+        "quadrotor": repo_root / "build/bin/quadrotor",
+        "ground_vehicle": repo_root / "build/bin/scout",
+    }
+    executable_path = executable_by_family.get(family)
+    if executable_path is None:
+        fail(f"unsupported family for executable inference: {family}")
+    return executable_path.resolve()
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Resolve model registries into shell declarations.")
     parser.add_argument("repo_root", help="Repository root path")
@@ -92,10 +111,11 @@ def load_registry(repo_root: Path, registry_paths: list[Path]) -> tuple[list[str
                 fail(f"duplicate model id in registries: {model_id}")
 
             order.append(model_id)
-            mappings["MODEL_FAMILY"][model_id] = require_string(model_id, model, "family")
-            mappings["MODEL_DISPLAY_NAME"][model_id] = str(model.get("display_name", model_id)).strip() or model_id
+            family = infer_family(registry_path)
+            mappings["MODEL_FAMILY"][model_id] = family
+            mappings["MODEL_DISPLAY_NAME"][model_id] = model_id
 
-            executable_path = resolve_repo_path(repo_root, require_string(model_id, model, "executable"))
+            executable_path = infer_executable(repo_root, family)
             sim_config_path = resolve_repo_path(repo_root, require_string(model_id, model, "sim_config"))
             robot_config_path = resolve_repo_path(repo_root, require_string(model_id, model, "robot_config"))
             scene_xml_path = resolve_repo_path(repo_root, require_string(model_id, model, "scene_xml"))

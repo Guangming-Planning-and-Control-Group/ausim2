@@ -1,8 +1,5 @@
 models:
   - id: scout_v2
-    display_name: scout_v2
-    family: ground_vehicle
-    executable: build/bin/scout
     sim_config: ground_vehicle/cfg/sim_config.yaml
     robot_config: ground_vehicle/cfg/robot/scout_v2_config.yaml
     scene_xml: assets/scout_v2/scene.xml
