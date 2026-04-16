@@ -36,6 +36,7 @@ struct DifferentialDriveConfig {
   double max_linear_speed = 1.5;
   double max_angular_speed = 2.0;
   double max_wheel_speed = 20.0;
+  double icr_coefficient = 1.5;
   double front_right_joint_sign = 1.0;
   double front_left_joint_sign = -1.0;
   double rear_left_joint_sign = -1.0;

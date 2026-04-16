@@ -29,6 +29,7 @@ ground_vehicle:
   max_linear_speed: 1.5
   max_angular_speed: 2.0
   max_wheel_speed: 20.0
+  icr_coefficient: 1.5
   front_right_joint_sign: 1.0
   front_left_joint_sign: -1.0
   rear_left_joint_sign: -1.0

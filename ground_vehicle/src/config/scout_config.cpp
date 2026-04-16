@@ -66,6 +66,7 @@ void ApplyScoutConfigRoot(const YAML::Node& root, ScoutConfig* config) {
   AssignIfPresent(drive_node, "max_linear_speed", &config->drive.max_linear_speed);
   AssignIfPresent(drive_node, "max_angular_speed", &config->drive.max_angular_speed);
   AssignIfPresent(drive_node, "max_wheel_speed", &config->drive.max_wheel_speed);
+  AssignIfPresent(drive_node, "icr_coefficient", &config->drive.icr_coefficient);
   if (drive_node) {
     double left_joint_sign = config->drive.front_left_joint_sign;
     double right_joint_sign = config->drive.front_right_joint_sign;

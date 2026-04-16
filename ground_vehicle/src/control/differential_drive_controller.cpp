@@ -57,7 +57,9 @@ WheelSpeeds DifferentialDriveController::Compute(double linear_x, double angular
     // wheel rolling direction. The full wheel geometry is kept explicit so the
     // controller can be reused across different wheel tracks, wheelbases and
     // per-wheel transmission sign conventions.
-    const double tangential_velocity_x = -yaw_rate * wheel.lateral_offset;
+    // ICR 补偿：4 轮 skid-steer 转向时轮子横向滑移会消耗角动量，
+    // 需要把用于 yaw 的等效轮速放大 icr_coefficient 倍以抵消滑移损失。
+    const double tangential_velocity_x = -yaw_rate * wheel.lateral_offset * config_.icr_coefficient;
     const double tangential_velocity_y = yaw_rate * wheel.longitudinal_offset;
     (void)tangential_velocity_y;
 

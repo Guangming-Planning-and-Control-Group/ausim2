@@ -29,7 +29,7 @@
     <body name="base_link" pos="0 0 0.23479" euler="0 0 0" childclass="scout">
       <light name="tracking" mode="trackcom" pos="0 0 2"/>
       <freejoint name="floating_base_joint"/>
-      <inertial pos="0 0 0" mass="50" diaginertia="2.288641 5.103976 3.431465"/>
+      <inertial pos="0 0 0" mass="40" diaginertia="2.288641 5.103976 3.431465"/>
       <geom class="visual" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.298039 0.298039 0.298039 1" mesh="base_link"/>
       <geom class="collision" type="mesh" rgba="0.298039 0.298039 0.298039 1" mesh="base_link"/>
       <site name="imu" pos="0 0 0.05" group="3"/>
@@ -47,28 +47,28 @@
       </body>
 
       <body name="front_right_wheel_link" pos="0.249 -0.29153 -0.0702" euler="3.14 0 0">
-        <inertial pos="0 0 0" mass="8" diaginertia="0.1171 0.1361 0.1171"/>
+        <inertial pos="0 0 0" mass="3" diaginertia="0.0439 0.0510 0.0439"/>
         <joint name="front_right_wheel" pos="0 0 0" axis="0 -1 0" actuatorfrcrange="-80 80"/>
         <geom class="visual" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.02 0.02 0.02 1" mesh="wheel_type1"/>
         <geom class="collision" type="mesh" rgba="0.02 0.02 0.02 1" mesh="wheel_type1"/>
       </body>
 
       <body name="front_left_wheel_link" pos="0.249 0.29153 -0.0702" euler="0 0 0">
-        <inertial pos="0 0 0" mass="8" diaginertia="0.1171 0.1361 0.1171"/>
+        <inertial pos="0 0 0" mass="3" diaginertia="0.0439 0.0510 0.0439"/>
         <joint name="front_left_wheel" pos="0 0 0" axis="0 -1 0" actuatorfrcrange="-80 80"/>
         <geom class="visual" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.02 0.02 0.02 1" mesh="wheel_type2"/>
         <geom class="collision" type="mesh" rgba="0.02 0.02 0.02 1" mesh="wheel_type2"/>
       </body>
 
       <body name="rear_left_wheel_link" pos="-0.249 0.29153 -0.0702" euler="0 0 0">
-        <inertial pos="0 0 0" mass="8" diaginertia="0.1171 0.1361 0.1171"/>
+        <inertial pos="0 0 0" mass="3" diaginertia="0.0439 0.0510 0.0439"/>
         <joint name="rear_left_wheel" pos="0 0 0" axis="0 -1 0" actuatorfrcrange="-80 80"/>
         <geom class="visual" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.02 0.02 0.02 1" mesh="wheel_type1"/>
         <geom class="collision" type="mesh" rgba="0.02 0.02 0.02 1" mesh="wheel_type1"/>
       </body>
 
       <body name="rear_right_wheel_link" pos="-0.249 -0.29153 -0.0702" euler="3.14 0 0">
-        <inertial pos="0 0 0" mass="8" diaginertia="0.1171 0.1361 0.1171"/>
+        <inertial pos="0 0 0" mass="3" diaginertia="0.0439 0.0510 0.0439"/>
         <joint name="rear_right_wheel" pos="0 0 0" axis="0 -1 0" actuatorfrcrange="-80 80"/>
         <geom class="visual" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.02 0.02 0.02 1" mesh="wheel_type2"/>
         <geom class="collision" type="mesh" rgba="0.02 0.02 0.02 1" mesh="wheel_type2"/>
