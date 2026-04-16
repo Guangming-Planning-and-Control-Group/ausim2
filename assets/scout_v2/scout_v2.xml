@@ -12,8 +12,8 @@
               <geom group="2" type="mesh" contype="0" conaffinity="0" density="0"/>
           </default>
           <default class="collision">
-              <geom group="3" type="mesh" condim="6" friction="1.2 0.1 0.01"
-                    solref="0.015 1.2" solimp="0.9 0.95 0.001"/>
+              <!-- <geom group="3" type="mesh" condim="6" friction="1.2 0.1 0.01" solref="0.015 1.2" solimp="0.9 0.95 0.001"/> --> # 精细摩擦力
+              <geom group="3" type="mesh"/>
           </default>
       </default>
   </default>
@@ -77,10 +77,10 @@
     </body>
   </worldbody>
   <actuator>
-    <velocity class="scout" name="velocity_front_right_wheel" joint="front_right_wheel" kv="10" ctrlrange="-20 20"/>
-    <velocity class="scout" name="velocity_front_left_wheel" joint="front_left_wheel" kv="10" ctrlrange="-20 20"/>
-    <velocity class="scout" name="velocity_rear_left_wheel" joint="rear_left_wheel" kv="10" ctrlrange="-20 20"/>
-    <velocity class="scout" name="velocity_rear_right_wheel" joint="rear_right_wheel" kv="10" ctrlrange="-20 20"/>
+    <velocity class="scout" name="velocity_front_right_wheel" joint="front_right_wheel" kv="100" ctrlrange="-20 20"/>
+    <velocity class="scout" name="velocity_front_left_wheel" joint="front_left_wheel" kv="100" ctrlrange="-20 20"/>
+    <velocity class="scout" name="velocity_rear_left_wheel" joint="rear_left_wheel" kv="100" ctrlrange="-20 20"/>
+    <velocity class="scout" name="velocity_rear_right_wheel" joint="rear_right_wheel" kv="100" ctrlrange="-20 20"/>
   </actuator>
   <sensor>
     <gyro name="body_gyro" site="imu"/>
