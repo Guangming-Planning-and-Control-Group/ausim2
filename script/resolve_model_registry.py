@@ -129,7 +129,7 @@ def load_registry(repo_root: Path, registry_paths: list[Path]) -> tuple[list[str
     if not order:
         fail("no models available in registry")
     if default_target is None:
-        fail("registry files must declare exactly one default_target")
+        default_target = order[0]
     if default_target not in mappings["MODEL_FAMILY"]:
         fail(f"default_target '{default_target}' is not declared in any registry")
 
