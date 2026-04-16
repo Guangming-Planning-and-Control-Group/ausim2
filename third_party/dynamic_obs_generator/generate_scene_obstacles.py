@@ -475,6 +475,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Print the resolved output scene path to stdout after generation",
     )
+    parser.add_argument(
+        "--enable-dynamic-obstacles",
+        action="store_true",
+        help="Force-enable dynamic obstacle generation regardless of sim_config content",
+    )
 
     return parser.parse_args()
 
@@ -484,6 +489,7 @@ def main() -> int:
 
     resolution = resolve_scene_inputs(args.config, args.sim_config, args.robot_config)
     input_xml = Path(args.input).resolve() if args.input else resolution.input_xml
+    dynamic_obstacle_enabled = bool(args.enable_dynamic_obstacles or resolution.dynamic_obstacle_enabled)
     obstacle_config_path = (
         Path(args.obstacle_config).resolve()
         if args.obstacle_config
@@ -493,7 +499,7 @@ def main() -> int:
     obstacle_config: ObstacleConfig | None = None
     if obstacle_config_path is not None and obstacle_config_path.exists():
         obstacle_config = load_obstacle_config(obstacle_config_path)
-    elif resolution.dynamic_obstacle_enabled:
+    elif dynamic_obstacle_enabled:
         raise FileNotFoundError(
             "Dynamic obstacles are enabled, but obstacle config could not be resolved."
         )
@@ -504,7 +510,7 @@ def main() -> int:
         else input_xml.with_name(f"{input_xml.stem}.dynamic_obstacles.xml")
     )
 
-    if not resolution.dynamic_obstacle_enabled and obstacle_config is None:
+    if not dynamic_obstacle_enabled and obstacle_config is None:
         output_xml.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(input_xml, output_xml)
         log(
@@ -519,7 +525,7 @@ def main() -> int:
         input_xml=input_xml,
         output_xml=output_xml,
         obstacle_config=obstacle_config,
-        dynamic_obstacle_enabled=resolution.dynamic_obstacle_enabled,
+        dynamic_obstacle_enabled=dynamic_obstacle_enabled,
     )
     if args.print_output_path:
         print(output_xml)

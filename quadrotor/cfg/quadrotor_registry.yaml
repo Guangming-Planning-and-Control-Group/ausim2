@@ -1,0 +1,35 @@
+default_target: crazyfile
+
+models:
+  - id: crazyfile
+    display_name: crazyfile
+    family: quadrotor
+    executable: build/bin/quadrotor
+    sim_config: quadrotor/cfg/sim_config.yaml
+    robot_config: quadrotor/cfg/robot/crazyfile_config.yaml
+    scene_xml: assets/crazyfile/scene.xml
+    dynamic_obstacle:
+      enabled: true
+      config_path: third_party/dynamic_obs_generator/obstacle.yaml
+
+  - id: xi35
+    display_name: xi35
+    family: quadrotor
+    executable: build/bin/quadrotor
+    sim_config: quadrotor/cfg/sim_config.yaml
+    robot_config: quadrotor/cfg/robot/xi35_config.yaml
+    scene_xml: assets/crazyfile/scene.xml
+    dynamic_obstacle:
+      enabled: true
+      config_path: third_party/dynamic_obs_generator/obstacle.yaml
+
+  - id: omnidrone
+    display_name: omnidrone
+    family: quadrotor
+    executable: build/bin/quadrotor
+    sim_config: quadrotor/cfg/sim_config.yaml
+    robot_config: quadrotor/cfg/robot/omnidrone_config.yaml
+    scene_xml: assets/omnidrone/scene.xml
+    dynamic_obstacle:
+      enabled: false
+      config_path: third_party/dynamic_obs_generator/obstacle.yaml

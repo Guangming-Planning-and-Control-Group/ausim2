@@ -1201,7 +1201,7 @@ void QuadrotorSim::InitializeDynamicObstacleManager() {
   // Check if config path is provided
   if (config_.dynamic_obstacle.config_path.empty()) {
     std::cerr << "[QuadrotorSim] Warning: dynamic_obstacle.enabled=true but config_path is not set." << std::endl;
-    std::cerr << "[QuadrotorSim] Warning: Please set dynamic_obstacle.config_path in sim_config.yaml" << std::endl;
+    std::cerr << "[QuadrotorSim] Warning: Please set dynamic_obstacle.config_path via registry/config/env override." << std::endl;
     obstacle_manager_.reset();
     return;
   }

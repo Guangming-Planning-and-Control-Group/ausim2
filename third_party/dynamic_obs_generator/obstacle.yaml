@@ -54,7 +54,7 @@ parallel_threshold: 16
 # ---------------------------------------------------------------------------
 # Quick Start:
 # 1. Add obstacles to your MuJoCo XML scene with names: dynamic_obs_0, dynamic_obs_1, etc.
-# 2. Enable in sim_config.yaml: dynamic_obstacle.enabled: true
+# 2. Enable in the target registry: dynamic_obstacle.enabled: true
 # 3. Run simulation!
 #
 # Example XML additions:

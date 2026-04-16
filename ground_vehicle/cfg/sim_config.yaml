@@ -19,6 +19,3 @@ ros2:
   command_timeout: 0.5
   publish_tf: true
   publish_clock: true
-
-dynamic_obstacle:
-  enabled: false

@@ -5,7 +5,12 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PLUGIN_DIR="${SCRIPT_DIR}/build/bin/mujoco_plugin"
 BUNDLED_PLUGIN_DIR="${SCRIPT_DIR}/third_party/mujoco-3.6.0/bin/mujoco_plugin"
 GENERATOR="${SCRIPT_DIR}/third_party/dynamic_obs_generator/generate_scene_obstacles.py"
+REGISTRY_RESOLVER="${SCRIPT_DIR}/script/resolve_model_registry.py"
 MODEL_TARGET_CONFIG="${SCRIPT_DIR}/.em_run_target"
+REGISTRY_FILES=(
+  "${SCRIPT_DIR}/quadrotor/cfg/quadrotor_registry.yaml"
+  "${SCRIPT_DIR}/ground_vehicle/cfg/ground_vehicle_registry.yaml"
+)
 
 if [ -d "${BUNDLED_PLUGIN_DIR}" ] && [ -d "${PLUGIN_DIR}" ]; then
   export MUJOCO_PLUGIN_DIR="${BUNDLED_PLUGIN_DIR}:${PLUGIN_DIR}"
@@ -21,58 +26,71 @@ ROBOT_CONFIG=""
 SHOW_HELP=0
 FORCE_SELECT=0
 MODEL_TARGET=""
-TARGET_FAMILY=""
 EXECUTABLE=""
+DEFAULT_MODEL_TARGET=""
 PASSTHROUGH_ARGS=()
+declare -a MODEL_ORDER=()
+declare -A MODEL_DISPLAY_NAME=()
+declare -A MODEL_FAMILY=()
+declare -A MODEL_EXECUTABLE=()
+declare -A MODEL_SIM_CONFIG=()
+declare -A MODEL_ROBOT_CONFIG=()
+declare -A MODEL_DYNAMIC_OBSTACLE_ENABLED=()
+declare -A MODEL_DYNAMIC_OBSTACLE_CONFIG=()
+
+load_model_registry() {
+  local registry_dump=""
+
+  if [ ! -f "${REGISTRY_RESOLVER}" ]; then
+    echo "模型注册解析脚本不存在：${REGISTRY_RESOLVER}" >&2
+    exit 1
+  fi
+
+  if ! registry_dump="$(python3 "${REGISTRY_RESOLVER}" "${SCRIPT_DIR}" "${REGISTRY_FILES[@]}")"; then
+    echo "加载模型注册表失败。" >&2
+    exit 1
+  fi
+
+  eval "${registry_dump}"
+}
 
 normalize_model_target() {
-  case "$1" in
-    crazyfile)
-      printf "crazyfile\n"
+  local candidate="$1"
+  local target=""
+
+  for target in "${MODEL_ORDER[@]}"; do
+    if [ "${candidate}" = "${target}" ] || [ "${candidate}" = "${MODEL_DISPLAY_NAME[$target]}" ]; then
+      printf "%s\n" "${target}"
       return 0
-      ;;
-    omnidrone)
-      printf "omnidrone\n"
-      return 0
-      ;;
-    scout_v2)
-      printf "scout_v2\n"
-      return 0
-      ;;
-    *)
-      return 1
-      ;;
-  esac
+    fi
+  done
+
+  return 1
 }
 
 choose_model_target() {
   local choice=""
   local selected=""
+  local index=0
 
   echo "请选择要启动的仿真模型："
-  echo "  1) crazyfile (quadrotor)"
-  echo "  2) omnidrone (quadrotor)"
-  echo "  3) scout_v2 (ground_vehicle)"
+  for target in "${MODEL_ORDER[@]}"; do
+    index=$((index + 1))
+    echo "  ${index}) ${MODEL_DISPLAY_NAME[$target]} (${MODEL_FAMILY[$target]})"
+  done
 
   while true; do
     read -r -p "输入编号或名称: " choice
-    case "${choice}" in
-      ""|1|crazyfile)
-        selected="crazyfile"
-        break
-        ;;
-      2|omnidrone)
-        selected="omnidrone"
-        break
-        ;;
-      3|scout_v2)
-        selected="scout_v2"
-        break
-        ;;
-      *)
-        echo "无效选择：${choice}。请输入 1/2/3、crazyfile、omnidrone 或 scout_v2。"
-        ;;
-    esac
+    if [[ "${choice}" =~ ^[0-9]+$ ]] && [ "${choice}" -ge 1 ] && [ "${choice}" -le "${#MODEL_ORDER[@]}" ]; then
+      selected="${MODEL_ORDER[$((choice - 1))]}"
+      break
+    fi
+
+    if selected="$(normalize_model_target "${choice}")"; then
+      break
+    fi
+
+    echo "无效选择：${choice}。可选项：编号或 ${MODEL_ORDER[*]}。"
   done
 
   printf "%s\n" "${selected}" > "${MODEL_TARGET_CONFIG}"
@@ -94,57 +112,36 @@ load_model_target() {
       echo "使用默认仿真模型：${MODEL_TARGET}（之后用 ./em_run.sh -S 可重新选择）"
       return
     fi
-    echo "已保存的仿真模型无效：${stored_target}，将重新选择。"
+    echo "已保存的仿真模型无效：${stored_target}。请运行 ./em_run.sh -S 重新选择。" >&2
+    exit 1
   fi
 
   if [ -t 0 ]; then
     choose_model_target
   else
-    MODEL_TARGET="crazyfile"
+    MODEL_TARGET="${DEFAULT_MODEL_TARGET}"
     printf "%s\n" "${MODEL_TARGET}" > "${MODEL_TARGET_CONFIG}"
-    echo "未检测到交互式终端，默认选择 crazyfile。之后用 ./em_run.sh -S 可重新选择。"
+    echo "未检测到交互式终端，默认选择 ${MODEL_TARGET}。之后用 ./em_run.sh -S 可重新选择。"
   fi
 }
 
 resolve_runtime_profile() {
-  case "${MODEL_TARGET}" in
-    crazyfile)
-      TARGET_FAMILY="quadrotor"
-      EXECUTABLE="./build/bin/quadrotor"
-      if [ -z "${MERGED_CONFIG}" ] && [ -z "${SIM_CONFIG}" ]; then
-        PASSTHROUGH_ARGS+=(--sim-config "${SCRIPT_DIR}/quadrotor/cfg/sim_config.yaml")
-        SIM_CONFIG="${SCRIPT_DIR}/quadrotor/cfg/sim_config.yaml"
-      fi
-      if [ -z "${MERGED_CONFIG}" ] && [ -z "${ROBOT_CONFIG}" ]; then
-        PASSTHROUGH_ARGS+=(--robot-config "${SCRIPT_DIR}/quadrotor/cfg/robot/crazyfile_config.yaml")
-        ROBOT_CONFIG="${SCRIPT_DIR}/quadrotor/cfg/robot/crazyfile_config.yaml"
-      fi
-      ;;
-    omnidrone)
-      TARGET_FAMILY="quadrotor"
-      EXECUTABLE="./build/bin/quadrotor"
-      if [ -z "${MERGED_CONFIG}" ] && [ -z "${SIM_CONFIG}" ]; then
-        PASSTHROUGH_ARGS+=(--sim-config "${SCRIPT_DIR}/quadrotor/cfg/sim_config.yaml")
-        SIM_CONFIG="${SCRIPT_DIR}/quadrotor/cfg/sim_config.yaml"
-      fi
-      if [ -z "${MERGED_CONFIG}" ] && [ -z "${ROBOT_CONFIG}" ]; then
-        PASSTHROUGH_ARGS+=(--robot-config "${SCRIPT_DIR}/quadrotor/cfg/robot/omnidrone_config.yaml")
-        ROBOT_CONFIG="${SCRIPT_DIR}/quadrotor/cfg/robot/omnidrone_config.yaml"
-      fi
-      ;;
-    scout_v2)
-      TARGET_FAMILY="ground_vehicle"
-      EXECUTABLE="./build/bin/scout"
-      if [ -z "${MERGED_CONFIG}" ] && [ -z "${SIM_CONFIG}" ]; then
-        PASSTHROUGH_ARGS+=(--sim-config "${SCRIPT_DIR}/ground_vehicle/cfg/sim_config.yaml")
-        SIM_CONFIG="${SCRIPT_DIR}/ground_vehicle/cfg/sim_config.yaml"
-      fi
-      ;;
-    *)
-      echo "未知仿真模型：${MODEL_TARGET}" >&2
-      exit 1
-      ;;
-  esac
+  if [ -z "${MODEL_TARGET}" ] || [ -z "${MODEL_FAMILY[$MODEL_TARGET]+x}" ]; then
+    echo "未知仿真模型：${MODEL_TARGET}" >&2
+    exit 1
+  fi
+
+  EXECUTABLE="${MODEL_EXECUTABLE[$MODEL_TARGET]}"
+
+  if [ -z "${MERGED_CONFIG}" ] && [ -z "${SIM_CONFIG}" ]; then
+    PASSTHROUGH_ARGS+=(--sim-config "${MODEL_SIM_CONFIG[$MODEL_TARGET]}")
+    SIM_CONFIG="${MODEL_SIM_CONFIG[$MODEL_TARGET]}"
+  fi
+
+  if [ -z "${MERGED_CONFIG}" ] && [ -z "${ROBOT_CONFIG}" ]; then
+    PASSTHROUGH_ARGS+=(--robot-config "${MODEL_ROBOT_CONFIG[$MODEL_TARGET]}")
+    ROBOT_CONFIG="${MODEL_ROBOT_CONFIG[$MODEL_TARGET]}"
+  fi
 
   if [ ! -x "${EXECUTABLE}" ]; then
     echo "目标可执行文件不存在或不可执行：${EXECUTABLE}" >&2
@@ -205,10 +202,23 @@ done
 
 cd "${SCRIPT_DIR}"
 
+load_model_registry
 load_model_target
 resolve_runtime_profile
 
-if [ "${SHOW_HELP}" -eq 0 ] && [ "${TARGET_FAMILY}" = "quadrotor" ] && [ -f "${GENERATOR}" ]; then
+export AUSIM_DYNAMIC_OBSTACLE_ENABLED_OVERRIDE="${MODEL_DYNAMIC_OBSTACLE_ENABLED[$MODEL_TARGET]}"
+if [ -n "${MODEL_DYNAMIC_OBSTACLE_CONFIG[$MODEL_TARGET]}" ]; then
+  export AUSIM_DYNAMIC_OBSTACLE_CONFIG_OVERRIDE="${MODEL_DYNAMIC_OBSTACLE_CONFIG[$MODEL_TARGET]}"
+else
+  unset AUSIM_DYNAMIC_OBSTACLE_CONFIG_OVERRIDE
+fi
+
+if [ "${SHOW_HELP}" -eq 0 ] && [ "${MODEL_DYNAMIC_OBSTACLE_ENABLED[$MODEL_TARGET]}" = "1" ]; then
+  if [ ! -f "${GENERATOR}" ]; then
+    echo "动态障碍生成器不存在：${GENERATOR}" >&2
+    exit 1
+  fi
+
   GENERATOR_ARGS=(--print-output-path)
   if [ -n "${MERGED_CONFIG}" ]; then
     GENERATOR_ARGS+=(--config "${MERGED_CONFIG}")
@@ -219,6 +229,10 @@ if [ "${SHOW_HELP}" -eq 0 ] && [ "${TARGET_FAMILY}" = "quadrotor" ] && [ -f "${G
     if [ -n "${ROBOT_CONFIG}" ]; then
       GENERATOR_ARGS+=(--robot-config "${ROBOT_CONFIG}")
     fi
+  fi
+  GENERATOR_ARGS+=(--enable-dynamic-obstacles)
+  if [ -n "${MODEL_DYNAMIC_OBSTACLE_CONFIG[$MODEL_TARGET]}" ]; then
+    GENERATOR_ARGS+=(--obstacle-config "${MODEL_DYNAMIC_OBSTACLE_CONFIG[$MODEL_TARGET]}")
   fi
 
   GENERATED_SCENE_XML="$(python3 "${GENERATOR}" "${GENERATOR_ARGS[@]}")"

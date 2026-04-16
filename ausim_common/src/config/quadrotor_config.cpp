@@ -1,5 +1,6 @@
 #include "config/quadrotor_config.hpp"
 
+#include <cstdlib>
 #include <cmath>
 #include <filesystem>
 #include <optional>
@@ -244,6 +245,25 @@ void ApplyConfigRoot(const YAML::Node& root, const fs::path& config_path, Quadro
   }
 }
 
+void ApplyDynamicObstacleEnvOverrides(QuadrotorConfig* config) {
+  if (const char* enabled_override = std::getenv("AUSIM_DYNAMIC_OBSTACLE_ENABLED_OVERRIDE");
+      enabled_override != nullptr && enabled_override[0] != '\0') {
+    const std::string value(enabled_override);
+    if (value == "1" || value == "true" || value == "TRUE" || value == "on" || value == "ON") {
+      config->dynamic_obstacle.enabled = true;
+    } else if (value == "0" || value == "false" || value == "FALSE" || value == "off" || value == "OFF") {
+      config->dynamic_obstacle.enabled = false;
+    } else {
+      throw std::runtime_error("Invalid AUSIM_DYNAMIC_OBSTACLE_ENABLED_OVERRIDE value: " + value);
+    }
+  }
+
+  if (const char* path_override = std::getenv("AUSIM_DYNAMIC_OBSTACLE_CONFIG_OVERRIDE");
+      path_override != nullptr && path_override[0] != '\0') {
+    config->dynamic_obstacle.config_path = fs::absolute(path_override).string();
+  }
+}
+
 std::optional<fs::path> ResolveRobotConfigPath(const YAML::Node& root, const fs::path& config_path, const fs::path& explicit_robot_path,
                                                bool require_robot_config) {
   if (!explicit_robot_path.empty()) {
@@ -280,6 +300,8 @@ QuadrotorConfig LoadConfigFile(const fs::path& path, const fs::path& explicit_ro
     }
     ApplyConfigRoot(YAML::LoadFile(resolved_robot_config_path.string()), resolved_robot_config_path, &config, false);
   }
+
+  ApplyDynamicObstacleEnvOverrides(&config);
 
   return config;
 }
