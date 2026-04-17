@@ -41,6 +41,46 @@ interfaces:
   odom_topic: odom
   imu_topic: imu/data
   clock_topic: /clock
+  reset_service: sim/reset
+  takeoff_service: takeoff
+  teleop_event_topic: teleop/event
+  robot_mode_topic: teleop/mode
+
+teleop:
+  initial_state: on_ground
+  states:
+    - name: on_ground
+      top_state: SAFE
+      accepts_motion: false
+    - name: hover
+      top_state: MANUAL_READY
+      accepts_motion: true
+    - name: velocity_control
+      top_state: MANUAL_ACTIVE
+      accepts_motion: true
+    - name: estop
+      top_state: FAULT
+      accepts_motion: false
+  transitions:
+    - from: on_ground
+      event: takeoff
+      to: hover
+      action: takeoff
+    - from: hover
+      condition: motion_active
+      to: velocity_control
+    - from: velocity_control
+      condition: motion_inactive
+      to: hover
+    - from: on_ground
+      event: estop
+      to: estop
+    - from: hover
+      event: estop
+      to: estop
+    - from: velocity_control
+      event: estop
+      to: estop
 
 frames:
   odom: odom

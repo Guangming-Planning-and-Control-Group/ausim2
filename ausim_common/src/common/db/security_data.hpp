@@ -35,6 +35,11 @@ class SecurityData {
     return value_.has_value();
   }
 
+  void Reset() {
+    std::unique_lock<std::shared_mutex> lock(mutex_);
+    value_.reset();
+  }
+
   template <typename Fn>
   void Update(Fn&& fn) {
     std::unique_lock<std::shared_mutex> lock(mutex_);
@@ -85,6 +90,13 @@ class SecurityDataRef {
   void Update(Fn&& fn) const {
     if (data_ != nullptr) {
       data_->Update(std::forward<Fn>(fn));
+    }
+  }
+
+  template <Permission P = Perm, typename std::enable_if_t<P == Permission::ReadWrite, int> = 0>
+  void Reset() const {
+    if (data_ != nullptr) {
+      data_->Reset();
     }
   }
 

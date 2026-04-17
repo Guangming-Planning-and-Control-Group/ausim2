@@ -11,6 +11,13 @@ struct VelocityCommandPacket {
   std::array<double, 3> angular = {0.0, 0.0, 0.0};
 };
 
+struct DiscreteCommandPacket {
+  std::uint8_t kind = 0;
+  std::uint64_t sequence = 0;
+};
+
+inline constexpr std::size_t kRobotModeNameCapacity = 32;
+
 struct TelemetryPacket {
   double sim_time = 0.0;
   std::array<double, 3> position = {0.0, 0.0, 0.0};
@@ -21,6 +28,11 @@ struct TelemetryPacket {
   std::array<double, 3> imu_angular_velocity = {0.0, 0.0, 0.0};
   std::array<double, 3> imu_linear_acceleration = {0.0, 0.0, 0.0};
   std::uint8_t imu_has_linear_acceleration = 0;
+  std::uint8_t robot_top_level_state = 0;
+  std::uint8_t robot_mode_accepts_motion = 0;
+  std::array<char, kRobotModeNameCapacity> robot_mode_sub_state = {};
+  std::uint8_t last_discrete_command_status = 0;
+  std::uint64_t last_discrete_command_sequence = 0;
 };
 
 struct CameraImageMetadataPacket {
@@ -35,6 +47,7 @@ struct CameraImageMetadataPacket {
 };
 
 static_assert(std::is_trivially_copyable_v<VelocityCommandPacket>);
+static_assert(std::is_trivially_copyable_v<DiscreteCommandPacket>);
 static_assert(std::is_trivially_copyable_v<TelemetryPacket>);
 static_assert(std::is_trivially_copyable_v<CameraImageMetadataPacket>);
 

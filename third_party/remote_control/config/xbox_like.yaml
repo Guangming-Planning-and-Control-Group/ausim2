@@ -1,0 +1,45 @@
+remote_control_node:
+  ros__parameters:
+    topics:
+      joy: /joy
+      cmd_vel: /uav1/cmd_vel
+      teleop_event: /uav1/teleop/event
+    services:
+      takeoff: /uav1/takeoff
+      reset: /uav1/sim/reset
+    publish_rate_hz: 30.0
+    joy_timeout: 0.5
+    deadzone: 0.15
+    require_enable_button: false
+    enable_button: 4
+    axes:
+      linear:
+        x: 4
+        y: 0
+        z: 1
+      angular:
+        yaw: 3
+    scale:
+      linear:
+        x: 0.6
+        y: 0.6
+        z: 0.5
+      angular:
+        yaw: 1.0
+    buttons:
+      takeoff: [4, 0]
+      reset: [6, 7]
+      mode_next: []
+      estop: []
+    command_cooldown: 0.5
+    motion_suppress_after_command: 0.3
+    keyboard:
+      enabled: true
+      key_timeout: 0.25
+      scale:
+        linear:
+          x: 0.6
+          y: 0.6
+          z: 0.5
+        angular:
+          yaw: 1.0

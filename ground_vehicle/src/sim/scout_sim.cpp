@@ -248,6 +248,7 @@ ScoutSim::ScoutSim(ScoutConfig config)
     : config_(std::move(config)),
       controller_(config_.drive),
       actuator_writer_(config_.bindings.wheel_actuators),
+      mode_machine_(config_.common.teleop_mode),
       gyro_sensor_{config_.common.state.gyro_sensor_name},
       accelerometer_sensor_{config_.common.state.accelerometer_sensor_name},
       quaternion_sensor_{config_.common.state.quaternion_sensor_name} {
@@ -257,6 +258,8 @@ ScoutSim::ScoutSim(ScoutConfig config)
   if (config_.common.robot.count != 1) {
     throw std::runtime_error("robot.count > 1 is not implemented yet. Current scout runtime supports one vehicle.");
   }
+  ausim::ClearVelocityCommand();
+  ausim::ClearDiscreteCommand();
 }
 
 ScoutSim::~ScoutSim() {
@@ -319,6 +322,9 @@ void ScoutSim::InstallModelPointers(mjModel* new_model, mjData* new_data, const 
   last_wheel_speeds_ = WheelSpeeds{};
   last_command_source_ = "hold";
   last_command_valid_ = false;
+  last_discrete_command_sequence_ = 0;
+  last_discrete_command_status_ = ausim::DiscreteCommandAckStatus::kNone;
+  mode_machine_.Reset();
   active_instance_ = this;
   mj_forward(model_, data_);
   PublishTelemetry(false);
@@ -392,22 +398,54 @@ void ScoutSim::Step() {
 }
 
 void ScoutSim::ApplyControl() {
+  if (const std::optional<ausim::DiscreteCommand> discrete_command = ausim::ReadDiscreteCommand();
+      discrete_command.has_value() && discrete_command->sequence != last_discrete_command_sequence_) {
+    if (HandleDiscreteCommand(*discrete_command)) {
+      last_discrete_command_status_ = ausim::DiscreteCommandAckStatus::kSuccess;
+    } else {
+      last_discrete_command_status_ = ausim::DiscreteCommandAckStatus::kUnsupported;
+    }
+    last_discrete_command_sequence_ = discrete_command->sequence;
+    ausim::ClearDiscreteCommand();
+  }
+
   const std::optional<ausim::VelocityCommand> command = ausim::ReadFreshVelocityCommand(config_.common.ros2.command_timeout);
+  if (mode_machine_.enabled()) {
+    const bool motion_active = command.has_value() && MotionCommandActive(*command);
+    mode_machine_.UpdateConditions({motion_active});
+  }
 
   double linear_x = 0.0;
   double angular_z = 0.0;
-  if (command.has_value()) {
+  if (command.has_value() && (!mode_machine_.enabled() || mode_machine_.AcceptsMotion())) {
     linear_x = command->linear.x();
     angular_z = command->angular.z();
-    last_command_source_ = "ros2_cmd_vel";
+    last_command_source_ = mode_machine_.enabled() ? "teleop:" + mode_machine_.Snapshot().sub_state : "ros2_cmd_vel";
     last_command_valid_ = true;
   } else {
-    last_command_source_ = "hold";
+    last_command_source_ = mode_machine_.enabled() && !mode_machine_.Snapshot().sub_state.empty() ? "teleop:" + mode_machine_.Snapshot().sub_state : "hold";
     last_command_valid_ = false;
   }
 
   last_wheel_speeds_ = controller_.Compute(linear_x, angular_z);
   actuator_writer_.Write(data_, last_wheel_speeds_);
+}
+
+bool ScoutSim::HandleDiscreteCommand(const ausim::DiscreteCommand& command) {
+  switch (command.kind) {
+    case ausim::DiscreteCommandKind::kResetSimulation:
+      ResetSimulation();
+      ausim::ClearVelocityCommand();
+      return true;
+    case ausim::DiscreteCommandKind::kTakeoff:
+      return false;
+    case ausim::DiscreteCommandKind::kModeNext:
+    case ausim::DiscreteCommandKind::kEmergencyStop:
+      return mode_machine_.HandleEvent(command.kind);
+    case ausim::DiscreteCommandKind::kNone:
+      return false;
+  }
+  return false;
 }
 
 void ScoutSim::PublishTelemetry(bool log_state) {
@@ -439,6 +477,9 @@ void ScoutSim::PublishTelemetry(bool log_state) {
 
   snapshot.goal_source = last_command_source_;
   snapshot.has_goal = last_command_valid_;
+  snapshot.robot_mode = mode_machine_.Snapshot();
+  snapshot.last_discrete_command_sequence = last_discrete_command_sequence_;
+  snapshot.last_discrete_command_status = last_discrete_command_status_;
   ausim::WriteTelemetrySnapshot(snapshot);
   if (log_state) {
     LogStateIfNeeded(snapshot);
@@ -461,6 +502,22 @@ void ScoutSim::LogStateIfNeeded(const ausim::TelemetrySnapshot& snapshot) const 
          << " source=" << snapshot.goal_source;
   std::cout << stream.str() << '\n';
   next_log_time_ = snapshot.sim_time + config_.common.simulation.print_interval;
+}
+
+void ScoutSim::ResetSimulation() {
+  if (model_ == nullptr || data_ == nullptr) {
+    return;
+  }
+
+  mj_resetData(model_, data_);
+  mj_forward(model_, data_);
+  next_log_time_ = 0.0;
+  last_wheel_speeds_ = WheelSpeeds{};
+  last_command_source_ = "hold";
+  last_command_valid_ = false;
+  last_discrete_command_sequence_ = 0;
+  last_discrete_command_status_ = ausim::DiscreteCommandAckStatus::kNone;
+  mode_machine_.Reset();
 }
 
 void ScoutSim::Run() {
@@ -510,6 +567,10 @@ void ScoutSim::RunHeadless() {
     }
     SleepToMatchRealtime(step_start);
   }
+}
+
+bool ScoutSim::MotionCommandActive(const ausim::VelocityCommand& command) {
+  return std::abs(command.linear.x()) > 1e-3 || std::abs(command.angular.z()) > 1e-3;
 }
 
 void ScoutSim::RunWithViewer() {

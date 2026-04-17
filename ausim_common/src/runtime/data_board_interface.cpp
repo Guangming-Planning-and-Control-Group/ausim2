@@ -22,6 +22,16 @@ db::SecurityDataRef<VelocityCommand, db::Permission::ReadWrite> VelocityCommandW
   return writer;
 }
 
+db::SecurityDataRef<DiscreteCommand, db::Permission::ReadOnly> DiscreteCommandReader() {
+  static auto reader = db::DataBoard().Read<DiscreteCommand>(runtime_board::kDiscreteCommand);
+  return reader;
+}
+
+db::SecurityDataRef<DiscreteCommand, db::Permission::ReadWrite> DiscreteCommandWriter() {
+  static auto writer = db::DataBoard().Write<DiscreteCommand>(runtime_board::kDiscreteCommand);
+  return writer;
+}
+
 db::SecurityDataRef<TelemetrySnapshot, db::Permission::ReadOnly> TelemetrySnapshotReader() {
   static auto reader = db::DataBoard().Read<TelemetrySnapshot>(runtime_board::kTelemetrySnapshot);
   return reader;
@@ -58,6 +68,29 @@ std::optional<VelocityCommand> ReadFreshVelocityCommand(double timeout_seconds) 
 }
 
 void WriteVelocityCommand(const VelocityCommand& command) { VelocityCommandWriter() = command; }
+
+void ClearVelocityCommand() { VelocityCommandWriter().Reset(); }
+
+std::optional<DiscreteCommand> ReadDiscreteCommand() { return DiscreteCommandReader().ReadOptional(); }
+
+std::optional<DiscreteCommand> ReadFreshDiscreteCommand(double timeout_seconds) {
+  const std::optional<DiscreteCommand> command = ReadDiscreteCommand();
+  if (!command.has_value()) {
+    return std::nullopt;
+  }
+
+  const double clamped_timeout_seconds = std::max(0.0, timeout_seconds);
+  const auto age = std::chrono::duration<double>(std::chrono::steady_clock::now() - command->received_time);
+  if (age.count() > clamped_timeout_seconds) {
+    return std::nullopt;
+  }
+
+  return command;
+}
+
+void WriteDiscreteCommand(const DiscreteCommand& command) { DiscreteCommandWriter() = command; }
+
+void ClearDiscreteCommand() { DiscreteCommandWriter().Reset(); }
 
 std::optional<TelemetrySnapshot> ReadTelemetrySnapshot() { return TelemetrySnapshotReader().ReadOptional(); }
 

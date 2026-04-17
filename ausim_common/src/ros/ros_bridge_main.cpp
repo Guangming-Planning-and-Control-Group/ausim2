@@ -17,6 +17,7 @@ struct CliOptions {
   fs::path robot_config_path;
   int telemetry_fd = -1;
   int command_fd = -1;
+  int discrete_command_fd = -1;
   int image_fd = -1;
 };
 
@@ -41,7 +42,7 @@ fs::path ResolveDefaultConfigPath(const char* filename) {
 void PrintUsage(const char* program_name) {
   std::cout << "Usage: " << program_name
             << " [--sim-config <path>] [--robot-config <override-path>] [--config <legacy.yaml>] "
-               "--telemetry-fd <fd> --command-fd <fd> --image-fd <fd>\n";
+               "--telemetry-fd <fd> --command-fd <fd> --discrete-command-fd <fd> --image-fd <fd>\n";
 }
 
 ausim::QuadrotorConfig LoadConfig(const CliOptions& cli) {
@@ -95,6 +96,11 @@ int main(int argc, char** argv) {
           throw std::runtime_error("--command-fd requires a file descriptor.");
         }
         cli.command_fd = std::stoi(argv[++i]);
+      } else if (arg == "--discrete-command-fd") {
+        if (i + 1 >= argc) {
+          throw std::runtime_error("--discrete-command-fd requires a file descriptor.");
+        }
+        cli.discrete_command_fd = std::stoi(argv[++i]);
       } else if (arg == "--image-fd") {
         if (i + 1 >= argc) {
           throw std::runtime_error("--image-fd requires a file descriptor.");
@@ -108,12 +114,12 @@ int main(int argc, char** argv) {
       }
     }
 
-    if (cli.telemetry_fd < 0 || cli.command_fd < 0 || cli.image_fd < 0) {
-      throw std::runtime_error("--telemetry-fd, --command-fd, and --image-fd are all required.");
+    if (cli.telemetry_fd < 0 || cli.command_fd < 0 || cli.discrete_command_fd < 0 || cli.image_fd < 0) {
+      throw std::runtime_error("--telemetry-fd, --command-fd, --discrete-command-fd, and --image-fd are all required.");
     }
 
     const ausim::QuadrotorConfig config = LoadConfig(cli);
-    return ausim::RunRosBridgeProcess(config, cli.telemetry_fd, cli.command_fd, cli.image_fd);
+    return ausim::RunRosBridgeProcess(config, cli.telemetry_fd, cli.command_fd, cli.discrete_command_fd, cli.image_fd);
   } catch (const std::exception& error) {
     std::cerr << "ausim_ros_bridge error: " << error.what() << '\n';
     return 1;

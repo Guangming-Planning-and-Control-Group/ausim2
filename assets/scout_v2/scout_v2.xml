@@ -33,6 +33,7 @@
       <inertial pos="0 0 0" mass="40" diaginertia="2.288641 5.103976 3.431465"/>
       <geom class="visual" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.298039 0.298039 0.298039 1" mesh="base_link"/>
       <geom class="collision" type="mesh" rgba="0.298039 0.298039 0.298039 1" mesh="base_link"/>
+      <camera name="track" pos="-2 0 1.5" xyaxes="0 -1 0 1 0 2" mode="trackcom"/>
       <site name="imu" pos="0 0 0.05" group="3"/>
       <site name="front_mount" pos="0.325 0 0.112701" group="3"/>
       <site name="rear_mount" pos="-0.325 0 0.112701" group="3"/>
@@ -42,9 +43,11 @@
           rgba="0.298039 0.298039 0.298039 1" mesh="scout_upload"/>
         <geom class="collision" type="mesh" rgba="0.298039 0.298039 0.298039 1" mesh="scout_upload"/>
       </body>
+
       <body name="sensors" pos="-0.005 -0.045 -0.095" euler="0 0 0">
         <geom class="visual" type="mesh" contype="0" conaffinity="0" group="2" density="0" rgba="0.298039 0.298039 0.298039 1" pos="0 -0.0225 0" mesh="lidar16"/>
         <geom class="visual" type="mesh" contype="0" conaffinity="0" group="2" density="0" rgba="0.298039 0.298039 0.298039 1" mesh="realsense_d435"/>
+        <camera name="D435" pos="0.4 0.045 0.415" xyaxes="0 -1 0 0 0 1" focal="1.283 1.285" sensorsize="1.777778 1" resolution="640 360"/>
       </body>
 
       <body name="front_right_wheel_link" pos="0.249 -0.29153 -0.0702" euler="3.14 0 0">

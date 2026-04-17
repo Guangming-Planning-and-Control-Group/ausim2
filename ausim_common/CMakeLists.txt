@@ -32,6 +32,7 @@ add_library(ausim_common_runtime STATIC
   src/config/quadrotor_config.cpp
   src/converts/ipc/bridge_packets.cpp
   src/manager/ros_bridge_process_manager.cpp
+  src/runtime/robot_mode_state_machine.cpp
   src/runtime/data_board_interface.cpp
 )
 
@@ -67,6 +68,7 @@ add_library(ausim_common_ros_bridge_core STATIC
   src/ros/publisher/data/transform_data_publisher.cpp
   src/ros/ros2_bridge.cpp
   src/ros/subscriber/data/cmd_vel_command_subscriber.cpp
+  src/ros/subscriber/data/teleop_event_subscriber.cpp
 )
 
 target_include_directories(ausim_common_ros_bridge_core
@@ -83,6 +85,8 @@ find_package(geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(rosgraph_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 
@@ -93,6 +97,8 @@ ament_target_dependencies(
   nav_msgs
   sensor_msgs
   rosgraph_msgs
+  std_msgs
+  std_srvs
   tf2
   tf2_ros
 )
@@ -126,3 +132,15 @@ install(TARGETS
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
 )
+
+add_executable(robot_mode_state_machine_test
+  tests/robot_mode_state_machine_test.cpp
+)
+
+target_include_directories(robot_mode_state_machine_test
+  PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/src"
+)
+
+target_compile_features(robot_mode_state_machine_test PRIVATE cxx_std_17)
+target_link_libraries(robot_mode_state_machine_test PRIVATE ausim_common_runtime)

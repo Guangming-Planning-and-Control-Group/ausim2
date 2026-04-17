@@ -7,6 +7,7 @@
 | MuJoCo Release | `mujoco-3.6.0/` | 头文件、运行时库、官方插件、官方 simulate 源码 | 提供整个仓库的 MuJoCo 编译与运行环境 |
 | RayCaster Plugin Package | `mujoco_ray_caster/` | 自定义传感器插件源码、示例模型、smoke test | 构建深度相机 / 激光雷达 / 基础 ray-caster 插件 |
 | Dynamic Obstacle Generator | `dynamic_obs_generator/` | 场景生成脚本、运行时辅助库、障碍物模板配置 | 为四旋翼场景生成动态障碍 XML，并提供运行期障碍物管理 |
+| Remote Control | `remote_control/` | 手柄/键盘 teleop、组合键命令触发、repo-local launch 与默认参数 | 为仿真提供手柄速度控制、起飞/重置命令和键盘兜底 |
 
 ## 1. MuJoCo Release 包
 

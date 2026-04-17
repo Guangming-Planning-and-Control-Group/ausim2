@@ -38,6 +38,20 @@ RuntimeOutput VehicleRuntime::Step(const RuntimeInput& input, bool recompute_con
   return output;
 }
 
+bool VehicleRuntime::HandleDiscreteCommand(const DiscreteCommand& command, const RuntimeInput& input) {
+  if (!goal_provider_) {
+    return false;
+  }
+  return goal_provider_->HandleDiscreteCommand(DiscreteCommand{command}, GoalContext{input.sim_time, input.current_state});
+}
+
+RobotModeSnapshot VehicleRuntime::ModeSnapshot() const {
+  if (!goal_provider_) {
+    return RobotModeSnapshot{};
+  }
+  return goal_provider_->ModeSnapshot();
+}
+
 void VehicleRuntime::Reset() {
   cached_command_ = ControlCommand{};
   cached_goal_ = GoalReference{};

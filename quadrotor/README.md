@@ -179,6 +179,13 @@ model:
 | 发布 | `/clock` | `rosgraph_msgs/Clock` |
 | TF | `uav1/odom → uav1/base_link` | — |
 
+默认配置下还会注册以下离散命令服务：
+
+| 方向 | 话题 | 类型 |
+|------|------|------|
+| 服务 | `/uav1/takeoff` | `std_srvs/Trigger` |
+| 服务 | `/uav1/sim/reset` | `std_srvs/Trigger` |
+
 发送速度指令：
 
 ```bash
@@ -187,6 +194,13 @@ ros2 topic pub /uav1/cmd_vel geometry_msgs/msg/Twist \
 ```
 
 在 `control_mode: 1` 下，这条命令表示“沿无人机当前局部水平前向 `0.2 m/s` 前进，同时以 `0.3 rad/s` 向左偏航”，而不是沿世界坐标系 `+X` 方向飞行。
+
+调用起飞与重置：
+
+```bash
+ros2 service call /uav1/takeoff std_srvs/srv/Trigger "{}"
+ros2 service call /uav1/sim/reset std_srvs/srv/Trigger "{}"
+```
 
 ## 新增机型
 

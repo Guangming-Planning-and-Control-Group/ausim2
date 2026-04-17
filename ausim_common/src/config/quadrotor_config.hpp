@@ -103,6 +103,10 @@ struct RosInterfaceConfig {
   std::string odom_topic = "odom";
   std::string imu_topic = "imu/data";
   std::string clock_topic = "/clock";
+  std::string reset_service = "";
+  std::string takeoff_service = "";
+  std::string teleop_event_topic = "";
+  std::string robot_mode_topic = "";
 };
 
 struct RosFrameConfig {
@@ -156,6 +160,27 @@ struct CameraStreamConfig {
   int worker_threads = 0;
 };
 
+struct RobotModeStateConfig {
+  std::string name;
+  std::string top_state = "SAFE";
+  bool accepts_motion = false;
+};
+
+struct RobotModeTransitionConfig {
+  std::string from;
+  std::string to;
+  std::string event;
+  std::string condition;
+  std::string guard;
+  std::string action;
+};
+
+struct RobotModeConfig {
+  std::string initial_state;
+  std::vector<RobotModeStateConfig> states;
+  std::vector<RobotModeTransitionConfig> transitions;
+};
+
 struct QuadrotorConfig {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   RobotConfig robot;
@@ -174,6 +199,7 @@ struct QuadrotorConfig {
   RosInterfaceConfig interfaces;
   RosFrameConfig frames;
   std::vector<SensorConfig> sensors;
+  RobotModeConfig teleop_mode;
   double torque_scale = 0.001;
 };
 
@@ -203,6 +229,9 @@ using ::ausim::RobotConfig;
 using ::ausim::Ros2Config;
 using ::ausim::RosFrameConfig;
 using ::ausim::RosInterfaceConfig;
+using ::ausim::RobotModeConfig;
+using ::ausim::RobotModeStateConfig;
+using ::ausim::RobotModeTransitionConfig;
 using ::ausim::SensorConfig;
 using ::ausim::SimConfig;
 using ::ausim::SimulationConfig;

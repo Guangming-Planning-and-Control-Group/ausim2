@@ -13,6 +13,8 @@ class VehicleRuntime {
   explicit VehicleRuntime(const QuadrotorConfig& config);
 
   RuntimeOutput Step(const RuntimeInput& input, bool recompute_control, double control_dt);
+  bool HandleDiscreteCommand(const DiscreteCommand& command, const RuntimeInput& input);
+  RobotModeSnapshot ModeSnapshot() const;
   void Reset();
 
  private:

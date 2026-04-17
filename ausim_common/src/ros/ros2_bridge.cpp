@@ -1,6 +1,7 @@
 #include "ros/ros2_bridge.hpp"
 
 #include <atomic>
+#include <chrono>
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
@@ -14,6 +15,8 @@
 #include <vector>
 
 #include <rclcpp/rclcpp.hpp>
+#include <std_msgs/msg/string.hpp>
+#include <std_srvs/srv/trigger.hpp>
 
 #include "converts/data/image.hpp"
 #include "converts/ipc/bridge_packets.hpp"
@@ -26,12 +29,18 @@
 #include "ros/publisher/data/transform_data_publisher.hpp"
 #include "ros/publisher/i_telemetry_publisher.hpp"
 #include "ros/subscriber/data/cmd_vel_command_subscriber.hpp"
+#include "ros/subscriber/data/teleop_event_subscriber.hpp"
 #include "ros/subscriber/i_command_subscriber.hpp"
+#include "runtime/robot_mode_state_machine.hpp"
 
 namespace ausim {
 namespace {
 
 namespace fs = std::filesystem;
+using TriggerService = std_srvs::srv::Trigger;
+
+constexpr std::chrono::milliseconds kDiscreteCommandAckPollPeriod(10);
+constexpr std::chrono::milliseconds kDiscreteCommandAckTimeout(1000);
 
 struct RosBridgeConfig {
   VehicleIdentity identity;
@@ -91,6 +100,10 @@ std::string ResolveTopicName(const RosBridgeConfig& config, const std::string& t
   return ros_namespace + "/" + TrimSlashes(topic_name);
 }
 
+std::string ResolveServiceName(const RosBridgeConfig& config, const std::string& service_name) {
+  return ResolveTopicName(config, service_name);
+}
+
 RosBridgeConfig BuildRosBridgeConfig(const QuadrotorConfig& config) {
   RosBridgeConfig bridge_config;
   bridge_config.identity = config.identity;
@@ -122,6 +135,36 @@ bool ValidateImageMetadata(const ipc::CameraImageMetadataPacket& metadata) {
   }
 
   return metadata.step == metadata.width * bytes_per_pixel && metadata.data_size == metadata.step * metadata.height;
+}
+
+const char* DiscreteCommandKindName(DiscreteCommandKind kind) {
+  switch (kind) {
+    case DiscreteCommandKind::kResetSimulation:
+      return "reset";
+    case DiscreteCommandKind::kTakeoff:
+      return "takeoff";
+    case DiscreteCommandKind::kModeNext:
+      return "mode_next";
+    case DiscreteCommandKind::kEmergencyStop:
+      return "estop";
+    case DiscreteCommandKind::kNone:
+      return "none";
+  }
+  return "unknown";
+}
+
+std::string AckStatusMessage(DiscreteCommandAckStatus status, DiscreteCommandKind kind) {
+  switch (status) {
+    case DiscreteCommandAckStatus::kSuccess:
+      return std::string(DiscreteCommandKindName(kind)) + " command accepted";
+    case DiscreteCommandAckStatus::kUnsupported:
+      return std::string(DiscreteCommandKindName(kind)) + " command is not supported by this simulator";
+    case DiscreteCommandAckStatus::kFailed:
+      return std::string(DiscreteCommandKindName(kind)) + " command failed";
+    case DiscreteCommandAckStatus::kNone:
+      break;
+  }
+  return std::string(DiscreteCommandKindName(kind)) + " command acknowledgement was not received";
 }
 
 void EnsureWritableRosHome() {
@@ -175,8 +218,12 @@ std::vector<std::unique_ptr<ITelemetryPublisher>> BuildPublishers(const std::sha
 
 class RosBridgeProcess {
  public:
-  RosBridgeProcess(RosBridgeConfig config, int telemetry_fd, int command_fd, int image_fd)
-      : config_(std::move(config)), telemetry_fd_(telemetry_fd), command_fd_(command_fd), image_fd_(image_fd) {}
+  RosBridgeProcess(RosBridgeConfig config, int telemetry_fd, int command_fd, int discrete_command_fd, int image_fd)
+      : config_(std::move(config)),
+        telemetry_fd_(telemetry_fd),
+        command_fd_(command_fd),
+        discrete_command_fd_(discrete_command_fd),
+        image_fd_(image_fd) {}
 
   ~RosBridgeProcess() { Stop(); }
 
@@ -215,11 +262,38 @@ class RosBridgeProcess {
       const std::string base_frame = ResolveFrameId(config_, config_.frames.base);
       const std::string imu_frame = ResolveFrameId(config_, config_.frames.imu);
       const std::string cmd_vel_topic = ResolveTopicName(config_, config_.interfaces.cmd_vel_topic);
+      const std::string teleop_event_topic = ResolveTopicName(config_, config_.interfaces.teleop_event_topic);
 
       publishers_ = BuildPublishers(node_, config_, odom_frame, base_frame, imu_frame);
 
       subscribers_.push_back(
           std::make_unique<CmdVelCommandSubscriber>(node_, cmd_vel_topic, [this](const data::CmdVelData& message) { PublishCommand(message); }));
+      if (!config_.interfaces.teleop_event_topic.empty()) {
+        subscribers_.push_back(std::make_unique<TeleopEventSubscriber>(
+            node_, teleop_event_topic, [this](const std::string& event_name) { PublishDiscreteCommand(event_name); }));
+      }
+
+      if (!config_.interfaces.reset_service.empty()) {
+        const std::string reset_service_name = ResolveServiceName(config_, config_.interfaces.reset_service);
+        reset_service_ = node_->create_service<TriggerService>(
+            reset_service_name,
+            [this](const TriggerService::Request::SharedPtr, TriggerService::Response::SharedPtr response) {
+              ExecuteDiscreteCommand(DiscreteCommandKind::kResetSimulation, response.get());
+            });
+      }
+
+      if (!config_.interfaces.takeoff_service.empty()) {
+        const std::string takeoff_service_name = ResolveServiceName(config_, config_.interfaces.takeoff_service);
+        takeoff_service_ = node_->create_service<TriggerService>(
+            takeoff_service_name,
+            [this](const TriggerService::Request::SharedPtr, TriggerService::Response::SharedPtr response) {
+              ExecuteDiscreteCommand(DiscreteCommandKind::kTakeoff, response.get());
+            });
+      }
+
+      if (!config_.interfaces.robot_mode_topic.empty()) {
+        robot_mode_publisher_ = node_->create_publisher<std_msgs::msg::String>(ResolveTopicName(config_, config_.interfaces.robot_mode_topic), 10);
+      }
 
       // Sensor publishers driven by sensors[] config.
       // Add a new else-if branch here when implementing a new sensor type.
@@ -272,6 +346,8 @@ class RosBridgeProcess {
     if (!started_ && !owns_rclcpp_runtime_) {
       ipc::ShutdownAndClose(&telemetry_fd_);
       ipc::ShutdownAndClose(&command_fd_);
+      ipc::ShutdownAndClose(&discrete_command_fd_);
+      ipc::ShutdownAndClose(&image_fd_);
       return;
     }
 
@@ -282,6 +358,7 @@ class RosBridgeProcess {
 
     ipc::ShutdownAndClose(&telemetry_fd_);
     ipc::ShutdownAndClose(&command_fd_);
+    ipc::ShutdownAndClose(&discrete_command_fd_);
     ipc::ShutdownAndClose(&image_fd_);
 
     if (telemetry_thread_.joinable()) {
@@ -292,6 +369,9 @@ class RosBridgeProcess {
     }
 
     telemetry_timer_.reset();
+    reset_service_.reset();
+    takeoff_service_.reset();
+    robot_mode_publisher_.reset();
     subscribers_.clear();
     publishers_.clear();
     image_publishers_.clear();
@@ -340,6 +420,63 @@ class RosBridgeProcess {
   void PublishCommand(const data::CmdVelData& message) {
     const ipc::VelocityCommandPacket packet = converts::ToVelocityCommandPacket(message);
     ipc::SendPacket(command_fd_, packet, true);
+  }
+
+  void PublishDiscreteCommand(const std::string& event_name) {
+    DiscreteCommandKind kind = DiscreteCommandKind::kNone;
+    try {
+      kind = ParseDiscreteCommandKind(event_name);
+    } catch (const std::exception& error) {
+      RCLCPP_WARN(node_->get_logger(), "ignoring unknown teleop event '%s': %s", event_name.c_str(), error.what());
+      return;
+    }
+
+    if (kind == DiscreteCommandKind::kNone) {
+      return;
+    }
+
+    const std::uint64_t sequence = next_discrete_command_sequence_++;
+    const DiscreteCommand command{kind, sequence, std::chrono::steady_clock::now()};
+    const ipc::DiscreteCommandPacket packet = converts::ToDiscreteCommandPacket(command);
+    if (!ipc::SendPacket(discrete_command_fd_, packet, true)) {
+      RCLCPP_WARN(node_->get_logger(), "failed to send teleop event '%s' to simulator", event_name.c_str());
+    }
+  }
+
+  void ExecuteDiscreteCommand(DiscreteCommandKind kind, TriggerService::Response* response) {
+    if (response == nullptr) {
+      return;
+    }
+
+    const std::uint64_t sequence = next_discrete_command_sequence_++;
+    const DiscreteCommand command{kind, sequence, std::chrono::steady_clock::now()};
+    const ipc::DiscreteCommandPacket packet = converts::ToDiscreteCommandPacket(command);
+    if (!ipc::SendPacket(discrete_command_fd_, packet, true)) {
+      response->success = false;
+      response->message = std::string("failed to send ") + DiscreteCommandKindName(kind) + " command to simulator";
+      return;
+    }
+
+    const auto deadline = std::chrono::steady_clock::now() + kDiscreteCommandAckTimeout;
+    while (!stop_requested_.load() && std::chrono::steady_clock::now() < deadline) {
+      std::optional<ipc::TelemetryPacket> telemetry;
+      {
+        std::lock_guard<std::mutex> lock(telemetry_mutex_);
+        telemetry = latest_telemetry_;
+      }
+
+      if (telemetry.has_value() && telemetry->last_discrete_command_sequence == sequence) {
+        const auto status = static_cast<DiscreteCommandAckStatus>(telemetry->last_discrete_command_status);
+        response->success = status == DiscreteCommandAckStatus::kSuccess;
+        response->message = AckStatusMessage(status, kind);
+        return;
+      }
+
+      std::this_thread::sleep_for(kDiscreteCommandAckPollPeriod);
+    }
+
+    response->success = false;
+    response->message = AckStatusMessage(DiscreteCommandAckStatus::kNone, kind);
   }
 
   void ImageLoop() {
@@ -392,6 +529,14 @@ class RosBridgeProcess {
     for (auto& pub : publishers_) {
       pub->Publish(*packet);
     }
+    if (robot_mode_publisher_) {
+      std_msgs::msg::String mode_message;
+      mode_message.data = std::string("{\"top_state\":\"") +
+                          RobotTopLevelStateName(static_cast<RobotTopLevelState>(packet->robot_top_level_state)) +
+                          "\",\"sub_state\":\"" + packet->robot_mode_sub_state.data() + "\",\"accepts_motion\":" +
+                          (packet->robot_mode_accepts_motion != 0 ? "true" : "false") + "}";
+      robot_mode_publisher_->publish(mode_message);
+    }
   }
 
   void PublishCameraFrames() {
@@ -425,12 +570,16 @@ class RosBridgeProcess {
   RosBridgeConfig config_;
   int telemetry_fd_ = -1;
   int command_fd_ = -1;
+  int discrete_command_fd_ = -1;
   int image_fd_ = -1;
   std::shared_ptr<rclcpp::Node> node_;
   std::unique_ptr<rclcpp::executors::SingleThreadedExecutor> executor_;
   std::vector<std::unique_ptr<ITelemetryPublisher>> publishers_;
   std::vector<std::unique_ptr<ImageDataPublisher>> image_publishers_;
   std::vector<std::unique_ptr<ICommandSubscriber>> subscribers_;
+  rclcpp::Service<TriggerService>::SharedPtr reset_service_;
+  rclcpp::Service<TriggerService>::SharedPtr takeoff_service_;
+  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr robot_mode_publisher_;
   rclcpp::TimerBase::SharedPtr telemetry_timer_;
   std::thread telemetry_thread_;
   std::thread image_thread_;
@@ -440,6 +589,7 @@ class RosBridgeProcess {
   std::vector<std::shared_ptr<CameraFrame>> latest_camera_frames_;
   std::vector<std::uint32_t> last_published_camera_sequences_;
   std::vector<bool> camera_frame_published_;
+  std::atomic<std::uint64_t> next_discrete_command_sequence_{1};
   std::atomic_bool stop_requested_ = false;
   bool owns_rclcpp_runtime_ = false;
   bool started_ = false;
@@ -447,8 +597,8 @@ class RosBridgeProcess {
 
 }  // namespace
 
-int RunRosBridgeProcess(const QuadrotorConfig& config, int telemetry_fd, int command_fd, int image_fd) {
-  RosBridgeProcess process(BuildRosBridgeConfig(config), telemetry_fd, command_fd, image_fd);
+int RunRosBridgeProcess(const QuadrotorConfig& config, int telemetry_fd, int command_fd, int discrete_command_fd, int image_fd) {
+  RosBridgeProcess process(BuildRosBridgeConfig(config), telemetry_fd, command_fd, discrete_command_fd, image_fd);
   return process.Run();
 }
 

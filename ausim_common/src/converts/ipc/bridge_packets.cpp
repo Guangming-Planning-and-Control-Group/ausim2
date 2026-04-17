@@ -1,5 +1,7 @@
 #include "converts/ipc/bridge_packets.hpp"
 
+#include <algorithm>
+
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
@@ -20,6 +22,13 @@ data::Header BuildHeader(double stamp_seconds, const std::string& frame_id) {
 Eigen::Vector3d ToEigenVector3(const std::array<double, 3>& value) { return Eigen::Vector3d(value[0], value[1], value[2]); }
 
 Eigen::Quaterniond ToEigenQuaternion(const std::array<double, 4>& value) { return Eigen::Quaterniond(value[0], value[1], value[2], value[3]); }
+
+std::array<char, ipc::kRobotModeNameCapacity> ToFixedString(const std::string& value) {
+  std::array<char, ipc::kRobotModeNameCapacity> buffer = {};
+  const std::size_t copy_length = std::min<std::size_t>(value.size(), buffer.size() - 1);
+  std::copy_n(value.data(), copy_length, buffer.data());
+  return buffer;
+}
 
 }  // namespace
 
@@ -42,6 +51,21 @@ VelocityCommand ToVelocityCommand(const ipc::VelocityCommandPacket& packet, std:
   VelocityCommand command;
   command.linear = ToEigenVector3(packet.linear);
   command.angular = ToEigenVector3(packet.angular);
+  command.received_time = received_time;
+  return command;
+}
+
+ipc::DiscreteCommandPacket ToDiscreteCommandPacket(const DiscreteCommand& command) {
+  ipc::DiscreteCommandPacket packet;
+  packet.kind = static_cast<std::uint8_t>(command.kind);
+  packet.sequence = command.sequence;
+  return packet;
+}
+
+DiscreteCommand ToDiscreteCommand(const ipc::DiscreteCommandPacket& packet, std::chrono::steady_clock::time_point received_time) {
+  DiscreteCommand command;
+  command.kind = static_cast<DiscreteCommandKind>(packet.kind);
+  command.sequence = packet.sequence;
   command.received_time = received_time;
   return command;
 }
@@ -87,6 +111,11 @@ ipc::TelemetryPacket ToTelemetryPacket(const TelemetrySnapshot& snapshot) {
       snapshot.imu.linear_acceleration.z(),
   };
   packet.imu_has_linear_acceleration = snapshot.imu.has_linear_acceleration ? 1 : 0;
+  packet.robot_top_level_state = static_cast<std::uint8_t>(snapshot.robot_mode.top_state);
+  packet.robot_mode_accepts_motion = snapshot.robot_mode.accepts_motion ? 1 : 0;
+  packet.robot_mode_sub_state = ToFixedString(snapshot.robot_mode.sub_state);
+  packet.last_discrete_command_status = static_cast<std::uint8_t>(snapshot.last_discrete_command_status);
+  packet.last_discrete_command_sequence = snapshot.last_discrete_command_sequence;
   return packet;
 }
 

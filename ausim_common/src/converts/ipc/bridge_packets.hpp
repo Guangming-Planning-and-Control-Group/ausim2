@@ -16,6 +16,8 @@ namespace ausim::converts {
 
 ipc::VelocityCommandPacket ToVelocityCommandPacket(const data::CmdVelData& message);
 VelocityCommand ToVelocityCommand(const ipc::VelocityCommandPacket& packet, std::chrono::steady_clock::time_point received_time);
+ipc::DiscreteCommandPacket ToDiscreteCommandPacket(const DiscreteCommand& command);
+DiscreteCommand ToDiscreteCommand(const ipc::DiscreteCommandPacket& packet, std::chrono::steady_clock::time_point received_time);
 
 ipc::TelemetryPacket ToTelemetryPacket(const TelemetrySnapshot& snapshot);
 ipc::CameraImageMetadataPacket ToCameraImageMetadataPacket(const CameraFrame& frame, std::uint32_t sensor_index);

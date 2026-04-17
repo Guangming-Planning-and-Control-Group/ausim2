@@ -83,10 +83,18 @@ GoalReference DemoGoalProvider::Evaluate(const GoalContext& context) {
 CommandGoalProvider::CommandGoalProvider(const QuadrotorConfig& config)
     : command_timeout_seconds_(config.ros2.command_timeout),
       control_mode_(static_cast<SE3Controller::ControlMode>(config.simulation.control_mode)),
-      aircraft_forward_axis_(config.model.aircraft_forward_axis) {}
+      aircraft_forward_axis_(config.model.aircraft_forward_axis),
+      takeoff_height_(config.hover_goal.position.z()),
+      mode_machine_(config.teleop_mode) {}
 
 GoalReference CommandGoalProvider::Evaluate(const GoalContext& context) {
-  const std::optional<VelocityCommand> command = ReadFreshVelocityCommand(command_timeout_seconds_);
+  const std::optional<VelocityCommand> raw_command = ReadFreshVelocityCommand(command_timeout_seconds_);
+  if (mode_machine_.enabled()) {
+    const bool motion_active = raw_command.has_value() && MotionCommandActive(*raw_command);
+    mode_machine_.UpdateConditions({motion_active});
+  }
+  const std::optional<VelocityCommand> command =
+      (!mode_machine_.enabled() || mode_machine_.AcceptsMotion()) ? raw_command : std::optional<VelocityCommand>{};
   const double current_yaw = AircraftHeadingFromQuaternion(context.current_state.quaternion, aircraft_forward_axis_);
 
   // Capture spawn state on first call.
@@ -103,12 +111,17 @@ GoalReference CommandGoalProvider::Evaluate(const GoalContext& context) {
   goal.control_mode = SE3Controller::ControlMode::kPosition;
   goal.state.quaternion = Eigen::Quaterniond::Identity();
   goal.state.omega = Eigen::Vector3d::Zero();
+  if (mode_machine_.enabled() && !mode_machine_.Snapshot().sub_state.empty()) {
+    goal.source = "teleop:" + mode_machine_.Snapshot().sub_state;
+  }
 
   if (!command.has_value()) {
     // No fresh command:
     // - velocity mode latches the current pose and hovers there
     // - position mode keeps the original spawn-referenced semantics
-    goal.source = "ros2_hold";
+    if (goal.source.empty()) {
+      goal.source = "ros2_hold";
+    }
     if (control_mode_ == SE3Controller::ControlMode::kVelocity) {
       if (!hold_state_initialized_ || previous_command_valid_) {
         hold_position_ = context.current_state.position;
@@ -136,7 +149,9 @@ GoalReference CommandGoalProvider::Evaluate(const GoalContext& context) {
     // cmd_vel.angular.z = absolute heading (radians, world frame)
     desired_yaw_ = command->angular.z();
     goal.control_mode = SE3Controller::ControlMode::kPosition;
-    goal.source = "ros2_cmd_vel_pos";
+    if (goal.source.empty()) {
+      goal.source = "ros2_cmd_vel_pos";
+    }
     goal.state.position = spawn_position_ + command->linear;
     goal.state.velocity = Eigen::Vector3d::Zero();
   } else {
@@ -150,7 +165,9 @@ GoalReference CommandGoalProvider::Evaluate(const GoalContext& context) {
     }
     desired_yaw_ += command->angular.z() * dt;
     goal.control_mode = SE3Controller::ControlMode::kVelocity;
-    goal.source = "ros2_cmd_vel_local";
+    if (goal.source.empty()) {
+      goal.source = "ros2_cmd_vel_local";
+    }
     goal.state.position = context.current_state.position;
     goal.state.velocity = RotateLocalVelocityToWorld(command->linear, current_yaw);
     goal.state.omega = Eigen::Vector3d(0.0, 0.0, command->angular.z());
@@ -161,7 +178,47 @@ GoalReference CommandGoalProvider::Evaluate(const GoalContext& context) {
   return goal;
 }
 
+bool CommandGoalProvider::HandleDiscreteCommand(const DiscreteCommand& command, const GoalContext& context) {
+  if (mode_machine_.enabled()) {
+    return mode_machine_.HandleEvent(command.kind, {.execute_action = [this, &context](std::string_view action_name) {
+                                     if (action_name == "takeoff") {
+                                       return HandleTakeoffCommand(context);
+                                     }
+                                     return false;
+                                   }});
+  }
+  switch (command.kind) {
+    case DiscreteCommandKind::kTakeoff:
+      return HandleTakeoffCommand(context);
+    case DiscreteCommandKind::kModeNext:
+    case DiscreteCommandKind::kEmergencyStop:
+    case DiscreteCommandKind::kNone:
+    case DiscreteCommandKind::kResetSimulation:
+      return false;
+  }
+  return false;
+}
+
+RobotModeSnapshot CommandGoalProvider::ModeSnapshot() const { return mode_machine_.Snapshot(); }
+
+bool CommandGoalProvider::HandleTakeoffCommand(const GoalContext& context) {
+  const double current_yaw = AircraftHeadingFromQuaternion(context.current_state.quaternion, aircraft_forward_axis_);
+  if (!initialized_) {
+    spawn_position_ = context.current_state.position;
+    initialized_ = true;
+  }
+
+  hold_position_ = context.current_state.position;
+  hold_position_.z() = takeoff_height_;
+  desired_yaw_ = current_yaw;
+  last_sim_time_ = context.sim_time;
+  hold_state_initialized_ = true;
+  previous_command_valid_ = false;
+  return true;
+}
+
 void CommandGoalProvider::Reset() {
+  mode_machine_.Reset();
   initialized_ = false;
   hold_state_initialized_ = false;
   previous_command_valid_ = false;
@@ -169,6 +226,10 @@ void CommandGoalProvider::Reset() {
   last_sim_time_ = 0.0;
   spawn_position_ = Eigen::Vector3d::Zero();
   hold_position_ = Eigen::Vector3d::Zero();
+}
+
+bool CommandGoalProvider::MotionCommandActive(const VelocityCommand& command) {
+  return command.linear.norm() > 1e-3 || command.angular.norm() > 1e-3;
 }
 
 }  // namespace quadrotor

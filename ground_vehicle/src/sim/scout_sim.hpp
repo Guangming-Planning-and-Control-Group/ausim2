@@ -12,6 +12,7 @@
 
 #include "config/scout_config.hpp"
 #include "control/differential_drive_controller.hpp"
+#include "runtime/robot_mode_state_machine.hpp"
 #include "runtime/runtime_types.hpp"
 #include "sim/wheel_actuator_writer.hpp"
 
@@ -42,6 +43,7 @@ class ScoutSim {
   void ResolveBindings();
   void ResolveSensor(SensorBinding* binding) const;
   void ApplyControl();
+  bool HandleDiscreteCommand(const ausim::DiscreteCommand& command);
   void PublishTelemetry(bool log_state = true);
   void LogStateIfNeeded(const ausim::TelemetrySnapshot& snapshot) const;
   void RunHeadless();
@@ -54,13 +56,16 @@ class ScoutSim {
   void PhysicsLoop(mujoco::Simulate& sim);
   bool LoadModelIntoViewer(mujoco::Simulate& sim, const std::filesystem::path& model_path, bool replace_existing);
   void InstallModelPointers(mjModel* new_model, mjData* new_data, const std::filesystem::path& model_path, bool replace_existing);
+  void ResetSimulation();
   bool ShouldContinue() const;
   void SleepToMatchRealtime(const std::chrono::high_resolution_clock::time_point& step_start) const;
   static void HandleSigint(int signal);
+  static bool MotionCommandActive(const ausim::VelocityCommand& command);
 
   ScoutConfig config_;
   DifferentialDriveController controller_;
   WheelActuatorWriter actuator_writer_;
+  ausim::RobotModeStateMachine mode_machine_;
   mjModel* model_ = nullptr;
   mjData* data_ = nullptr;
   std::unique_ptr<mujoco::Simulate> viewer_;
@@ -76,6 +81,8 @@ class ScoutSim {
   WheelSpeeds last_wheel_speeds_;
   std::string last_command_source_ = "hold";
   bool last_command_valid_ = false;
+  std::uint64_t last_discrete_command_sequence_ = 0;
+  ausim::DiscreteCommandAckStatus last_discrete_command_status_ = ausim::DiscreteCommandAckStatus::kNone;
   mutable double next_log_time_ = 0.0;
   std::atomic_bool stop_requested_ = false;
   bool visualization_state_initialized_ = false;

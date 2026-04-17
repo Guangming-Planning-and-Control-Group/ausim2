@@ -54,6 +54,7 @@ void RosBridgeProcessManager::Start() {
 
   int telemetry_fds[2] = {-1, -1};
   int command_fds[2] = {-1, -1};
+  int discrete_command_fds[2] = {-1, -1};
   int image_fds[2] = {-1, -1};
   if (socketpair(AF_UNIX, SOCK_SEQPACKET, 0, telemetry_fds) != 0) {
     throw SystemError("Failed to create telemetry socketpair");
@@ -63,16 +64,26 @@ void RosBridgeProcessManager::Start() {
     ipc::ShutdownAndClose(&telemetry_fds[1]);
     throw SystemError("Failed to create command socketpair");
   }
+  if (socketpair(AF_UNIX, SOCK_SEQPACKET, 0, discrete_command_fds) != 0) {
+    ipc::ShutdownAndClose(&telemetry_fds[0]);
+    ipc::ShutdownAndClose(&telemetry_fds[1]);
+    ipc::ShutdownAndClose(&command_fds[0]);
+    ipc::ShutdownAndClose(&command_fds[1]);
+    throw SystemError("Failed to create discrete command socketpair");
+  }
   if (socketpair(AF_UNIX, SOCK_STREAM, 0, image_fds) != 0) {
     ipc::ShutdownAndClose(&telemetry_fds[0]);
     ipc::ShutdownAndClose(&telemetry_fds[1]);
     ipc::ShutdownAndClose(&command_fds[0]);
     ipc::ShutdownAndClose(&command_fds[1]);
+    ipc::ShutdownAndClose(&discrete_command_fds[0]);
+    ipc::ShutdownAndClose(&discrete_command_fds[1]);
     throw SystemError("Failed to create image socketpair");
   }
 
   telemetry_send_fd_ = telemetry_fds[0];
   command_recv_fd_ = command_fds[0];
+  discrete_command_recv_fd_ = discrete_command_fds[0];
   image_send_fd_ = image_fds[0];
   ipc::SetNonBlocking(telemetry_send_fd_);
 
@@ -82,10 +93,13 @@ void RosBridgeProcessManager::Start() {
     ipc::ShutdownAndClose(&telemetry_fds[1]);
     ipc::ShutdownAndClose(&command_fds[0]);
     ipc::ShutdownAndClose(&command_fds[1]);
+    ipc::ShutdownAndClose(&discrete_command_fds[0]);
+    ipc::ShutdownAndClose(&discrete_command_fds[1]);
     ipc::ShutdownAndClose(&image_fds[0]);
     ipc::ShutdownAndClose(&image_fds[1]);
     telemetry_send_fd_ = -1;
     command_recv_fd_ = -1;
+    discrete_command_recv_fd_ = -1;
     image_send_fd_ = -1;
     throw SystemError("Failed to fork ROS bridge process");
   }
@@ -93,6 +107,7 @@ void RosBridgeProcessManager::Start() {
   if (child_pid_ == 0) {
     close(telemetry_fds[0]);
     close(command_fds[0]);
+    close(discrete_command_fds[0]);
     close(image_fds[0]);
 
     std::vector<std::string> args;
@@ -102,6 +117,8 @@ void RosBridgeProcessManager::Start() {
     args.push_back(std::to_string(telemetry_fds[1]));
     args.push_back("--command-fd");
     args.push_back(std::to_string(command_fds[1]));
+    args.push_back("--discrete-command-fd");
+    args.push_back(std::to_string(discrete_command_fds[1]));
     args.push_back("--image-fd");
     args.push_back(std::to_string(image_fds[1]));
 
@@ -119,10 +136,12 @@ void RosBridgeProcessManager::Start() {
 
   close(telemetry_fds[1]);
   close(command_fds[1]);
+  close(discrete_command_fds[1]);
   close(image_fds[1]);
 
   running_.store(true);
   command_thread_ = std::thread(&RosBridgeProcessManager::CommandLoop, this);
+  discrete_command_thread_ = std::thread(&RosBridgeProcessManager::DiscreteCommandLoop, this);
   telemetry_thread_ = std::thread(&RosBridgeProcessManager::TelemetryLoop, this);
   if (!camera_channel_names_.empty()) {
     camera_thread_ = std::thread(&RosBridgeProcessManager::CameraLoop, this);
@@ -137,6 +156,7 @@ void RosBridgeProcessManager::Stop() {
 
   ipc::ShutdownAndClose(&telemetry_send_fd_);
   ipc::ShutdownAndClose(&command_recv_fd_);
+  ipc::ShutdownAndClose(&discrete_command_recv_fd_);
   ipc::ShutdownAndClose(&image_send_fd_);
 
   if (telemetry_thread_.joinable()) {
@@ -144,6 +164,9 @@ void RosBridgeProcessManager::Stop() {
   }
   if (command_thread_.joinable()) {
     command_thread_.join();
+  }
+  if (discrete_command_thread_.joinable()) {
+    discrete_command_thread_.join();
   }
   if (camera_thread_.joinable()) {
     camera_thread_.join();
@@ -202,6 +225,28 @@ void RosBridgeProcessManager::CommandLoop() {
       case ipc::PacketReceiveStatus::kError:
         if (running_.load()) {
           std::cerr << "ausim warning: command socket receive failed\n";
+        }
+        running_.store(false);
+        return;
+    }
+  }
+}
+
+void RosBridgeProcessManager::DiscreteCommandLoop() {
+  while (running_.load()) {
+    ipc::DiscreteCommandPacket packet;
+    switch (ipc::ReceivePacket(discrete_command_recv_fd_, &packet)) {
+      case ipc::PacketReceiveStatus::kPacket:
+        WriteDiscreteCommand(converts::ToDiscreteCommand(packet, std::chrono::steady_clock::now()));
+        break;
+      case ipc::PacketReceiveStatus::kClosed:
+        running_.store(false);
+        return;
+      case ipc::PacketReceiveStatus::kWouldBlock:
+        continue;
+      case ipc::PacketReceiveStatus::kError:
+        if (running_.load()) {
+          std::cerr << "ausim warning: discrete command socket receive failed\n";
         }
         running_.store(false);
         return;

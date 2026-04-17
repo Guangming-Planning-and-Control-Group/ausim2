@@ -1,7 +1,7 @@
 #include "config/quadrotor_config.hpp"
 
-#include <cstdlib>
 #include <cmath>
+#include <cstdlib>
 #include <filesystem>
 #include <optional>
 #include <stdexcept>
@@ -127,6 +127,41 @@ void LoadSensors(const YAML::Node& sensors_node, std::vector<SensorConfig>* sens
   }
 }
 
+void LoadRobotModeConfig(const YAML::Node& teleop_node, RobotModeConfig* config) {
+  if (config == nullptr) {
+    return;
+  }
+
+  AssignIfPresent(teleop_node, "initial_state", &config->initial_state);
+
+  const YAML::Node states_node = teleop_node["states"];
+  if (states_node && states_node.IsSequence()) {
+    config->states.clear();
+    for (const YAML::Node& state_node : states_node) {
+      RobotModeStateConfig state;
+      AssignIfPresent(state_node, "name", &state.name);
+      AssignIfPresent(state_node, "top_state", &state.top_state);
+      AssignIfPresent(state_node, "accepts_motion", &state.accepts_motion);
+      config->states.push_back(std::move(state));
+    }
+  }
+
+  const YAML::Node transitions_node = teleop_node["transitions"];
+  if (transitions_node && transitions_node.IsSequence()) {
+    config->transitions.clear();
+    for (const YAML::Node& transition_node : transitions_node) {
+      RobotModeTransitionConfig transition;
+      AssignIfPresent(transition_node, "from", &transition.from);
+      AssignIfPresent(transition_node, "to", &transition.to);
+      AssignIfPresent(transition_node, "event", &transition.event);
+      AssignIfPresent(transition_node, "condition", &transition.condition);
+      AssignIfPresent(transition_node, "guard", &transition.guard);
+      AssignIfPresent(transition_node, "action", &transition.action);
+      config->transitions.push_back(std::move(transition));
+    }
+  }
+}
+
 void ApplyConfigRoot(const YAML::Node& root, const fs::path& config_path, QuadrotorConfig* config, bool apply_global_simulation_config = true) {
   if (!root || !root.IsMap()) {
     return;
@@ -234,11 +269,20 @@ void ApplyConfigRoot(const YAML::Node& root, const fs::path& config_path, Quadro
   AssignIfPresent(interfaces_node, "odom_topic", &config->interfaces.odom_topic);
   AssignIfPresent(interfaces_node, "imu_topic", &config->interfaces.imu_topic);
   AssignIfPresent(interfaces_node, "clock_topic", &config->interfaces.clock_topic);
+  AssignIfPresent(interfaces_node, "reset_service", &config->interfaces.reset_service);
+  AssignIfPresent(interfaces_node, "takeoff_service", &config->interfaces.takeoff_service);
+  AssignIfPresent(interfaces_node, "teleop_event_topic", &config->interfaces.teleop_event_topic);
+  AssignIfPresent(interfaces_node, "robot_mode_topic", &config->interfaces.robot_mode_topic);
 
   const YAML::Node frames_node = root["frames"];
   AssignIfPresent(frames_node, "odom", &config->frames.odom);
   AssignIfPresent(frames_node, "base", &config->frames.base);
   AssignIfPresent(frames_node, "imu", &config->frames.imu);
+
+  const YAML::Node teleop_node = root["teleop"];
+  if (teleop_node) {
+    LoadRobotModeConfig(teleop_node, &config->teleop_mode);
+  }
 
   if (root["sensors"]) {
     LoadSensors(root["sensors"], &config->sensors);
@@ -258,8 +302,7 @@ void ApplyDynamicObstacleEnvOverrides(QuadrotorConfig* config) {
     }
   }
 
-  if (const char* path_override = std::getenv("AUSIM_DYNAMIC_OBSTACLE_CONFIG_OVERRIDE");
-      path_override != nullptr && path_override[0] != '\0') {
+  if (const char* path_override = std::getenv("AUSIM_DYNAMIC_OBSTACLE_CONFIG_OVERRIDE"); path_override != nullptr && path_override[0] != '\0') {
     config->dynamic_obstacle.config_path = fs::absolute(path_override).string();
   }
 }

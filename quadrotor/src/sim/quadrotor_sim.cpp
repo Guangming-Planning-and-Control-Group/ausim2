@@ -374,6 +374,8 @@ const char* Diverged(int disableflags, const mjData* data) {
 
 QuadrotorSim::QuadrotorSim(QuadrotorConfig config)
     : config_(std::move(config)), runtime_(config_), bindings_(config_), actuator_writer_(config_.vehicle) {
+  ClearVelocityCommand();
+  ClearDiscreteCommand();
   control_decimation_ = ComputeControlDecimation();
 
   if (config_.robot.count <= 0) {
@@ -513,6 +515,17 @@ void QuadrotorSim::ControlCallback(const mjModel* model, mjData* data) {
 
 void QuadrotorSim::ApplyControl(const mjModel* model, mjData* data) {
   const RuntimeInput input = state_reader_.Read(model, data, bindings_);
+  if (const std::optional<DiscreteCommand> command = ReadDiscreteCommand(); command.has_value() &&
+                                                                   command->sequence != last_discrete_command_sequence_) {
+    if (HandleDiscreteCommand(*command, input)) {
+      last_discrete_command_sequence_ = command->sequence;
+      last_discrete_command_status_ = DiscreteCommandAckStatus::kSuccess;
+    } else {
+      last_discrete_command_sequence_ = command->sequence;
+      last_discrete_command_status_ = DiscreteCommandAckStatus::kUnsupported;
+    }
+    ClearDiscreteCommand();
+  }
   const bool recompute_control = control_step_count_ == 0;
   const double control_dt = control_decimation_ * model->opt.timestep;
   const RuntimeOutput output = runtime_.Step(input, recompute_control, control_dt);
@@ -528,6 +541,9 @@ void QuadrotorSim::ApplyControl(const mjModel* model, mjData* data) {
   snapshot.motor_speed_krpm = output.motor_speed_krpm;
   snapshot.goal_source = output.goal.source;
   snapshot.has_goal = true;
+  snapshot.robot_mode = runtime_.ModeSnapshot();
+  snapshot.last_discrete_command_sequence = last_discrete_command_sequence_;
+  snapshot.last_discrete_command_status = last_discrete_command_status_;
   WriteTelemetrySnapshot(snapshot);
 
   if (recompute_control) {
@@ -535,6 +551,22 @@ void QuadrotorSim::ApplyControl(const mjModel* model, mjData* data) {
   }
 
   control_step_count_ = (control_step_count_ + 1) % control_decimation_;
+}
+
+bool QuadrotorSim::HandleDiscreteCommand(const DiscreteCommand& command, const RuntimeInput& input) {
+  switch (command.kind) {
+    case DiscreteCommandKind::kTakeoff:
+    case DiscreteCommandKind::kModeNext:
+    case DiscreteCommandKind::kEmergencyStop:
+      return runtime_.HandleDiscreteCommand(command, input);
+    case DiscreteCommandKind::kResetSimulation:
+      ResetSimulation();
+      ClearVelocityCommand();
+      return true;
+    case DiscreteCommandKind::kNone:
+      return false;
+  }
+  return false;
 }
 
 void QuadrotorSim::ResetSimulation() {
@@ -546,6 +578,8 @@ void QuadrotorSim::ResetSimulation() {
   next_log_time_ = 0.0;
   control_step_count_ = 0;
   runtime_.Reset();
+  last_discrete_command_sequence_ = 0;
+  last_discrete_command_status_ = DiscreteCommandAckStatus::kNone;
   for (auto& stream : camera_streams_) {
     stream.next_render_time = 0.0;
     stream.sequence = 0;
