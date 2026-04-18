@@ -3,6 +3,7 @@
 #include <chrono>
 #include <cstdint>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <Eigen/Core>
@@ -34,19 +35,34 @@ struct VelocityCommand {
   std::chrono::steady_clock::time_point received_time = std::chrono::steady_clock::now();
 };
 
+// Event-based discrete command protocol.
+//
+// The wire format carries a free-form event name (string). `kind` is a derived
+// fast-dispatch tag used only inside the sim layer to intercept reset before
+// the event reaches the state machine.
 enum class DiscreteCommandKind : std::uint8_t {
   kNone = 0,
-  kResetSimulation = 1,
-  kTakeoff = 2,
-  kModeNext = 3,
-  kEmergencyStop = 4,
+  kResetSimulation = 1,  // event_name == "reset"
+  kGenericEvent = 2,     // anything else, forwarded to the mode state machine
 };
 
 struct DiscreteCommand {
+  std::string event_name;  // authoritative event identifier
   DiscreteCommandKind kind = DiscreteCommandKind::kNone;
   std::uint64_t sequence = 0;
   std::chrono::steady_clock::time_point received_time = std::chrono::steady_clock::now();
 };
+
+// Classifies a raw event name into the sim-layer dispatch tag.
+inline DiscreteCommandKind ClassifyDiscreteEvent(std::string_view event_name) {
+  if (event_name.empty()) {
+    return DiscreteCommandKind::kNone;
+  }
+  if (event_name == "reset" || event_name == "reset_simulation") {
+    return DiscreteCommandKind::kResetSimulation;
+  }
+  return DiscreteCommandKind::kGenericEvent;
+}
 
 enum class DiscreteCommandAckStatus : std::uint8_t {
   kNone = 0,

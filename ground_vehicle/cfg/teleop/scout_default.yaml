@@ -1,0 +1,17 @@
+# Shared state machine / mode definition for scout-family ground vehicles.
+#
+# Referenced from robot configs via:
+#   mode_machine: teleop/scout_default.yaml
+
+initial_state: stopped
+
+states:
+  - { name: stopped,      top_state: MANUAL_READY,  accepts_motion: false }
+  - { name: manual_drive, top_state: MANUAL_ACTIVE, accepts_motion: true  }
+  - { name: estop,        top_state: FAULT,         accepts_motion: false }
+
+transitions:
+  - { from: stopped,      condition: motion_active,   to: manual_drive }
+  - { from: manual_drive, condition: motion_inactive, to: stopped      }
+  - { from: stopped,      event: estop, to: estop }
+  - { from: manual_drive, event: estop, to: estop }

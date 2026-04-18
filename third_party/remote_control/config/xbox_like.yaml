@@ -26,11 +26,27 @@ remote_control_node:
         z: 0.5
       angular:
         yaw: 1.0
-    buttons:
-      takeoff: [4, 0]
-      reset: [6, 7]
-      mode_next: []
-      estop: []
+    # Generic event -> (joystick combo, keyboard key) bindings.
+    # The remote_control node treats event names as opaque strings and forwards
+    # them to /teleop/event (or the takeoff/reset services for legacy compat).
+    # The simulator side decides what each event means via its state-machine
+    # YAML (quadrotor/cfg/teleop/*.yaml).
+    events:
+      takeoff:
+        buttons: [4, 0]
+        keyboard: "t"
+      land:
+        buttons: [5, 0]
+        keyboard: "g"
+      reset:
+        buttons: [6, 7]
+        keyboard: "x"
+      mode_next:
+        buttons: []
+        keyboard: "m"
+      estop:
+        buttons: []
+        keyboard: "q"
     command_cooldown: 0.5
     motion_suppress_after_command: 0.3
     keyboard:

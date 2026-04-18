@@ -137,34 +137,18 @@ bool ValidateImageMetadata(const ipc::CameraImageMetadataPacket& metadata) {
   return metadata.step == metadata.width * bytes_per_pixel && metadata.data_size == metadata.step * metadata.height;
 }
 
-const char* DiscreteCommandKindName(DiscreteCommandKind kind) {
-  switch (kind) {
-    case DiscreteCommandKind::kResetSimulation:
-      return "reset";
-    case DiscreteCommandKind::kTakeoff:
-      return "takeoff";
-    case DiscreteCommandKind::kModeNext:
-      return "mode_next";
-    case DiscreteCommandKind::kEmergencyStop:
-      return "estop";
-    case DiscreteCommandKind::kNone:
-      return "none";
-  }
-  return "unknown";
-}
-
-std::string AckStatusMessage(DiscreteCommandAckStatus status, DiscreteCommandKind kind) {
+std::string AckStatusMessage(DiscreteCommandAckStatus status, const std::string& event_name) {
   switch (status) {
     case DiscreteCommandAckStatus::kSuccess:
-      return std::string(DiscreteCommandKindName(kind)) + " command accepted";
+      return event_name + " command accepted";
     case DiscreteCommandAckStatus::kUnsupported:
-      return std::string(DiscreteCommandKindName(kind)) + " command is not supported by this simulator";
+      return event_name + " command is not supported by this simulator";
     case DiscreteCommandAckStatus::kFailed:
-      return std::string(DiscreteCommandKindName(kind)) + " command failed";
+      return event_name + " command failed";
     case DiscreteCommandAckStatus::kNone:
       break;
   }
-  return std::string(DiscreteCommandKindName(kind)) + " command acknowledgement was not received";
+  return event_name + " command acknowledgement was not received";
 }
 
 void EnsureWritableRosHome() {
@@ -278,7 +262,7 @@ class RosBridgeProcess {
         reset_service_ = node_->create_service<TriggerService>(
             reset_service_name,
             [this](const TriggerService::Request::SharedPtr, TriggerService::Response::SharedPtr response) {
-              ExecuteDiscreteCommand(DiscreteCommandKind::kResetSimulation, response.get());
+              ExecuteDiscreteCommand("reset", response.get());
             });
       }
 
@@ -287,7 +271,7 @@ class RosBridgeProcess {
         takeoff_service_ = node_->create_service<TriggerService>(
             takeoff_service_name,
             [this](const TriggerService::Request::SharedPtr, TriggerService::Response::SharedPtr response) {
-              ExecuteDiscreteCommand(DiscreteCommandKind::kTakeoff, response.get());
+              ExecuteDiscreteCommand("takeoff", response.get());
             });
       }
 
@@ -422,38 +406,40 @@ class RosBridgeProcess {
     ipc::SendPacket(command_fd_, packet, true);
   }
 
+  // Builds an outgoing DiscreteCommand from an event name. kind is derived for
+  // fast sim-side dispatch (reset vs generic).
+  DiscreteCommand MakeDiscreteCommand(const std::string& event_name, std::uint64_t sequence) const {
+    DiscreteCommand command;
+    command.event_name = event_name;
+    command.kind = ClassifyDiscreteEvent(event_name);
+    command.sequence = sequence;
+    command.received_time = std::chrono::steady_clock::now();
+    return command;
+  }
+
   void PublishDiscreteCommand(const std::string& event_name) {
-    DiscreteCommandKind kind = DiscreteCommandKind::kNone;
-    try {
-      kind = ParseDiscreteCommandKind(event_name);
-    } catch (const std::exception& error) {
-      RCLCPP_WARN(node_->get_logger(), "ignoring unknown teleop event '%s': %s", event_name.c_str(), error.what());
+    if (event_name.empty()) {
       return;
     }
-
-    if (kind == DiscreteCommandKind::kNone) {
-      return;
-    }
-
     const std::uint64_t sequence = next_discrete_command_sequence_++;
-    const DiscreteCommand command{kind, sequence, std::chrono::steady_clock::now()};
+    const DiscreteCommand command = MakeDiscreteCommand(event_name, sequence);
     const ipc::DiscreteCommandPacket packet = converts::ToDiscreteCommandPacket(command);
     if (!ipc::SendPacket(discrete_command_fd_, packet, true)) {
       RCLCPP_WARN(node_->get_logger(), "failed to send teleop event '%s' to simulator", event_name.c_str());
     }
   }
 
-  void ExecuteDiscreteCommand(DiscreteCommandKind kind, TriggerService::Response* response) {
+  void ExecuteDiscreteCommand(const std::string& event_name, TriggerService::Response* response) {
     if (response == nullptr) {
       return;
     }
 
     const std::uint64_t sequence = next_discrete_command_sequence_++;
-    const DiscreteCommand command{kind, sequence, std::chrono::steady_clock::now()};
+    const DiscreteCommand command = MakeDiscreteCommand(event_name, sequence);
     const ipc::DiscreteCommandPacket packet = converts::ToDiscreteCommandPacket(command);
     if (!ipc::SendPacket(discrete_command_fd_, packet, true)) {
       response->success = false;
-      response->message = std::string("failed to send ") + DiscreteCommandKindName(kind) + " command to simulator";
+      response->message = "failed to send " + event_name + " command to simulator";
       return;
     }
 
@@ -468,7 +454,7 @@ class RosBridgeProcess {
       if (telemetry.has_value() && telemetry->last_discrete_command_sequence == sequence) {
         const auto status = static_cast<DiscreteCommandAckStatus>(telemetry->last_discrete_command_status);
         response->success = status == DiscreteCommandAckStatus::kSuccess;
-        response->message = AckStatusMessage(status, kind);
+        response->message = AckStatusMessage(status, event_name);
         return;
       }
 
@@ -476,7 +462,7 @@ class RosBridgeProcess {
     }
 
     response->success = false;
-    response->message = AckStatusMessage(DiscreteCommandAckStatus::kNone, kind);
+    response->message = AckStatusMessage(DiscreteCommandAckStatus::kNone, event_name);
   }
 
   void ImageLoop() {
@@ -530,6 +516,8 @@ class RosBridgeProcess {
       pub->Publish(*packet);
     }
     if (robot_mode_publisher_) {
+      // TODO(robot_mode_msg): migrate this String/JSON to a structured message
+      // (ausim_common/msg/RobotMode.msg) once the custom msg package lands.
       std_msgs::msg::String mode_message;
       mode_message.data = std::string("{\"top_state\":\"") +
                           RobotTopLevelStateName(static_cast<RobotTopLevelState>(packet->robot_top_level_state)) +

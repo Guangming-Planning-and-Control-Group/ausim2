@@ -1,6 +1,7 @@
 #include "remote_control_node.hpp"
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <cstdint>
 #include <functional>
@@ -26,6 +27,8 @@ double ApplyDeadzone(double value, double deadzone) {
   }
   return value;
 }
+
+char NormalizeKey(char key) { return static_cast<char>(std::tolower(static_cast<unsigned char>(key))); }
 
 }  // namespace
 
@@ -68,6 +71,19 @@ TerminalKeyboard::~TerminalKeyboard() {
   delete original_termios_;
 }
 
+void TerminalKeyboard::RegisterEventKey(char key, std::string event_name) {
+  if (key == '\0') {
+    return;
+  }
+  std::lock_guard<std::mutex> lock(mutex_);
+  event_keys_[NormalizeKey(key)] = std::move(event_name);
+}
+
+void TerminalKeyboard::ClearEventKeys() {
+  std::lock_guard<std::mutex> lock(mutex_);
+  event_keys_.clear();
+}
+
 geometry_msgs::msg::Twist TerminalKeyboard::BuildTwist(double linear_x_scale, double linear_y_scale, double linear_z_scale,
                                                        double angular_yaw_scale) const {
   geometry_msgs::msg::Twist command;
@@ -90,14 +106,14 @@ geometry_msgs::msg::Twist TerminalKeyboard::BuildTwist(double linear_x_scale, do
   return command;
 }
 
-std::optional<TerminalKeyboard::Action> TerminalKeyboard::ConsumeAction() {
+std::optional<std::string> TerminalKeyboard::ConsumeEvent() {
   std::lock_guard<std::mutex> lock(mutex_);
-  if (pending_actions_.empty()) {
+  if (pending_events_.empty()) {
     return std::nullopt;
   }
-  const Action action = pending_actions_.front();
-  pending_actions_.pop_front();
-  return action;
+  std::string event_name = std::move(pending_events_.front());
+  pending_events_.pop_front();
+  return event_name;
 }
 
 void TerminalKeyboard::ReaderLoop() {
@@ -125,60 +141,42 @@ void TerminalKeyboard::ReaderLoop() {
 void TerminalKeyboard::HandleChar(char value) {
   const TimePoint until = std::chrono::steady_clock::now() + key_timeout_;
   std::lock_guard<std::mutex> lock(mutex_);
-  switch (value) {
+  switch (NormalizeKey(value)) {
     case 'w':
-    case 'W':
       key_state_.forward_until = until;
-      break;
+      return;
     case 's':
-    case 'S':
       key_state_.backward_until = until;
-      break;
+      return;
     case 'a':
-    case 'A':
       key_state_.left_until = until;
-      break;
+      return;
     case 'd':
-    case 'D':
       key_state_.right_until = until;
-      break;
+      return;
     case 'r':
-    case 'R':
       key_state_.up_until = until;
-      break;
+      return;
     case 'f':
-    case 'F':
       key_state_.down_until = until;
-      break;
+      return;
     case 'j':
-    case 'J':
       key_state_.yaw_left_until = until;
-      break;
+      return;
     case 'l':
-    case 'L':
       key_state_.yaw_right_until = until;
-      break;
+      return;
     case ' ':
       ClearMovementLocked();
-      break;
-    case 't':
-    case 'T':
-      pending_actions_.push_back(Action::kTakeoff);
-      break;
-    case 'x':
-    case 'X':
-      pending_actions_.push_back(Action::kReset);
-      break;
-    case 'm':
-    case 'M':
-      pending_actions_.push_back(Action::kModeNext);
-      break;
-    case 'q':
-    case 'Q':
-      pending_actions_.push_back(Action::kEmergencyStop);
-      break;
+      return;
     default:
       break;
+  }
+
+  // Non-movement keys: look up the user-configured event map.
+  const auto it = event_keys_.find(NormalizeKey(value));
+  if (it != event_keys_.end()) {
+    pending_events_.push_back(it->second);
   }
 }
 
@@ -196,6 +194,7 @@ void TerminalKeyboard::ClearMovementLocked() {
 
 RemoteControlNode::RemoteControlNode() : Node("remote_control_node") {
   LoadParameters();
+  LoadEventBindings();
 
   cmd_vel_publisher_ = create_publisher<geometry_msgs::msg::Twist>(cmd_vel_topic_, 10);
   if (!teleop_event_topic_.empty()) {
@@ -214,6 +213,11 @@ RemoteControlNode::RemoteControlNode() : Node("remote_control_node") {
   keyboard_ = std::make_unique<TerminalKeyboard>(keyboard_enabled_, keyboard_key_timeout_seconds_);
   if (keyboard_enabled_ && !keyboard_->available()) {
     RCLCPP_WARN(get_logger(), "keyboard fallback requested but stdin is not a TTY; keyboard control is disabled");
+  }
+  for (const auto& [event_name, binding] : event_bindings_) {
+    if (binding.keyboard_key != '\0') {
+      keyboard_->RegisterEventKey(binding.keyboard_key, event_name);
+    }
   }
 
   const auto period = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(1.0 / publish_rate_hz_));
@@ -241,10 +245,6 @@ void RemoteControlNode::LoadParameters() {
   scale_linear_z_ = declare_parameter<double>("scale.linear.z", 0.5);
   scale_angular_yaw_ = declare_parameter<double>("scale.angular.yaw", 1.0);
 
-  takeoff_buttons_ = ToIntVector(declare_parameter<std::vector<std::int64_t>>("buttons.takeoff", {4, 0}));
-  reset_buttons_ = ToIntVector(declare_parameter<std::vector<std::int64_t>>("buttons.reset", {6, 7}));
-  mode_next_buttons_ = ToIntVector(declare_parameter<std::vector<std::int64_t>>("buttons.mode_next", std::vector<std::int64_t>{}));
-  emergency_stop_buttons_ = ToIntVector(declare_parameter<std::vector<std::int64_t>>("buttons.estop", std::vector<std::int64_t>{}));
   command_cooldown_seconds_ = declare_parameter<double>("command_cooldown", 0.5);
   keyboard_enabled_ = declare_parameter<bool>("keyboard.enabled", true);
   keyboard_key_timeout_seconds_ = declare_parameter<double>("keyboard.key_timeout", 0.25);
@@ -263,6 +263,54 @@ void RemoteControlNode::LoadParameters() {
   }
 }
 
+void RemoteControlNode::LoadEventBindings() {
+  // Preferred style: events.<name>.buttons  + events.<name>.keyboard
+  // Legacy style:    buttons.<takeoff|reset|mode_next|estop>
+  // Legacy keyboard keys (t/x/m/q) are retained as fallback defaults.
+  struct LegacyDefault {
+    const char* name;
+    std::vector<std::int64_t> buttons;
+    char keyboard_key;
+  };
+  const LegacyDefault legacy_defaults[] = {
+      {"takeoff", {4, 0}, 't'},
+      {"land", {5, 0}, 'g'},
+      {"reset", {6, 7}, 'x'},
+      {"mode_next", {-1}, 'm'},
+      {"estop", {-1}, 'q'},
+  };
+
+  for (const LegacyDefault& def : legacy_defaults) {
+    const std::string name(def.name);
+    const std::string buttons_param = "events." + name + ".buttons";
+    const std::string keyboard_param = "events." + name + ".keyboard";
+    std::vector<std::int64_t> buttons = declare_parameter<std::vector<std::int64_t>>(buttons_param, def.buttons);
+    std::string keyboard_str = declare_parameter<std::string>(keyboard_param, std::string(1, def.keyboard_key));
+
+    // Legacy fallback for buttons: if the caller set the old `buttons.<name>`
+    // param but didn't yet populate the new style, honour it.
+    const std::string legacy_buttons_param = "buttons." + name;
+    std::vector<std::int64_t> legacy_buttons = declare_parameter<std::vector<std::int64_t>>(legacy_buttons_param, def.buttons);
+    const bool preferred_uses_default = buttons == def.buttons;
+    const bool legacy_overridden = legacy_buttons != def.buttons;
+    if (preferred_uses_default && legacy_overridden) {
+      buttons = std::move(legacy_buttons);
+    }
+
+    EventBinding binding;
+    binding.buttons = ToIntVector(buttons);
+    // Filter out -1 sentinels used historically to disable a combo.
+    binding.buttons.erase(std::remove(binding.buttons.begin(), binding.buttons.end(), -1), binding.buttons.end());
+    binding.keyboard_key = keyboard_str.empty() ? '\0' : keyboard_str.front();
+    event_bindings_.emplace(name, std::move(binding));
+    event_combo_active_.emplace(name, false);
+  }
+
+  // Allow arbitrary user-defined events via `events.<name>.buttons/keyboard`.
+  // (Beyond the legacy set, we can't enumerate without a parameter namespace
+  // walker; future extension can scan `list_parameters`.)
+}
+
 void RemoteControlNode::OnJoy(const sensor_msgs::msg::Joy::SharedPtr message) {
   if (!have_joy_message_) {
     RCLCPP_INFO(get_logger(), "received first joy message on %s", joy_topic_.c_str());
@@ -271,46 +319,32 @@ void RemoteControlNode::OnJoy(const sensor_msgs::msg::Joy::SharedPtr message) {
   have_joy_message_ = true;
   last_joy_message_time_ = now();
 
-  const bool takeoff_pressed = ButtonsPressed(*message, takeoff_buttons_);
-  const bool reset_pressed = ButtonsPressed(*message, reset_buttons_);
-  const bool mode_next_pressed = ButtonsPressed(*message, mode_next_buttons_);
-  const bool emergency_stop_pressed = ButtonsPressed(*message, emergency_stop_buttons_);
-
-  if (takeoff_pressed && !takeoff_combo_active_) {
-    TriggerAction(TerminalKeyboard::Action::kTakeoff, "joystick");
+  for (auto& [event_name, binding] : event_bindings_) {
+    const bool pressed = !binding.buttons.empty() && ButtonsPressed(*message, binding.buttons);
+    bool& was_active = event_combo_active_[event_name];
+    if (pressed && !was_active) {
+      TriggerAction(event_name, "joystick");
+    }
+    was_active = pressed;
   }
-  if (reset_pressed && !reset_combo_active_) {
-    TriggerAction(TerminalKeyboard::Action::kReset, "joystick");
-  }
-  if (mode_next_pressed && !mode_next_combo_active_) {
-    TriggerAction(TerminalKeyboard::Action::kModeNext, "joystick");
-  }
-  if (emergency_stop_pressed && !emergency_stop_combo_active_) {
-    TriggerAction(TerminalKeyboard::Action::kEmergencyStop, "joystick");
-  }
-
-  takeoff_combo_active_ = takeoff_pressed;
-  reset_combo_active_ = reset_pressed;
-  mode_next_combo_active_ = mode_next_pressed;
-  emergency_stop_combo_active_ = emergency_stop_pressed;
 }
 
 void RemoteControlNode::OnPublishTimer() {
   while (keyboard_ != nullptr) {
-    const std::optional<TerminalKeyboard::Action> action = keyboard_->ConsumeAction();
-    if (!action.has_value()) {
+    std::optional<std::string> event = keyboard_->ConsumeEvent();
+    if (!event.has_value()) {
       break;
     }
-    TriggerAction(*action, "keyboard");
+    TriggerAction(*event, "keyboard");
   }
 
   geometry_msgs::msg::Twist command;
   const bool joystick_active = have_joy_message_ && (now() - last_joy_message_time_).seconds() <= joy_timeout_seconds_;
   if (!joystick_active) {
-    takeoff_combo_active_ = false;
-    reset_combo_active_ = false;
-    mode_next_combo_active_ = false;
-    emergency_stop_combo_active_ = false;
+    for (auto& [name, active] : event_combo_active_) {
+      (void)name;
+      active = false;
+    }
   }
 
   if (std::chrono::steady_clock::now() < suppress_motion_until_) {
@@ -329,7 +363,11 @@ void RemoteControlNode::OnPublishTimer() {
   cmd_vel_publisher_->publish(command);
 }
 
-void RemoteControlNode::TriggerAction(TerminalKeyboard::Action action, const char* source) {
+void RemoteControlNode::TriggerAction(const std::string& event_name, const char* source) {
+  if (event_name.empty()) {
+    return;
+  }
+
   const auto now_steady = std::chrono::steady_clock::now();
   if (last_discrete_trigger_time_ != std::chrono::steady_clock::time_point{} &&
       std::chrono::duration<double>(now_steady - last_discrete_trigger_time_).count() < command_cooldown_seconds_) {
@@ -340,22 +378,6 @@ void RemoteControlNode::TriggerAction(TerminalKeyboard::Action action, const cha
   suppress_motion_until_ = now_steady + motion_suppress_duration_;
   PublishZeroCommand();
 
-  std::string event_name;
-  switch (action) {
-    case TerminalKeyboard::Action::kTakeoff:
-      event_name = "takeoff";
-      break;
-    case TerminalKeyboard::Action::kReset:
-      event_name = "reset";
-      break;
-    case TerminalKeyboard::Action::kModeNext:
-      event_name = "mode_next";
-      break;
-    case TerminalKeyboard::Action::kEmergencyStop:
-      event_name = "estop";
-      break;
-  }
-
   RCLCPP_INFO(get_logger(), "triggering %s from %s", event_name.c_str(), source);
   if (teleop_event_publisher_ != nullptr) {
     std_msgs::msg::String message;
@@ -364,6 +386,8 @@ void RemoteControlNode::TriggerAction(TerminalKeyboard::Action action, const cha
     return;
   }
 
+  // Service fallback for the two events that have dedicated std_srvs::Trigger
+  // endpoints on the sim side. Other events require the teleop_event topic.
   if (event_name == "takeoff") {
     CallTriggerService("takeoff", takeoff_client_);
     return;

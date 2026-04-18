@@ -80,12 +80,26 @@ GoalReference DemoGoalProvider::Evaluate(const GoalContext& context) {
   return goal;
 }
 
+RobotModeSnapshot DemoGoalProvider::ModeSnapshot() const {
+  // Demo / scripted trajectories run autonomously; expose AUTO so the robot-mode
+  // consumers (UI, remote_control) don't misread it as SAFE/on_ground.
+  RobotModeSnapshot snapshot;
+  snapshot.top_state = ausim::RobotTopLevelState::kAuto;
+  snapshot.sub_state = "demo";
+  snapshot.accepts_motion = false;
+  return snapshot;
+}
+
 CommandGoalProvider::CommandGoalProvider(const QuadrotorConfig& config)
     : command_timeout_seconds_(config.ros2.command_timeout),
       control_mode_(static_cast<SE3Controller::ControlMode>(config.simulation.control_mode)),
       aircraft_forward_axis_(config.model.aircraft_forward_axis),
-      takeoff_height_(config.hover_goal.position.z()),
-      mode_machine_(config.teleop_mode) {}
+      mode_actions_(config.teleop_mode.actions),
+      mode_machine_(config.teleop_mode) {
+  actions_.Register("takeoff", [this](const GoalContext& ctx) { return HandleTakeoffCommand(ctx); });
+  actions_.Register("land", [this](const GoalContext& ctx) { return HandleLandCommand(ctx); });
+  actions_.Register("emergency_stop", [this](const GoalContext& ctx) { return HandleEmergencyStopCommand(ctx); });
+}
 
 GoalReference CommandGoalProvider::Evaluate(const GoalContext& context) {
   const std::optional<VelocityCommand> raw_command = ReadFreshVelocityCommand(command_timeout_seconds_);
@@ -179,24 +193,24 @@ GoalReference CommandGoalProvider::Evaluate(const GoalContext& context) {
 }
 
 bool CommandGoalProvider::HandleDiscreteCommand(const DiscreteCommand& command, const GoalContext& context) {
+  if (command.event_name.empty()) {
+    return false;
+  }
   if (mode_machine_.enabled()) {
-    return mode_machine_.HandleEvent(command.kind, {.execute_action = [this, &context](std::string_view action_name) {
-                                     if (action_name == "takeoff") {
-                                       return HandleTakeoffCommand(context);
-                                     }
-                                     return false;
-                                   }});
+    return mode_machine_.HandleEvent(
+        command.event_name,
+        {.execute_action = [this, &context](std::string_view action_name) { return actions_.Invoke(action_name, context); }});
   }
-  switch (command.kind) {
-    case DiscreteCommandKind::kTakeoff:
-      return HandleTakeoffCommand(context);
-    case DiscreteCommandKind::kModeNext:
-    case DiscreteCommandKind::kEmergencyStop:
-    case DiscreteCommandKind::kNone:
-    case DiscreteCommandKind::kResetSimulation:
-      return false;
+  // No state machine configured — run the action directly (legacy path).
+  return actions_.Invoke(command.event_name, context);
+}
+
+void CommandGoalProvider::Tick(double dt, const GoalContext& context) {
+  if (!mode_machine_.enabled()) {
+    return;
   }
-  return false;
+  mode_machine_.Tick(
+      dt, {.execute_action = [this, &context](std::string_view action_name) { return actions_.Invoke(action_name, context); }});
 }
 
 RobotModeSnapshot CommandGoalProvider::ModeSnapshot() const { return mode_machine_.Snapshot(); }
@@ -209,7 +223,38 @@ bool CommandGoalProvider::HandleTakeoffCommand(const GoalContext& context) {
   }
 
   hold_position_ = context.current_state.position;
-  hold_position_.z() = takeoff_height_;
+  // climb_rate > 0 is where a ramped takeoff would live; currently snap to height.
+  // TODO(mode_actions): interpolate hold_position_.z() toward takeoff.height at climb_rate.
+  hold_position_.z() = mode_actions_.takeoff.height;
+  desired_yaw_ = current_yaw;
+  last_sim_time_ = context.sim_time;
+  hold_state_initialized_ = true;
+  previous_command_valid_ = false;
+  return true;
+}
+
+bool CommandGoalProvider::HandleLandCommand(const GoalContext& context) {
+  const double current_yaw = AircraftHeadingFromQuaternion(context.current_state.quaternion, aircraft_forward_axis_);
+  if (!initialized_) {
+    spawn_position_ = context.current_state.position;
+    initialized_ = true;
+  }
+  hold_position_ = context.current_state.position;
+  // descent_rate > 0 is where a ramped land would live; currently snap to spawn z.
+  // TODO(mode_actions): interpolate hold_position_.z() toward spawn_position_.z() at descent_rate.
+  hold_position_.z() = spawn_position_.z();
+  desired_yaw_ = current_yaw;
+  last_sim_time_ = context.sim_time;
+  hold_state_initialized_ = true;
+  previous_command_valid_ = false;
+  return true;
+}
+
+bool CommandGoalProvider::HandleEmergencyStopCommand(const GoalContext& context) {
+  // Skeleton: clamp goal to current position/zero velocity. Actual motor-cut
+  // behaviour is delegated to the controller / sim layer in a later iteration.
+  const double current_yaw = AircraftHeadingFromQuaternion(context.current_state.quaternion, aircraft_forward_axis_);
+  hold_position_ = context.current_state.position;
   desired_yaw_ = current_yaw;
   last_sim_time_ = context.sim_time;
   hold_state_initialized_ = true;

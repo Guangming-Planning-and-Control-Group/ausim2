@@ -1,0 +1,49 @@
+# Shared state machine / mode definition for quadrotor robots.
+#
+# Referenced from robot configs via:
+#   mode_machine: teleop/quadrotor_default.yaml
+#
+# Structure:
+#   - states:       named operational states, each carrying a top-level tag
+#                   (SAFE / MANUAL_READY / MANUAL_ACTIVE / AUTO / FAULT) and
+#                   whether motion commands (cmd_vel) are accepted.
+#   - transitions:  triggers between states. Each transition uses exactly one of
+#                     event:     arbitrary string event name (e.g. takeoff)
+#                     condition: motion_active / motion_inactive
+#                     timeout:   seconds after entering `from`
+#   - actions:      parameters consumed by callbacks registered on the state
+#                   machine (takeoff height, land descent rate, ...).
+
+initial_state: on_ground
+
+actions:
+  takeoff:
+    height: 0.3
+    climb_rate: 0.0     # 0 = snap to hover height (ramp TODO)
+  land:
+    descent_rate: 0.0   # 0 = snap to ground (ramp TODO)
+
+states:
+  - { name: on_ground,        top_state: SAFE,           accepts_motion: false }
+  - { name: hover,            top_state: MANUAL_READY,   accepts_motion: true  }
+  - { name: velocity_control, top_state: MANUAL_ACTIVE,  accepts_motion: true  }
+  - { name: estop,            top_state: FAULT,          accepts_motion: false }
+
+transitions:
+  # Takeoff / landing
+  - { from: on_ground,        event: takeoff, to: hover,     action: takeoff }
+  - { from: hover,            event: land,    to: on_ground, action: land    }
+
+  # Hover <-> velocity-control based on live cmd_vel presence
+  - { from: hover,            condition: motion_active,   to: velocity_control }
+  - { from: velocity_control, condition: motion_inactive, to: hover            }
+
+  # Hover safety: auto-land after 60s of inactivity.
+  # (Demonstrates the timeout trigger; value can be overridden per-robot by a
+  # sibling YAML, e.g. teleop/xi35_aggressive.yaml.)
+  - { from: hover,            timeout: 60.0, to: on_ground, action: land }
+
+  # Emergency stop: always allowed, independent of sub-state.
+  - { from: on_ground,        event: estop, to: estop, action: emergency_stop }
+  - { from: hover,            event: estop, to: estop, action: emergency_stop }
+  - { from: velocity_control, event: estop, to: estop, action: emergency_stop }

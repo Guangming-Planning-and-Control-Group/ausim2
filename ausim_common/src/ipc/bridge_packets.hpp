@@ -11,12 +11,16 @@ struct VelocityCommandPacket {
   std::array<double, 3> angular = {0.0, 0.0, 0.0};
 };
 
-struct DiscreteCommandPacket {
-  std::uint8_t kind = 0;
-  std::uint64_t sequence = 0;
-};
-
+inline constexpr std::size_t kDiscreteEventNameCapacity = 32;
 inline constexpr std::size_t kRobotModeNameCapacity = 32;
+
+// Wire format for discrete commands between bridge and sim.
+// `event` is a null-padded ASCII string; the simulator classifies it into
+// DiscreteCommandKind after unpacking.
+struct DiscreteCommandPacket {
+  std::uint64_t sequence = 0;
+  std::array<char, kDiscreteEventNameCapacity> event = {};
+};
 
 struct TelemetryPacket {
   double sim_time = 0.0;

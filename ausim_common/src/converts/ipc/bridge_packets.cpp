@@ -30,6 +30,18 @@ std::array<char, ipc::kRobotModeNameCapacity> ToFixedString(const std::string& v
   return buffer;
 }
 
+std::array<char, ipc::kDiscreteEventNameCapacity> ToDiscreteEventName(const std::string& value) {
+  std::array<char, ipc::kDiscreteEventNameCapacity> buffer = {};
+  const std::size_t copy_length = std::min<std::size_t>(value.size(), buffer.size() - 1);
+  std::copy_n(value.data(), copy_length, buffer.data());
+  return buffer;
+}
+
+std::string FromDiscreteEventName(const std::array<char, ipc::kDiscreteEventNameCapacity>& buffer) {
+  const auto nul = std::find(buffer.begin(), buffer.end(), '\0');
+  return std::string(buffer.data(), static_cast<std::size_t>(std::distance(buffer.begin(), nul)));
+}
+
 }  // namespace
 
 ipc::VelocityCommandPacket ToVelocityCommandPacket(const data::CmdVelData& message) {
@@ -57,14 +69,15 @@ VelocityCommand ToVelocityCommand(const ipc::VelocityCommandPacket& packet, std:
 
 ipc::DiscreteCommandPacket ToDiscreteCommandPacket(const DiscreteCommand& command) {
   ipc::DiscreteCommandPacket packet;
-  packet.kind = static_cast<std::uint8_t>(command.kind);
   packet.sequence = command.sequence;
+  packet.event = ToDiscreteEventName(command.event_name);
   return packet;
 }
 
 DiscreteCommand ToDiscreteCommand(const ipc::DiscreteCommandPacket& packet, std::chrono::steady_clock::time_point received_time) {
   DiscreteCommand command;
-  command.kind = static_cast<DiscreteCommandKind>(packet.kind);
+  command.event_name = FromDiscreteEventName(packet.event);
+  command.kind = ClassifyDiscreteEvent(command.event_name);
   command.sequence = packet.sequence;
   command.received_time = received_time;
   return command;

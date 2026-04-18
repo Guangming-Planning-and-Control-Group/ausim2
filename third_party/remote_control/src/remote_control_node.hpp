@@ -9,6 +9,7 @@
 #include <optional>
 #include <string>
 #include <thread>
+#include <unordered_map>
 #include <vector>
 
 #include <termios.h>
@@ -21,15 +22,15 @@
 
 namespace remote_control {
 
+// Runtime binding of a single abstract event (e.g. "takeoff") to concrete
+// inputs: a joystick button combo and an optional single keyboard key.
+struct EventBinding {
+  std::vector<int> buttons;    // all buttons must be held; empty = no joystick binding
+  char keyboard_key = '\0';    // single ASCII key; '\0' = no keyboard binding
+};
+
 class TerminalKeyboard {
  public:
-  enum class Action {
-    kTakeoff,
-    kReset,
-    kModeNext,
-    kEmergencyStop,
-  };
-
   explicit TerminalKeyboard(bool enabled, double key_timeout_seconds);
   ~TerminalKeyboard();
 
@@ -38,8 +39,13 @@ class TerminalKeyboard {
 
   bool available() const { return available_.load(); }
 
+  // Registers a keyboard->event mapping. Case-insensitive; '\0' is ignored.
+  void RegisterEventKey(char key, std::string event_name);
+  // Clears any previously-registered event key bindings.
+  void ClearEventKeys();
+
   geometry_msgs::msg::Twist BuildTwist(double linear_x_scale, double linear_y_scale, double linear_z_scale, double angular_yaw_scale) const;
-  std::optional<Action> ConsumeAction();
+  std::optional<std::string> ConsumeEvent();
 
  private:
   using TimePoint = std::chrono::steady_clock::time_point;
@@ -61,7 +67,8 @@ class TerminalKeyboard {
 
   std::chrono::steady_clock::duration key_timeout_{};
   mutable std::mutex mutex_;
-  std::deque<Action> pending_actions_;
+  std::deque<std::string> pending_events_;
+  std::unordered_map<char, std::string> event_keys_;
   KeyState key_state_;
   std::thread reader_thread_;
   std::atomic_bool running_{false};
@@ -84,9 +91,10 @@ class RemoteControlNode : public rclcpp::Node {
   };
 
   void LoadParameters();
+  void LoadEventBindings();
   void OnJoy(const sensor_msgs::msg::Joy::SharedPtr message);
   void OnPublishTimer();
-  void TriggerAction(TerminalKeyboard::Action action, const char* source);
+  void TriggerAction(const std::string& event_name, const char* source);
   void CallTriggerService(const std::string& label, const rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr& client);
   void PublishZeroCommand();
   void UpdateInputMode(InputMode mode);
@@ -122,10 +130,14 @@ class RemoteControlNode : public rclcpp::Node {
   double scale_linear_y_ = -0.6;
   double scale_linear_z_ = 0.5;
   double scale_angular_yaw_ = -1.0;
-  std::vector<int> takeoff_buttons_;
-  std::vector<int> reset_buttons_;
-  std::vector<int> mode_next_buttons_;
-  std::vector<int> emergency_stop_buttons_;
+
+  // Event name -> (joystick combo + keyboard key). Populated from YAML under
+  // the `events:` namespace. For backward compatibility, legacy
+  // `buttons.<takeoff|reset|mode_next|estop>` parameters fill the joystick
+  // half of any missing entry.
+  std::unordered_map<std::string, EventBinding> event_bindings_;
+  std::unordered_map<std::string, bool> event_combo_active_;
+
   double command_cooldown_seconds_ = 0.5;
   double keyboard_key_timeout_seconds_ = 0.25;
   bool keyboard_enabled_ = true;
@@ -136,10 +148,6 @@ class RemoteControlNode : public rclcpp::Node {
   std::chrono::steady_clock::duration motion_suppress_duration_{std::chrono::milliseconds(300)};
   std::chrono::steady_clock::time_point suppress_motion_until_{};
   std::chrono::steady_clock::time_point last_discrete_trigger_time_{};
-  bool takeoff_combo_active_ = false;
-  bool reset_combo_active_ = false;
-  bool mode_next_combo_active_ = false;
-  bool emergency_stop_combo_active_ = false;
   bool have_joy_message_ = false;
   sensor_msgs::msg::Joy latest_joy_message_;
   rclcpp::Time last_joy_message_time_{0, 0, RCL_ROS_TIME};

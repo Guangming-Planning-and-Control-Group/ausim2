@@ -173,12 +173,28 @@ struct RobotModeTransitionConfig {
   std::string condition;
   std::string guard;
   std::string action;
+  double timeout = 0.0;  // seconds; 0 = no timeout
+};
+
+struct RobotModeTakeoffActionConfig {
+  double height = 0.3;
+  double climb_rate = 0.0;  // 0 = instant snap (skeleton; ramp TODO)
+};
+
+struct RobotModeLandActionConfig {
+  double descent_rate = 0.0;  // 0 = instant snap (skeleton; ramp TODO)
+};
+
+struct RobotModeActionsConfig {
+  RobotModeTakeoffActionConfig takeoff;
+  RobotModeLandActionConfig land;
 };
 
 struct RobotModeConfig {
   std::string initial_state;
   std::vector<RobotModeStateConfig> states;
   std::vector<RobotModeTransitionConfig> transitions;
+  RobotModeActionsConfig actions;
 };
 
 struct QuadrotorConfig {
@@ -229,8 +245,11 @@ using ::ausim::RobotConfig;
 using ::ausim::Ros2Config;
 using ::ausim::RosFrameConfig;
 using ::ausim::RosInterfaceConfig;
+using ::ausim::RobotModeActionsConfig;
 using ::ausim::RobotModeConfig;
+using ::ausim::RobotModeLandActionConfig;
 using ::ausim::RobotModeStateConfig;
+using ::ausim::RobotModeTakeoffActionConfig;
 using ::ausim::RobotModeTransitionConfig;
 using ::ausim::SensorConfig;
 using ::ausim::SimConfig;

@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <filesystem>
+#include <iostream>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -127,14 +128,14 @@ void LoadSensors(const YAML::Node& sensors_node, std::vector<SensorConfig>* sens
   }
 }
 
-void LoadRobotModeConfig(const YAML::Node& teleop_node, RobotModeConfig* config) {
-  if (config == nullptr) {
+void LoadRobotModeConfigFromNode(const YAML::Node& mode_node, RobotModeConfig* config) {
+  if (config == nullptr || !mode_node || !mode_node.IsMap()) {
     return;
   }
 
-  AssignIfPresent(teleop_node, "initial_state", &config->initial_state);
+  AssignIfPresent(mode_node, "initial_state", &config->initial_state);
 
-  const YAML::Node states_node = teleop_node["states"];
+  const YAML::Node states_node = mode_node["states"];
   if (states_node && states_node.IsSequence()) {
     config->states.clear();
     for (const YAML::Node& state_node : states_node) {
@@ -146,7 +147,7 @@ void LoadRobotModeConfig(const YAML::Node& teleop_node, RobotModeConfig* config)
     }
   }
 
-  const YAML::Node transitions_node = teleop_node["transitions"];
+  const YAML::Node transitions_node = mode_node["transitions"];
   if (transitions_node && transitions_node.IsSequence()) {
     config->transitions.clear();
     for (const YAML::Node& transition_node : transitions_node) {
@@ -157,8 +158,60 @@ void LoadRobotModeConfig(const YAML::Node& teleop_node, RobotModeConfig* config)
       AssignIfPresent(transition_node, "condition", &transition.condition);
       AssignIfPresent(transition_node, "guard", &transition.guard);
       AssignIfPresent(transition_node, "action", &transition.action);
+      AssignIfPresent(transition_node, "timeout", &transition.timeout);
+
+      // event-driven transitions ignore `condition`; warn if both are set so
+      // authors don't expect the condition to gate the event.
+      if (!transition.event.empty() && !transition.condition.empty()) {
+        std::cerr << "[robot_mode_config] warning: transition " << transition.from << " --(" << transition.event
+                  << ")--> " << transition.to << " sets both 'event' and 'condition'; the 'condition' will be ignored."
+                  << std::endl;
+      }
+      if (transition.timeout > 0.0 && !transition.event.empty()) {
+        std::cerr << "[robot_mode_config] warning: transition " << transition.from << " --> " << transition.to
+                  << " sets both 'event' and 'timeout'; only the event trigger will be used." << std::endl;
+      }
       config->transitions.push_back(std::move(transition));
     }
+  }
+
+  const YAML::Node actions_node = mode_node["actions"];
+  if (actions_node && actions_node.IsMap()) {
+    const YAML::Node takeoff_node = actions_node["takeoff"];
+    AssignIfPresent(takeoff_node, "height", &config->actions.takeoff.height);
+    AssignIfPresent(takeoff_node, "climb_rate", &config->actions.takeoff.climb_rate);
+    const YAML::Node land_node = actions_node["land"];
+    AssignIfPresent(land_node, "descent_rate", &config->actions.land.descent_rate);
+  }
+}
+
+// Resolves `mode_machine:` / `teleop:` node. Accepts either an inline map or a
+// string path to an external YAML file (relative paths resolve against the
+// containing config). `teleop:` is accepted as a backward-compatibility alias.
+void LoadRobotModeConfig(const YAML::Node& root, const fs::path& config_path, RobotModeConfig* config) {
+  if (config == nullptr || !root || !root.IsMap()) {
+    return;
+  }
+
+  YAML::Node selected;
+  if (root["mode_machine"]) {
+    selected = root["mode_machine"];
+  } else if (root["teleop"]) {
+    selected = root["teleop"];
+    std::cerr << "[robot_mode_config] warning: 'teleop:' key is deprecated, use 'mode_machine:' instead ("
+              << config_path.string() << ")" << std::endl;
+  } else {
+    return;
+  }
+
+  if (selected.IsScalar()) {
+    const fs::path external_path = ResolvePath(config_path, selected.as<std::string>());
+    if (!fs::exists(external_path)) {
+      throw std::runtime_error("mode_machine config file does not exist: " + external_path.string());
+    }
+    LoadRobotModeConfigFromNode(YAML::LoadFile(external_path.string()), config);
+  } else if (selected.IsMap()) {
+    LoadRobotModeConfigFromNode(selected, config);
   }
 }
 
@@ -279,10 +332,7 @@ void ApplyConfigRoot(const YAML::Node& root, const fs::path& config_path, Quadro
   AssignIfPresent(frames_node, "base", &config->frames.base);
   AssignIfPresent(frames_node, "imu", &config->frames.imu);
 
-  const YAML::Node teleop_node = root["teleop"];
-  if (teleop_node) {
-    LoadRobotModeConfig(teleop_node, &config->teleop_mode);
-  }
+  LoadRobotModeConfig(root, config_path, &config->teleop_mode);
 
   if (root["sensors"]) {
     LoadSensors(root["sensors"], &config->sensors);

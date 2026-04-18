@@ -55,41 +55,6 @@ const char* RobotTopLevelStateName(RobotTopLevelState state) {
   return "SAFE";
 }
 
-DiscreteCommandKind ParseDiscreteCommandKind(std::string_view name) {
-  if (name.empty() || name == "none") {
-    return DiscreteCommandKind::kNone;
-  }
-  if (name == "reset" || name == "reset_simulation") {
-    return DiscreteCommandKind::kResetSimulation;
-  }
-  if (name == "takeoff") {
-    return DiscreteCommandKind::kTakeoff;
-  }
-  if (name == "mode_next") {
-    return DiscreteCommandKind::kModeNext;
-  }
-  if (name == "estop" || name == "emergency_stop") {
-    return DiscreteCommandKind::kEmergencyStop;
-  }
-  throw std::runtime_error("Unsupported teleop event: " + std::string(name));
-}
-
-const char* DiscreteCommandKindName(DiscreteCommandKind kind) {
-  switch (kind) {
-    case DiscreteCommandKind::kNone:
-      return "none";
-    case DiscreteCommandKind::kResetSimulation:
-      return "reset";
-    case DiscreteCommandKind::kTakeoff:
-      return "takeoff";
-    case DiscreteCommandKind::kModeNext:
-      return "mode_next";
-    case DiscreteCommandKind::kEmergencyStop:
-      return "estop";
-  }
-  return "none";
-}
-
 RobotModeStateMachine::RobotModeStateMachine(RobotModeConfig config) : config_(std::move(config)) {
   for (const RobotModeStateConfig& state_config : config_.states) {
     if (state_config.name.empty()) {
@@ -105,6 +70,7 @@ RobotModeStateMachine::RobotModeStateMachine(RobotModeConfig config) : config_(s
 
 void RobotModeStateMachine::Reset() {
   snapshot_ = RobotModeSnapshot{};
+  elapsed_in_state_ = 0.0;
   if (!enabled_) {
     current_state_name_.clear();
     return;
@@ -119,8 +85,8 @@ void RobotModeStateMachine::Reset() {
   UpdateSnapshotForState(state_it->second);
 }
 
-bool RobotModeStateMachine::HandleEvent(DiscreteCommandKind event, const RobotModeTransitionCallbacks& callbacks) {
-  if (!enabled_ || event == DiscreteCommandKind::kNone) {
+bool RobotModeStateMachine::HandleEvent(std::string_view event_name, const RobotModeTransitionCallbacks& callbacks) {
+  if (!enabled_ || event_name.empty()) {
     return false;
   }
 
@@ -128,10 +94,10 @@ bool RobotModeStateMachine::HandleEvent(DiscreteCommandKind event, const RobotMo
     if (transition.from != current_state_name_) {
       continue;
     }
-    if (ParseDiscreteCommandKind(transition.event) != event) {
+    if (transition.event.empty() || transition.event != event_name) {
       continue;
     }
-    if (TryApplyTransition(transition, {}, callbacks, event)) {
+    if (TryApplyTransition(transition, {}, callbacks, TransitionTrigger::kEvent)) {
       return true;
     }
   }
@@ -147,7 +113,32 @@ bool RobotModeStateMachine::UpdateConditions(const RobotModeConditionContext& co
     if (transition.from != current_state_name_ || transition.condition.empty()) {
       continue;
     }
-    if (TryApplyTransition(transition, context, callbacks, DiscreteCommandKind::kNone)) {
+    // Skip transitions that are primarily event- or timeout-driven; condition
+    // scanning only picks up pure condition-driven transitions.
+    if (!transition.event.empty() || transition.timeout > 0.0) {
+      continue;
+    }
+    if (TryApplyTransition(transition, context, callbacks, TransitionTrigger::kCondition)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool RobotModeStateMachine::Tick(double dt, const RobotModeTransitionCallbacks& callbacks) {
+  if (!enabled_ || dt <= 0.0) {
+    return false;
+  }
+  elapsed_in_state_ += dt;
+
+  for (const RobotModeTransitionConfig& transition : config_.transitions) {
+    if (transition.from != current_state_name_ || transition.timeout <= 0.0) {
+      continue;
+    }
+    if (elapsed_in_state_ < transition.timeout) {
+      continue;
+    }
+    if (TryApplyTransition(transition, {}, callbacks, TransitionTrigger::kTimeout)) {
       return true;
     }
   }
@@ -155,12 +146,11 @@ bool RobotModeStateMachine::UpdateConditions(const RobotModeConditionContext& co
 }
 
 bool RobotModeStateMachine::TryApplyTransition(const RobotModeTransitionConfig& transition, const RobotModeConditionContext& context,
-                                               const RobotModeTransitionCallbacks& callbacks, DiscreteCommandKind event) {
-  if (event != DiscreteCommandKind::kNone && !transition.condition.empty()) {
-    if (!ConditionMatches(transition, context)) {
-      return false;
-    }
-  } else if (event == DiscreteCommandKind::kNone && !ConditionMatches(transition, context)) {
+                                               const RobotModeTransitionCallbacks& callbacks, TransitionTrigger trigger) {
+  // Only condition-driven transitions consult the context. Event-/timeout-driven
+  // transitions ignore the `condition` field (load-time warning is emitted if
+  // both are set on the same transition).
+  if (trigger == TransitionTrigger::kCondition && !ConditionMatches(transition, context)) {
     return false;
   }
 
@@ -174,6 +164,7 @@ bool RobotModeStateMachine::TryApplyTransition(const RobotModeTransitionConfig& 
   }
 
   current_state_name_ = transition.to;
+  elapsed_in_state_ = 0.0;
   UpdateSnapshotForState(next_state_it->second);
   return true;
 }

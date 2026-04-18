@@ -528,6 +528,9 @@ void QuadrotorSim::ApplyControl(const mjModel* model, mjData* data) {
   }
   const bool recompute_control = control_step_count_ == 0;
   const double control_dt = control_decimation_ * model->opt.timestep;
+  if (recompute_control) {
+    runtime_.Tick(control_dt, input);
+  }
   const RuntimeOutput output = runtime_.Step(input, recompute_control, control_dt);
 
   actuator_writer_.WriteMotorInputs(bindings_, data, output.motor_speed_krpm);
@@ -555,14 +558,12 @@ void QuadrotorSim::ApplyControl(const mjModel* model, mjData* data) {
 
 bool QuadrotorSim::HandleDiscreteCommand(const DiscreteCommand& command, const RuntimeInput& input) {
   switch (command.kind) {
-    case DiscreteCommandKind::kTakeoff:
-    case DiscreteCommandKind::kModeNext:
-    case DiscreteCommandKind::kEmergencyStop:
-      return runtime_.HandleDiscreteCommand(command, input);
     case DiscreteCommandKind::kResetSimulation:
       ResetSimulation();
       ClearVelocityCommand();
       return true;
+    case DiscreteCommandKind::kGenericEvent:
+      return runtime_.HandleDiscreteCommand(command, input);
     case DiscreteCommandKind::kNone:
       return false;
   }

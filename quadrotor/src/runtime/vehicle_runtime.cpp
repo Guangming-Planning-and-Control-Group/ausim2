@@ -38,6 +38,13 @@ RuntimeOutput VehicleRuntime::Step(const RuntimeInput& input, bool recompute_con
   return output;
 }
 
+void VehicleRuntime::Tick(double dt, const RuntimeInput& input) {
+  if (!goal_provider_) {
+    return;
+  }
+  goal_provider_->Tick(dt, GoalContext{input.sim_time, input.current_state});
+}
+
 bool VehicleRuntime::HandleDiscreteCommand(const DiscreteCommand& command, const RuntimeInput& input) {
   if (!goal_provider_) {
     return false;

@@ -437,11 +437,10 @@ bool ScoutSim::HandleDiscreteCommand(const ausim::DiscreteCommand& command) {
       ResetSimulation();
       ausim::ClearVelocityCommand();
       return true;
-    case ausim::DiscreteCommandKind::kTakeoff:
-      return false;
-    case ausim::DiscreteCommandKind::kModeNext:
-    case ausim::DiscreteCommandKind::kEmergencyStop:
-      return mode_machine_.HandleEvent(command.kind);
+    case ausim::DiscreteCommandKind::kGenericEvent:
+      // Scout doesn't register any action callbacks yet, but string events are
+      // forwarded to the state machine which handles them via transitions.
+      return mode_machine_.HandleEvent(command.event_name);
     case ausim::DiscreteCommandKind::kNone:
       return false;
   }

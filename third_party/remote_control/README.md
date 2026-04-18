@@ -4,7 +4,8 @@
 
 - 订阅 `/joy`
 - 发布 `/uav1/cmd_vel`
-- 通过组合键触发 `/uav1/takeoff` 与 `/uav1/sim/reset`
+- 发布语义事件 `/uav1/teleop/event`
+- 兼容旧链路：如果没有配置事件话题，起飞和重置仍可回退到 `/uav1/takeoff` 与 `/uav1/sim/reset`
 - 在没有新鲜手柄输入且当前终端是 TTY 时，自动切到键盘控制
 
 默认键盘映射：
@@ -16,11 +17,14 @@
 - `space`：立即清零
 - `t`：起飞
 - `x`：重置
+- `m`：切换模式
+- `q`：急停
 
 默认手柄组合键：
 
 - `LB + A`：起飞
 - `Back + Start`：重置
+- `mode_next` / `estop` 默认未绑定，需要在参数里显式配置按钮组合
 
 直接运行：
 

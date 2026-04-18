@@ -176,6 +176,7 @@ model:
 | 发布 | `/uav1/imu/data` | `sensor_msgs/Imu` |
 | 发布 | `/uav1/camera/image_raw` | `sensor_msgs/Image` (`rgb8`) |
 | 发布 | `/uav1/camera/depth/image_raw` | `sensor_msgs/Image` (`32FC1`) |
+| 发布 | `/uav1/teleop/mode` | `std_msgs/String` |
 | 发布 | `/clock` | `rosgraph_msgs/Clock` |
 | TF | `uav1/odom → uav1/base_link` | — |
 
@@ -185,6 +186,19 @@ model:
 |------|------|------|
 | 服务 | `/uav1/takeoff` | `std_srvs/Trigger` |
 | 服务 | `/uav1/sim/reset` | `std_srvs/Trigger` |
+
+同时会订阅通用 teleop 事件话题：
+
+| 方向 | 话题 | 类型 |
+|------|------|------|
+| 订阅 | `/uav1/teleop/event` | `std_msgs/String` |
+
+默认四旋翼 teleop 状态机：
+
+- `SAFE/on_ground`
+- `MANUAL_READY/hover`
+- `MANUAL_ACTIVE/velocity_control`
+- `FAULT/estop`
 
 发送速度指令：
 

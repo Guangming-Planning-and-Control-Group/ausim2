@@ -17,9 +17,11 @@ ausim::RobotModeConfig BuildConfig() {
       ausim::RobotModeStateConfig{"velocity_control", "MANUAL_ACTIVE", true},
   };
   config.transitions = {
-      ausim::RobotModeTransitionConfig{"on_ground", "hover", "takeoff", "", "", "takeoff"},
-      ausim::RobotModeTransitionConfig{"hover", "velocity_control", "", "motion_active", "", ""},
-      ausim::RobotModeTransitionConfig{"velocity_control", "hover", "", "motion_inactive", "", ""},
+      ausim::RobotModeTransitionConfig{"on_ground", "hover", "takeoff", "", "", "takeoff", 0.0},
+      ausim::RobotModeTransitionConfig{"hover", "velocity_control", "", "motion_active", "", "", 0.0},
+      ausim::RobotModeTransitionConfig{"velocity_control", "hover", "", "motion_inactive", "", "", 0.0},
+      // 1.5s timeout in hover returns to on_ground via the `land` action.
+      ausim::RobotModeTransitionConfig{"hover", "on_ground", "", "", "", "land", 1.5},
   };
   return config;
 }
@@ -40,12 +42,12 @@ int main() {
   Expect(machine.Snapshot().sub_state == "on_ground", "expected initial state to be on_ground");
   Expect(!machine.AcceptsMotion(), "on_ground should not accept motion");
 
-  const bool takeoff_transitioned =
-      machine.HandleEvent(ausim::DiscreteCommandKind::kTakeoff,
-                          {.execute_action = [&executed_actions](std::string_view action_name) {
-                             executed_actions.emplace_back(action_name);
-                             return action_name == "takeoff";
-                           }});
+  const auto record_action = [&executed_actions](std::string_view action_name) {
+    executed_actions.emplace_back(action_name);
+    return true;
+  };
+
+  const bool takeoff_transitioned = machine.HandleEvent("takeoff", {.execute_action = record_action});
   Expect(takeoff_transitioned, "takeoff event should trigger a transition");
   Expect(machine.Snapshot().sub_state == "hover", "takeoff should move state machine to hover");
   Expect(machine.Snapshot().top_state == ausim::RobotTopLevelState::kManualReady, "hover should map to MANUAL_READY");
@@ -61,8 +63,23 @@ int main() {
   Expect(motion_stopped, "motion_inactive should transition back to hover");
   Expect(machine.Snapshot().sub_state == "hover", "motion_inactive should move back to hover");
 
-  const bool unexpected_event = machine.HandleEvent(ausim::DiscreteCommandKind::kResetSimulation, {});
+  // Reset event name is not registered on any transition -> no-op.
+  const bool unexpected_event = machine.HandleEvent("reset");
   Expect(!unexpected_event, "unexpected reset event should not transition");
+
+  // Unknown events are harmlessly ignored (no throw, no transition).
+  const bool ignored = machine.HandleEvent("not_a_registered_event");
+  Expect(!ignored, "unregistered event should be ignored");
+
+  // Timeout transition: advancing time past the 1.5s threshold should fire the
+  // hover -> on_ground transition with the `land` action.
+  executed_actions.clear();
+  Expect(!machine.Tick(0.5, {.execute_action = record_action}), "0.5s is below the 1.5s timeout");
+  Expect(machine.Snapshot().sub_state == "hover", "still in hover after partial tick");
+  const bool timeout_fired = machine.Tick(1.1, {.execute_action = record_action});
+  Expect(timeout_fired, "total 1.6s elapsed should fire hover timeout");
+  Expect(machine.Snapshot().sub_state == "on_ground", "timeout should take state back to on_ground");
+  Expect(executed_actions.size() == 1 && executed_actions.front() == "land", "timeout action should run `land`");
 
   return 0;
 }
