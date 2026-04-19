@@ -4,6 +4,10 @@
 
   <option timestep="0.001" />
 
+  <extension>
+    <plugin plugin="mujoco.sensor.ray_caster_lidar" />
+  </extension>
+
   <default>
       <default class="scout">
           <site rgba="1 0 0 1" size="0.01" group="5"/>
@@ -48,6 +52,8 @@
         <geom class="visual" type="mesh" contype="0" conaffinity="0" group="2" density="0" rgba="0.298039 0.298039 0.298039 1" pos="0 -0.0225 0" mesh="lidar16"/>
         <geom class="visual" type="mesh" contype="0" conaffinity="0" group="2" density="0" rgba="0.298039 0.298039 0.298039 1" mesh="realsense_d435"/>
         <camera name="D435" pos="0.4 0.045 0.415" xyaxes="0 -1 0 0 0 1" focal="1.283 1.285" sensorsize="1.777778 1" resolution="640 360"/>
+        <!-- lidar16 扫描相机：绑定在激光雷达几何中心，xyaxes 令相机朝 +X 方向 -->
+        <camera name="lidar16_cam" pos="0.12 0.045 0.55" xyaxes="0 -1 0 0 0 1"/>
       </body>
 
       <body name="front_right_wheel_link" pos="0.249 -0.29153 -0.0702" euler="3.14 0 0">
@@ -89,5 +95,16 @@
     <gyro name="body_gyro" site="imu"/>
     <accelerometer name="body_linacc" site="imu"/>
     <framequat name="body_quat" objtype="site" objname="imu"/>
+
+    <!-- 16线机械旋转激光雷达：水平360° 垂直±15° 16线 量程0.1~20m -->
+    <plugin name="lidar16" plugin="mujoco.sensor.ray_caster_lidar"
+            objtype="camera" objname="lidar16_cam">
+      <config key="fov_h"      value="360" />
+      <config key="fov_v"      value="30"  />
+      <config key="size"       value="360 16" />
+      <config key="dis_range"  value="0.1 20" />
+      <config key="sensor_data_types" value="data" />
+      <config key="draw_hip_point" value="1 0.015 0 1 0 0.8" />
+    </plugin>
   </sensor>
 </mujoco>
