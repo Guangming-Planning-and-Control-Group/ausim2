@@ -157,3 +157,15 @@ target_include_directories(joy_interface_config_test
 
 target_compile_features(joy_interface_config_test PRIVATE cxx_std_17)
 target_link_libraries(joy_interface_config_test PRIVATE ausim_common_runtime)
+
+add_executable(sensor_config_dedup_test
+  tests/sensor_config_dedup_test.cpp
+)
+
+target_include_directories(sensor_config_dedup_test
+  PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/src"
+)
+
+target_compile_features(sensor_config_dedup_test PRIVATE cxx_std_17)
+target_link_libraries(sensor_config_dedup_test PRIVATE ausim_common_runtime)

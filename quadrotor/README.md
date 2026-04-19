@@ -254,15 +254,11 @@ sensors:
     enabled: true
     frame_id: camera_link
     topic: camera/image_raw
-    source_name: front_cam
-    width: 320
-    height: 240
     rate_hz: 30.0
     depth:
       enabled: true
       frame_id: camera_link
       topic: camera/depth/image_raw
-      sensor_name: front_cam_depth
       data_type: distance_to_image_plane_inf_zero
       rate_hz: 30.0
       compute_rate_hz: 30.0
@@ -270,8 +266,9 @@ sensors:
 ```
 
 - `depth.enabled: false` 时不会向 data board、IPC 和 ROS image publisher 注入深度流
-- depth 分辨率继承相机 `width/height`，运行时会覆盖 MJCF ray-caster `size`；MJCF 中的 `size` 仍需提供不小于运行分辨率的容量
+- 相机名、depth plugin 传感器名和分辨率都从 MJCF/XML 读取，robot config 只保留发布相关字段
+- depth 分辨率继承 MJCF 相机分辨率，运行时会覆盖 ray-caster `size`；MJCF 中的 `size` 仍需提供不小于运行分辨率的容量
 - `depth.data_type` 会覆盖 ray-caster 的 `sensor_data_types`，当前 ROS depth image 路径支持单个标量类型，例如 `data_inf_zero`、`normal`、`distance_to_image_plane_inf_zero`、`image_plane_image_inf_zero`、`image_plane_normal_inf_zero`；`pos_w/pos_b` 是每像素 xyz 三通道数据，需要单独的数据流
 - `depth.compute_rate_hz` 用来控制 ray-caster 实际计算频率；如果物理步长是 `0.001` 且该值为 `30`，插件会自动写成约每 `33` 个 physics step 更新一次
 - `depth.worker_threads` 会映射到 `mujoco_ray_caster` 的 `num_thread` 配置，只作用于 depth ray-caster，不会改动 RGB 的 OpenGL 渲染线程模型；当前上游多线程实现不稳定，默认建议保持 `0`
-- 当前 Crazyflie 示例把 `front_cam_depth` 绑定到 `assets/crazyfile/cf2.xml` 里的 `front_cam`
+- 当前 Crazyflie 示例会自动把 `front_camera` 绑定到 `assets/crazyfile/cf2.xml` 里的第一个非 track 相机，并把 depth 流绑定到同一相机上的 ray-caster plugin

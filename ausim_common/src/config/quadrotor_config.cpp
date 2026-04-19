@@ -78,12 +78,9 @@ CameraStreamConfig BuildColorStream(const SensorConfig& sensor) {
   CameraStreamConfig stream;
   stream.name = sensor.name;
   stream.kind = CameraStreamKind::kColor;
-  stream.channel_name = sensor.source_name;
-  stream.camera_name = sensor.source_name;
+  stream.channel_name = sensor.name;
   stream.frame_id = sensor.frame_id;
   stream.topic = sensor.topic;
-  stream.width = sensor.width;
-  stream.height = sensor.height;
   stream.rate_hz = sensor.rate_hz;
   return stream;
 }
@@ -92,14 +89,10 @@ CameraStreamConfig BuildDepthStream(const SensorConfig& sensor) {
   CameraStreamConfig stream;
   stream.name = sensor.name + "_depth";
   stream.kind = CameraStreamKind::kDepth;
-  stream.camera_name = sensor.source_name;
-  stream.sensor_name = sensor.depth.sensor_name.empty() ? sensor.source_name + "_depth" : sensor.depth.sensor_name;
   stream.data_type = sensor.depth.data_type;
-  stream.channel_name = stream.sensor_name;
+  stream.channel_name = stream.name;
   stream.frame_id = sensor.depth.frame_id.empty() ? sensor.frame_id : sensor.depth.frame_id;
   stream.topic = sensor.depth.topic.empty() ? DeriveDepthTopic(sensor.topic) : sensor.depth.topic;
-  stream.width = sensor.width;
-  stream.height = sensor.height;
   stream.rate_hz = sensor.depth.rate_hz > 0.0 ? sensor.depth.rate_hz : sensor.rate_hz;
   stream.compute_rate_hz = sensor.depth.compute_rate_hz > 0.0 ? sensor.depth.compute_rate_hz : stream.rate_hz;
   stream.worker_threads = sensor.depth.worker_threads;
@@ -119,17 +112,11 @@ void LoadSensors(const YAML::Node& sensors_node, std::vector<SensorConfig>* sens
     AssignIfPresent(sensor_node, "enabled", &sensor.enabled);
     AssignIfPresent(sensor_node, "frame_id", &sensor.frame_id);
     AssignIfPresent(sensor_node, "topic", &sensor.topic);
-    AssignIfPresent(sensor_node, "source_name", &sensor.source_name);
-    AssignIfPresent(sensor_node, "width", &sensor.width);
-    AssignIfPresent(sensor_node, "height", &sensor.height);
     AssignIfPresent(sensor_node, "rate_hz", &sensor.rate_hz);
-    AssignIfPresent(sensor_node, "fov_h", &sensor.fov_h);
-    AssignIfPresent(sensor_node, "fov_v", &sensor.fov_v);
     const YAML::Node depth_node = sensor_node["depth"];
     AssignIfPresent(depth_node, "enabled", &sensor.depth.enabled);
     AssignIfPresent(depth_node, "frame_id", &sensor.depth.frame_id);
     AssignIfPresent(depth_node, "topic", &sensor.depth.topic);
-    AssignIfPresent(depth_node, "sensor_name", &sensor.depth.sensor_name);
     AssignIfPresent(depth_node, "date_type", &sensor.depth.data_type);
     AssignIfPresent(depth_node, "sensor_data_type", &sensor.depth.data_type);
     AssignIfPresent(depth_node, "sensor_data_types", &sensor.depth.data_type);

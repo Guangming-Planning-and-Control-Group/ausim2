@@ -52,14 +52,9 @@ sensors:
   - name: lidar16
     type: lidar
     enabled: true
-    source_name: lidar16        # MuJoCo sensor plugin name
     topic: lidar/points
     frame_id: lidar_link
     rate_hz: 10.0
-    width: 360                  # h_ray_num
-    height: 16                  # v_ray_num
-    fov_h: 360.0                # horizontal FOV degrees
-    fov_v: 30.0                 # vertical FOV degrees
 
 frames:
   odom: odom

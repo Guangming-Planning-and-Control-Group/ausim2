@@ -60,7 +60,7 @@ class QuadrotorSim {
   bool LoadModelIntoViewer(mujoco::Simulate& sim, const std::filesystem::path& model_path, bool replace_existing);
   void InstallModelPointers(mjModel* new_model, mjData* new_data, const std::filesystem::path& model_path, bool replace_existing);
   void ConfigureDefaultCamera();
-  void ResolveCameraSensors(const mjModel* model);
+  void ResolveCameraSensors(const mjModel* model, const mjData* data = nullptr);
   void ApplyDepthPluginPerformanceConfig(mjModel* model) const;
   void InitializeCameraRendering();
   void RefreshCameraRendering();

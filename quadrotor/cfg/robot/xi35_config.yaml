@@ -61,13 +61,9 @@ sensors:
     enabled: false
     frame_id: camera_link
     topic: camera/image_raw
-    source_name: front_cam
-    width: 320
-    height: 240
     rate_hz: 30.0
   - name: front_lidar
     type: laser_scan
     enabled: false
     frame_id: lidar_link
     topic: scan
-    source_name: lidar_origin

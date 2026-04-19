@@ -16,6 +16,7 @@
 #include <string>
 #include <string_view>
 #include <thread>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -140,6 +141,45 @@ bool HasColorCameraStreams(const std::vector<StreamType>& streams) {
     }
   }
   return false;
+}
+
+std::string CameraStreamBaseName(const std::string& stream_name) {
+  constexpr std::string_view kDepthSuffix = "_depth";
+  if (stream_name.size() >= kDepthSuffix.size() &&
+      stream_name.compare(stream_name.size() - kDepthSuffix.size(), kDepthSuffix.size(), kDepthSuffix) == 0) {
+    return stream_name.substr(0, stream_name.size() - kDepthSuffix.size());
+  }
+  return stream_name;
+}
+
+std::vector<int> CollectPublishableCameraIds(const mjModel* model, const std::string& track_camera_name) {
+  std::vector<int> camera_ids;
+  if (model == nullptr) {
+    return camera_ids;
+  }
+
+  const int track_camera_id = track_camera_name.empty() ? -1 : mj_name2id(model, mjOBJ_CAMERA, track_camera_name.c_str());
+  for (int camera_id = 0; camera_id < model->ncam; ++camera_id) {
+    if (camera_id != track_camera_id) {
+      camera_ids.push_back(camera_id);
+    }
+  }
+  return camera_ids;
+}
+
+std::vector<int> CollectPluginCameraSensorIds(const mjModel* model, int camera_id) {
+  std::vector<int> sensor_ids;
+  if (model == nullptr || camera_id < 0) {
+    return sensor_ids;
+  }
+
+  for (int sensor_id = 0; sensor_id < model->nsensor; ++sensor_id) {
+    if (model->sensor_type[sensor_id] == mjSENS_PLUGIN && model->sensor_objtype[sensor_id] == mjOBJ_CAMERA &&
+        model->sensor_objid[sensor_id] == camera_id) {
+      sensor_ids.push_back(sensor_id);
+    }
+  }
+  return sensor_ids;
 }
 
 std::optional<RayCasterDepthLayout> ReadRayCasterDepthLayout(const mjModel* model, const mjData* data, int sensor_id) {
@@ -386,15 +426,6 @@ QuadrotorSim::QuadrotorSim(QuadrotorConfig config)
   }
 
   for (const CameraStreamConfig& stream_config : BuildCameraStreamConfigs(config_.sensors)) {
-    if (stream_config.camera_name.empty()) {
-      throw std::runtime_error("Camera stream '" + stream_config.name + "' must define source_name to match an MJCF camera.");
-    }
-    if (stream_config.kind == CameraStreamKind::kDepth && stream_config.sensor_name.empty()) {
-      throw std::runtime_error("Depth stream '" + stream_config.name + "' must define a plugin sensor name.");
-    }
-    if (stream_config.width <= 0 || stream_config.height <= 0) {
-      throw std::runtime_error("Camera stream '" + stream_config.name + "' must define positive width and height.");
-    }
     if (stream_config.rate_hz <= 0.0) {
       throw std::runtime_error("Camera stream '" + stream_config.name + "' must define a positive rate_hz.");
     }
@@ -403,11 +434,7 @@ QuadrotorSim::QuadrotorSim(QuadrotorConfig config)
     stream.name = stream_config.name;
     stream.kind = stream_config.kind;
     stream.channel_name = stream_config.channel_name;
-    stream.camera_name = stream_config.camera_name;
-    stream.sensor_name = stream_config.sensor_name;
     stream.data_type = stream_config.data_type;
-    stream.width = stream_config.width;
-    stream.height = stream_config.height;
     stream.period_seconds = 1.0 / stream_config.rate_hz;
     stream.compute_period_seconds = stream_config.compute_rate_hz > 0.0 ? 1.0 / stream_config.compute_rate_hz : stream.period_seconds;
     stream.worker_threads = stream_config.worker_threads;
@@ -441,6 +468,7 @@ void QuadrotorSim::LoadModel() {
     throw std::runtime_error(validation_error);
   }
 
+  ResolveCameraSensors(load_result.model, nullptr);
   ApplyDepthPluginPerformanceConfig(load_result.model);
   load_result.model->opt.timestep = config_.simulation.dt;
   mjData* new_data = mj_makeData(load_result.model);
@@ -845,6 +873,7 @@ bool QuadrotorSim::LoadModelIntoViewer(mj::Simulate& sim, const fs::path& model_
     return false;
   }
 
+  ResolveCameraSensors(load_result.model, nullptr);
   ApplyDepthPluginPerformanceConfig(load_result.model);
   load_result.model->opt.timestep = config_.simulation.dt;
   mjData* new_data = mj_makeData(load_result.model);
@@ -893,7 +922,7 @@ void QuadrotorSim::InstallModelPointers(mjModel* new_model, mjData* new_data, co
   config_.model.scene_xml = fs::absolute(model_path);
 
   bindings_.Resolve(model_);
-  ResolveCameraSensors(model_);
+  ResolveCameraSensors(model_, data_);
   ConfigureDefaultCamera();
   RefreshCameraRendering();
 
@@ -960,27 +989,77 @@ void QuadrotorSim::ConfigureDefaultCamera() {
   }
 }
 
-void QuadrotorSim::ResolveCameraSensors(const mjModel* model) {
+void QuadrotorSim::ResolveCameraSensors(const mjModel* model, const mjData* data) {
   if (model == nullptr) {
     return;
   }
 
+  std::unordered_map<std::string, std::size_t> color_stream_indices;
+  const std::vector<int> publishable_camera_ids = CollectPublishableCameraIds(model, config_.simulation.track_camera_name);
+  std::size_t next_camera_index = 0;
+
   for (auto& stream : camera_streams_) {
-    stream.camera_id = mj_name2id(model, mjOBJ_CAMERA, stream.camera_name.c_str());
+    stream.camera_id = -1;
     stream.sensor_id = -1;
     stream.sensor_data_adr = -1;
     stream.sensor_data_size = 0;
+    stream.camera_name.clear();
+    stream.sensor_name.clear();
 
+    if (stream.kind != CameraStreamKind::kColor) {
+      continue;
+    }
+
+    if (next_camera_index >= publishable_camera_ids.size()) {
+      throw std::runtime_error("Model does not provide enough publishable cameras for configured camera streams.");
+    }
+
+    stream.camera_id = publishable_camera_ids[next_camera_index++];
+    const char* camera_name = mj_id2name(model, mjOBJ_CAMERA, stream.camera_id);
+    stream.camera_name = camera_name != nullptr ? camera_name : "";
+    stream.width = model->cam_resolution[2 * stream.camera_id + 0];
+    stream.height = model->cam_resolution[2 * stream.camera_id + 1];
+    if (stream.width <= 0 || stream.height <= 0) {
+      throw std::runtime_error("Camera stream '" + stream.name + "' resolved to MJCF camera '" + stream.camera_name +
+                               "' without a valid resolution.");
+    }
+    color_stream_indices.emplace(stream.name, &stream - camera_streams_.data());
+  }
+
+  for (auto& stream : camera_streams_) {
     if (stream.kind != CameraStreamKind::kDepth) {
       continue;
     }
 
-    stream.sensor_id = mj_name2id(model, mjOBJ_SENSOR, stream.sensor_name.c_str());
-    if (stream.sensor_id < 0) {
+    const auto color_it = color_stream_indices.find(CameraStreamBaseName(stream.name));
+    if (color_it == color_stream_indices.end()) {
+      throw std::runtime_error("Depth stream '" + stream.name + "' does not have a matching color stream.");
+    }
+
+    const CameraStreamRuntime& color_stream = camera_streams_[color_it->second];
+    stream.camera_id = color_stream.camera_id;
+    stream.camera_name = color_stream.camera_name;
+    stream.width = color_stream.width;
+    stream.height = color_stream.height;
+
+    const std::vector<int> sensor_ids = CollectPluginCameraSensorIds(model, stream.camera_id);
+    if (sensor_ids.empty()) {
+      throw std::runtime_error("Depth stream '" + stream.name + "' requires a MuJoCo plugin sensor bound to camera '" + stream.camera_name + "'.");
+    }
+    if (sensor_ids.size() > 1) {
+      throw std::runtime_error("Depth stream '" + stream.name + "' expected exactly one MuJoCo plugin sensor on camera '" + stream.camera_name +
+                               "', but found " + std::to_string(sensor_ids.size()) + ".");
+    }
+
+    stream.sensor_id = sensor_ids.front();
+    const char* sensor_name = mj_id2name(model, mjOBJ_SENSOR, stream.sensor_id);
+    stream.sensor_name = sensor_name != nullptr ? sensor_name : "";
+
+    if (data == nullptr) {
       continue;
     }
 
-    const std::optional<RayCasterDepthLayout> layout = ReadRayCasterDepthLayout(model, data_, stream.sensor_id);
+    const std::optional<RayCasterDepthLayout> layout = ReadRayCasterDepthLayout(model, data, stream.sensor_id);
     if (!layout.has_value()) {
       throw std::runtime_error("Depth stream '" + stream.name + "' must bind to a MuJoCo plugin sensor.");
     }
@@ -1162,25 +1241,48 @@ std::string QuadrotorSim::ValidateModel(const mjModel* candidate) const {
     return bindings_error;
   }
 
-  for (const auto& stream : camera_streams_) {
-    const int camera_id = mj_name2id(candidate, mjOBJ_CAMERA, stream.camera_name.c_str());
-    if (camera_id < 0) {
-      return "Model is incompatible with the configured camera stream: missing camera '" + stream.camera_name + "'";
-    }
+  const std::vector<int> publishable_camera_ids = CollectPublishableCameraIds(candidate, config_.simulation.track_camera_name);
+  std::unordered_map<std::string, int> color_camera_ids;
+  std::size_t next_camera_index = 0;
 
+  for (const auto& stream : camera_streams_) {
+    if (stream.kind != CameraStreamKind::kColor) {
+      continue;
+    }
+    if (next_camera_index >= publishable_camera_ids.size()) {
+      return "Model is incompatible with the configured camera streams: it does not expose enough publishable MJCF cameras.";
+    }
+    const int camera_id = publishable_camera_ids[next_camera_index++];
+    const int width = candidate->cam_resolution[2 * camera_id + 0];
+    const int height = candidate->cam_resolution[2 * camera_id + 1];
+    if (width <= 0 || height <= 0) {
+      const char* camera_name = mj_id2name(candidate, mjOBJ_CAMERA, camera_id);
+      return "Model camera '" + std::string(camera_name != nullptr ? camera_name : "<unnamed>") + "' must define a positive resolution.";
+    }
+    color_camera_ids.emplace(stream.name, camera_id);
+  }
+
+  for (const auto& stream : camera_streams_) {
     if (stream.kind != CameraStreamKind::kDepth) {
       continue;
     }
 
-    const int sensor_id = mj_name2id(candidate, mjOBJ_SENSOR, stream.sensor_name.c_str());
-    if (sensor_id < 0) {
-      return "Model is incompatible with the configured depth stream: missing sensor '" + stream.sensor_name + "'";
+    const auto color_it = color_camera_ids.find(CameraStreamBaseName(stream.name));
+    if (color_it == color_camera_ids.end()) {
+      return "Depth stream '" + stream.name + "' does not have a matching color stream.";
     }
-    if (candidate->sensor_type[sensor_id] != mjSENS_PLUGIN) {
-      return "Depth stream '" + stream.name + "' must use a MuJoCo plugin sensor.";
+
+    const int camera_id = color_it->second;
+    const std::vector<int> sensor_ids = CollectPluginCameraSensorIds(candidate, camera_id);
+    if (sensor_ids.empty()) {
+      const char* camera_name = mj_id2name(candidate, mjOBJ_CAMERA, camera_id);
+      return "Depth stream '" + stream.name + "' requires a MuJoCo plugin sensor bound to camera '" +
+             std::string(camera_name != nullptr ? camera_name : "<unnamed>") + "'.";
     }
-    if (candidate->sensor_objtype[sensor_id] != mjOBJ_CAMERA || candidate->sensor_objid[sensor_id] != camera_id) {
-      return "Depth stream '" + stream.name + "' must be bound to camera '" + stream.camera_name + "'.";
+    if (sensor_ids.size() > 1) {
+      const char* camera_name = mj_id2name(candidate, mjOBJ_CAMERA, camera_id);
+      return "Depth stream '" + stream.name + "' expected exactly one MuJoCo plugin sensor bound to camera '" +
+             std::string(camera_name != nullptr ? camera_name : "<unnamed>") + "'.";
     }
   }
 

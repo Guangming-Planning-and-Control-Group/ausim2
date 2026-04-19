@@ -62,9 +62,6 @@ sensors:
     enabled: true
     frame_id: camera_link
     topic: camera/image_raw
-    source_name: front_cam
-    width: 320
-    height: 240
     rate_hz: 30.0
     depth:
       enabled: true

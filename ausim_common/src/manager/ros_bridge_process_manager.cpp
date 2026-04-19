@@ -246,7 +246,7 @@ void RosBridgeProcessManager::LidarLoop() {
   for (const ausim::SensorConfig& s : config_.sensors) {
     if (s.type == "lidar" && s.enabled) {
       rate_hz = s.rate_hz > 0.0 ? s.rate_hz : 10.0;
-      lidar_name = s.source_name;
+      lidar_name = s.name;
       break;
     }
   }

@@ -222,6 +222,56 @@ const char* Diverged(int disableflags, const mjData* data) {
   return nullptr;
 }
 
+std::optional<std::string> ReadPluginAttribute(const mjModel* model, int plugin_instance, const char* attribute_name) {
+  if (model == nullptr || plugin_instance < 0 || plugin_instance >= model->nplugin || attribute_name == nullptr) {
+    return std::nullopt;
+  }
+
+  const mjpPlugin* plugin = mjp_getPluginAtSlot(model->plugin[plugin_instance]);
+  if (plugin == nullptr) {
+    return std::nullopt;
+  }
+
+  const char* attr = model->plugin_attr + model->plugin_attradr[plugin_instance];
+  for (int i = 0; i < plugin->nattribute; ++i) {
+    if (std::strcmp(plugin->attributes[i], attribute_name) == 0) {
+      return std::string(attr);
+    }
+    attr += std::strlen(attr) + 1;
+  }
+  return std::nullopt;
+}
+
+bool ParseLidarSize(const std::string& text, int* h_ray_num, int* v_ray_num) {
+  if (h_ray_num == nullptr || v_ray_num == nullptr) {
+    return false;
+  }
+
+  std::istringstream stream(text);
+  int width = 0;
+  int height = 0;
+  if (!(stream >> width >> height)) {
+    return false;
+  }
+  *h_ray_num = width;
+  *v_ray_num = height;
+  return true;
+}
+
+bool ParseScalarDouble(const std::string& text, double* value) {
+  if (value == nullptr) {
+    return false;
+  }
+
+  std::istringstream stream(text);
+  double parsed = 0.0;
+  if (!(stream >> parsed)) {
+    return false;
+  }
+  *value = parsed;
+  return true;
+}
+
 Eigen::Vector3d ReadVector3(const mjData* data, const SensorBinding& binding) {
   if (!binding.resolved || binding.dim < 3) {
     return Eigen::Vector3d::Zero();
@@ -366,12 +416,63 @@ void ScoutSim::ResolveBindings() {
   ResolveSensor(&accelerometer_sensor_);
   ResolveSensor(&quaternion_sensor_);
 
+  lidar_sensor_ = SensorBinding{};
+  lidar_channel_name_.clear();
+  lidar_h_ray_num_ = 0;
+  lidar_v_ray_num_ = 0;
+  lidar_fov_h_deg_ = 0.0f;
+  lidar_fov_v_deg_ = 0.0f;
+
   for (const ausim::SensorConfig& sensor : config_.common.sensors) {
-    if (sensor.type == "lidar" && sensor.enabled && !sensor.source_name.empty()) {
-      lidar_sensor_.name = sensor.source_name;
-      ResolveSensor(&lidar_sensor_);
+    if (sensor.type != "lidar" || !sensor.enabled) {
+      continue;
+    }
+
+    lidar_channel_name_ = sensor.name;
+    for (int sensor_id = 0; sensor_id < model_->nsensor; ++sensor_id) {
+      if (model_->sensor_type[sensor_id] != mjSENS_PLUGIN) {
+        continue;
+      }
+
+      const int plugin_instance = model_->sensor_plugin[sensor_id];
+      const std::optional<std::string> size_attr = ReadPluginAttribute(model_, plugin_instance, "size");
+      const std::optional<std::string> fov_h_attr = ReadPluginAttribute(model_, plugin_instance, "fov_h");
+      const std::optional<std::string> fov_v_attr = ReadPluginAttribute(model_, plugin_instance, "fov_v");
+      if (!size_attr.has_value() || !fov_h_attr.has_value() || !fov_v_attr.has_value()) {
+        continue;
+      }
+
+      lidar_sensor_.id = sensor_id;
+      lidar_sensor_.adr = model_->sensor_adr[sensor_id];
+      lidar_sensor_.dim = model_->sensor_dim[sensor_id];
+      lidar_sensor_.resolved = true;
+      const char* sensor_name = mj_id2name(model_, mjOBJ_SENSOR, sensor_id);
+      lidar_sensor_.name = sensor_name != nullptr ? sensor_name : "";
+
+      if (!ParseLidarSize(*size_attr, &lidar_h_ray_num_, &lidar_v_ray_num_)) {
+        throw std::runtime_error("Scout lidar plugin attribute 'size' must be two integers.");
+      }
+
+      double fov_h = 0.0;
+      double fov_v = 0.0;
+      if (!ParseScalarDouble(*fov_h_attr, &fov_h) || !ParseScalarDouble(*fov_v_attr, &fov_v)) {
+        throw std::runtime_error("Scout lidar plugin attributes 'fov_h' and 'fov_v' must be scalar numbers.");
+      }
+      lidar_fov_h_deg_ = static_cast<float>(fov_h);
+      lidar_fov_v_deg_ = static_cast<float>(fov_v);
       break;
     }
+
+    if (!lidar_sensor_.resolved) {
+      throw std::runtime_error("Scout lidar sensor '" + sensor.name + "' could not be resolved from the MJCF plugin definitions.");
+    }
+    if (lidar_h_ray_num_ <= 0 || lidar_v_ray_num_ <= 0) {
+      throw std::runtime_error("Scout lidar plugin must define a positive 'size' attribute.");
+    }
+    if (lidar_sensor_.dim != lidar_h_ray_num_ * lidar_v_ray_num_) {
+      throw std::runtime_error("Scout lidar plugin sample count does not match its configured size.");
+    }
+    break;
   }
 }
 
@@ -497,35 +598,23 @@ void ScoutSim::PublishTelemetry(bool log_state) {
 }
 
 void ScoutSim::PublishLidar() {
-  if (!lidar_sensor_.resolved || lidar_sensor_.dim <= 0) {
-    return;
-  }
-
-  // Find the matching sensor config for geometry metadata.
-  const ausim::SensorConfig* lidar_cfg = nullptr;
-  for (const ausim::SensorConfig& s : config_.common.sensors) {
-    if (s.type == "lidar" && s.source_name == lidar_sensor_.name) {
-      lidar_cfg = &s;
-      break;
-    }
-  }
-  if (lidar_cfg == nullptr) {
+  if (!lidar_sensor_.resolved || lidar_sensor_.dim <= 0 || lidar_channel_name_.empty()) {
     return;
   }
 
   const int n = lidar_sensor_.dim;
   ausim::LidarSnapshot snap;
   snap.sim_time = data_->time;
-  snap.h_ray_num = lidar_cfg->width;
-  snap.v_ray_num = lidar_cfg->height;
-  snap.fov_h_deg = static_cast<float>(lidar_cfg->fov_h);
-  snap.fov_v_deg = static_cast<float>(lidar_cfg->fov_v);
+  snap.h_ray_num = lidar_h_ray_num_;
+  snap.v_ray_num = lidar_v_ray_num_;
+  snap.fov_h_deg = lidar_fov_h_deg_;
+  snap.fov_v_deg = lidar_fov_v_deg_;
   snap.ranges.resize(n);
   for (int i = 0; i < n; ++i) {
     snap.ranges[i] = static_cast<float>(data_->sensordata[lidar_sensor_.adr + i]);
   }
 
-  ausim::WriteLidarSnapshot(lidar_sensor_.name, snap);
+  ausim::WriteLidarSnapshot(lidar_channel_name_, snap);
 }
 
 void ScoutSim::LogStateIfNeeded(const ausim::TelemetrySnapshot& snapshot) const {

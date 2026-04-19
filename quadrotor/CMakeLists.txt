@@ -111,6 +111,19 @@ target_include_directories(reset_simulation_test
 target_compile_features(reset_simulation_test PRIVATE cxx_std_17)
 target_link_libraries(reset_simulation_test PRIVATE quadrotor_sim_core)
 
+add_executable(model_sensor_binding_test
+  tests/model_sensor_binding_test.cpp
+)
+
+target_include_directories(model_sensor_binding_test
+  PRIVATE
+    "${CMAKE_SOURCE_DIR}/ausim_common/src"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src"
+)
+
+target_compile_features(model_sensor_binding_test PRIVATE cxx_std_17)
+target_link_libraries(model_sensor_binding_test PRIVATE quadrotor_sim_core)
+
 set(_quadrotor_runtime_rpaths)
 if(MUJOCO_RESOLVED_LIBRARY_DIR)
   list(APPEND _quadrotor_runtime_rpaths "${MUJOCO_RESOLVED_LIBRARY_DIR}")

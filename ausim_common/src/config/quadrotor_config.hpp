@@ -124,7 +124,6 @@ struct CameraDepthConfig {
   bool enabled = false;
   std::string frame_id;
   std::string topic;
-  std::string sensor_name;
   std::string data_type;
   double rate_hz = 0.0;
   double compute_rate_hz = 0.0;
@@ -137,14 +136,8 @@ struct SensorConfig {
   bool enabled = false;
   std::string frame_id;
   std::string topic;
-  std::string source_name;
-  int width = 320;
-  int height = 240;
   double rate_hz = 30.0;
   CameraDepthConfig depth;
-  // Lidar-specific geometry (degrees). Defaults match the scout_v2 MJCF plugin config.
-  double fov_h = 360.0;
-  double fov_v = 30.0;
 };
 
 enum class CameraStreamKind {
