@@ -38,6 +38,54 @@ standard ROS interfaces such as `geometry_msgs/Twist`, `nav_msgs/Odometry`,
   - `-> standard ROS msgs`
   - `-> ausim_msg semantic msgs`
 
+## Current Data-Flow Diagram
+
+```mermaid
+flowchart LR
+    A[mjModel / mjData] --> B[sim reader / extractor]
+    B --> C[TelemetrySnapshot / CameraFrame / LidarSnapshot]
+    C --> D[ipc::TelemetryPacket / image metadata + buffer / lidar packet]
+    D --> E[ROS bridge]
+    E --> F[Standard ROS messages]
+    E --> G[ausim_msg semantic messages]
+
+    F --> F1[Odometry]
+    F --> F2[Imu]
+    F --> F3[Image]
+    F --> F4[PointCloud2]
+    F --> F5[Clock]
+    F --> F6[TF]
+
+    G --> G1[RobotMode]
+    G --> G2[SimulationEventAck]
+    G --> G3[DeviceStatus]
+    G --> G4[Vision-style detections]
+```
+
+## ROS Topic <-> Simulator Bidirectional Chain
+
+```mermaid
+flowchart LR
+    subgraph Input[ROS to Simulator]
+        I1[geometry_msgs/Twist] --> I2[ROS subscriber]
+        I1b[std_srvs/Trigger] --> I2
+        I1c[future ausim_msg command] --> I2
+        I2 --> I3[internal command]
+        I3 --> I4[DataBoard / runtime queue]
+        I4 --> I5[controller / mode machine]
+        I5 --> I6[mjData ctrl]
+    end
+
+    subgraph Output[Simulator to ROS]
+        O1[mjData / mjModel] --> O2[reader / extractor]
+        O2 --> O3[neutral snapshot]
+        O3 --> O4[IPC packet]
+        O4 --> O5[ROS bridge]
+        O5 --> O6[standard ROS topic]
+        O5 --> O7[ausim_msg topic]
+    end
+```
+
 ## Current Structured Route
 
 The first live semantic route is:
