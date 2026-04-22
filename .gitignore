@@ -1,4 +1,5 @@
 build/
+reference/
 .vscode
 .codex
 .claude
