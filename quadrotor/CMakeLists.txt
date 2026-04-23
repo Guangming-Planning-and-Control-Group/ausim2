@@ -123,6 +123,19 @@ target_include_directories(model_sensor_binding_test
 target_compile_features(model_sensor_binding_test PRIVATE cxx_std_17)
 target_link_libraries(model_sensor_binding_test PRIVATE quadrotor_sim_core)
 
+add_executable(dynamic_obstacle_no_depth_test
+  tests/dynamic_obstacle_no_depth_test.cpp
+)
+
+target_include_directories(dynamic_obstacle_no_depth_test
+  PRIVATE
+    "${CMAKE_SOURCE_DIR}/ausim_common/src"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src"
+)
+
+target_compile_features(dynamic_obstacle_no_depth_test PRIVATE cxx_std_17)
+target_link_libraries(dynamic_obstacle_no_depth_test PRIVATE quadrotor_sim_core)
+
 set(_quadrotor_runtime_rpaths)
 if(MUJOCO_RESOLVED_LIBRARY_DIR)
   list(APPEND _quadrotor_runtime_rpaths "${MUJOCO_RESOLVED_LIBRARY_DIR}")

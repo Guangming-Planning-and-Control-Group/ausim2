@@ -958,6 +958,15 @@ bool QuadrotorSim::IsDepthStreamRenderable(const CameraStreamRuntime& stream) co
   return stream.sensor_data_adr >= 0 && stream.sensor_data_size == stream.width * stream.height;
 }
 
+bool QuadrotorSim::HasRenderableDepthStream() const {
+  for (const auto& stream : camera_streams_) {
+    if (IsDepthStreamRenderable(stream)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool QuadrotorSim::HasDueDepthStreamAfterStep(double next_sim_time) const {
   if (data_ == nullptr) {
     return false;
@@ -1375,8 +1384,10 @@ bool QuadrotorSim::PrepareDynamicObstaclesForStep() {
   }
 
   const double next_sim_time = data_->time + model_->opt.timestep;
-  const bool update_due = dynamic_obstacle_runtime_.RequiresPhysicsRateUpdates() || HasDueDepthStreamAfterStep(next_sim_time);
-  return dynamic_obstacle_runtime_.PrepareForStep(next_sim_time, update_due);
+  return dynamic_obstacle_runtime_.PrepareForStep(
+      next_sim_time,
+      HasRenderableDepthStream(),
+      HasDueDepthStreamAfterStep(next_sim_time));
 }
 
 }  // namespace quadrotor

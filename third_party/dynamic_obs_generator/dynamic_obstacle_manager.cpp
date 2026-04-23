@@ -117,7 +117,7 @@ bool DynamicObstacleManager::Initialize(
               << " obstacles, " << moving_obstacles_.size() << " of them moving, using "
               << total_update_threads_ << " update thread(s)"
               << (requires_physics_rate_updates_ ? " at physics cadence."
-                                                 : " in trajectory-player mode at depth cadence.")
+                                                 : " in trajectory-player mode with shared runtime cadence.")
               << std::endl;
   }
 
@@ -593,7 +593,9 @@ std::string DynamicObstacleManager::GetDebugInfo() const {
   oss << "    active_update_threads: " << total_update_threads_ << "\n";
   oss << "    parallel_update: " << (use_parallel_update_ ? "yes" : "no") << "\n";
   oss << "    update_cadence: "
-      << (requires_physics_rate_updates_ ? "physics-step" : "depth-driven trajectory playback")
+      << (requires_physics_rate_updates_
+              ? "physics-step"
+              : "shared runtime cadence (depth-driven when available, otherwise step-driven)")
       << "\n";
   oss << "    range: [(" << config_.range_x_min << ", " << config_.range_y_min << ", "
       << config_.range_z_min << ") to (" << config_.range_x_max << ", "

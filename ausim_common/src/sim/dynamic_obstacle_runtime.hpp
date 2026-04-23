@@ -13,7 +13,7 @@ namespace ausim {
 class DynamicObstacleRuntime {
  public:
   void Initialize(const DynamicObstacleConfig& config, mjModel* model, mjData* data, const std::string& log_prefix);
-  bool PrepareForStep(double next_sim_time, bool update_due);
+  bool PrepareForStep(double next_sim_time, bool has_renderable_depth_stream, bool cadence_due);
   bool ResetToCurrentTime();
   void Clear();
   bool RequiresPhysicsRateUpdates() const;

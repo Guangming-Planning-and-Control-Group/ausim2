@@ -50,10 +50,20 @@ void DynamicObstacleRuntime::Initialize(const DynamicObstacleConfig& config, mjM
   }
 }
 
-bool DynamicObstacleRuntime::PrepareForStep(double next_sim_time, bool update_due) {
-  if (manager_ == nullptr || model_ == nullptr || data_ == nullptr || !update_due) {
+bool DynamicObstacleRuntime::PrepareForStep(
+    double next_sim_time,
+    bool has_renderable_depth_stream,
+    bool cadence_due) {
+  if (manager_ == nullptr || model_ == nullptr || data_ == nullptr) {
     return false;
   }
+
+  const bool update_due =
+      manager_->RequiresPhysicsRateUpdates() || !has_renderable_depth_stream || cadence_due;
+  if (!update_due) {
+    return false;
+  }
+
   return manager_->ApplyTrajectory(next_sim_time);
 }
 

@@ -72,6 +72,7 @@ class QuadrotorSim {
   void SleepToMatchRealtime(const std::chrono::high_resolution_clock::time_point& step_start, double simulated_seconds) const;
   static void HandleSigint(int signal);
   bool IsDepthStreamRenderable(const CameraStreamRuntime& stream) const;
+  bool HasRenderableDepthStream() const;
   bool HasDueDepthStreamAfterStep(double next_sim_time) const;
 
   // Dynamic obstacle management

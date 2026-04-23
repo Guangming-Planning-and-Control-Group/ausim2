@@ -686,7 +686,10 @@ bool ScoutSim::PrepareDynamicObstaclesForStep() {
   if (model_ == nullptr || data_ == nullptr) {
     return false;
   }
-  return dynamic_obstacle_runtime_.PrepareForStep(data_->time + model_->opt.timestep, true);
+  return dynamic_obstacle_runtime_.PrepareForStep(
+      data_->time + model_->opt.timestep,
+      false,
+      false);
 }
 
 void ScoutSim::Run() {
