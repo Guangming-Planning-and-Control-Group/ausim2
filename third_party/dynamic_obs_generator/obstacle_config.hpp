@@ -47,6 +47,12 @@ struct ObstacleConfig {
   int update_threads = 0;   // 0 = auto, 1 = single-threaded, >1 = total update threads
   int parallel_threshold = 16;  // minimum moving obstacles before enabling worker threads
 
+  // Optional ROS publish settings for dynamic obstacle snapshots.
+  bool publish_enabled = false;
+  std::string publish_topic = "/dyn_obstacle";
+  std::string publish_frame_id = "world";
+  double publish_rate_hz = 20.0;
+
   // Validations
   bool IsValid(std::string* error_msg = nullptr) const;
   int GetUsedShape() const;  // Returns compatible shape based on mode

@@ -81,6 +81,7 @@ add_library(ausim_common_ros_bridge_core STATIC
   src/converts/data/odom.cpp
   src/converts/data/transform.cpp
   src/ros/publisher/data/clock_data_publisher.cpp
+  src/ros/publisher/data/dyn_obstacle_data_publisher.cpp
   src/ros/publisher/data/image_data_publisher.cpp
   src/ros/publisher/data/imu_data_publisher.cpp
   src/ros/publisher/data/lidar_data_publisher.cpp
@@ -231,3 +232,15 @@ target_include_directories(robot_mode_semantic_test
 
 target_compile_features(robot_mode_semantic_test PRIVATE cxx_std_17)
 target_link_libraries(robot_mode_semantic_test PRIVATE ausim_common_ros_bridge_core)
+
+add_executable(dynamic_obstacle_packet_test
+  tests/dynamic_obstacle_packet_test.cpp
+)
+
+target_include_directories(dynamic_obstacle_packet_test
+  PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/src"
+)
+
+target_compile_features(dynamic_obstacle_packet_test PRIVATE cxx_std_17)
+target_link_libraries(dynamic_obstacle_packet_test PRIVATE ausim_common_runtime)

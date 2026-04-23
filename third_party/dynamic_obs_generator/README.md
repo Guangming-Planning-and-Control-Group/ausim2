@@ -93,6 +93,13 @@ obstacle_count: 10
 # 运动速度
 min_speed: 0.0    # 最小速度 (m/s)
 max_speed: 0.5   # 最大速度 (m/s)
+
+# 可选：向 ROS bridge 发布所有 dynamic_obs_* 当前包围盒
+publish:
+  enabled: false
+  topic: /dyn_obstacle
+  frame_id: world
+  rate_hz: 20.0
 ```
 
 ### 4. 编译运行
@@ -115,6 +122,10 @@ cmake --build build -j
 | `min_speed` | float | 0.0 | 最小速度 |
 | `max_speed` | float | 0.5 | 最大速度 |
 | `collision_enabled` | bool | false | 生成可碰撞障碍；启用时 Python 侧会生成 mocap body 包裹 |
+| `publish.enabled` | bool | false | 是否发布 `/dyn_obstacle` 包围盒数组 |
+| `publish.topic` | string | `/dyn_obstacle` | 障碍物数组话题名 |
+| `publish.frame_id` | string | `world` | 发布使用的默认坐标系 |
+| `publish.rate_hz` | float | 20.0 | 障碍物数组发布频率 |
 | `range.x_min/max` | float | -3.0/3.0 | X 范围边界 |
 | `range.y_min/max` | float | -3.0/3.0 | Y 范围边界 |
 | `range.z_min/max` | float | 0.0/2.0 | Z 范围边界 |
@@ -139,7 +150,8 @@ cmake --build build -j
 4. **轨迹播放**:
    - mocap 路径保持接触求解兼容，通常可继续按轨迹播放器节拍更新
    - direct geom 路径适合纯视觉障碍；如果用户手写了可碰撞 direct geom，管理器会警告并继续工作
-5. **边界处理**: 障碍物碰到边界时仅反转对应轴向速度
+5. **桥接发布**: 若 `publish.enabled=true`，sim 进程会按 `publish.rate_hz` 采样当前障碍物位置/尺寸，经 IPC 发给 ROS bridge，发布成 `ausim_msg/msg/BoundingBox3DArray`
+6. **碰撞**: 障碍物碰到边界时仅反转对应轴向速度
 
 ## 限制
 

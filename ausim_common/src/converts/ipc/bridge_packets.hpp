@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <string>
+#include <vector>
 
 #include "data/clock.hpp"
 #include "data/cmd_vel.hpp"
@@ -10,6 +11,7 @@
 #include "data/odom.hpp"
 #include "data/transform.hpp"
 #include "ipc/bridge_packets.hpp"
+#include "runtime/dynamic_obstacles_snapshot.hpp"
 #include "runtime/runtime_types.hpp"
 
 namespace ausim::converts {
@@ -20,6 +22,8 @@ ipc::DiscreteCommandPacket ToDiscreteCommandPacket(const DiscreteCommand& comman
 DiscreteCommand ToDiscreteCommand(const ipc::DiscreteCommandPacket& packet, std::chrono::steady_clock::time_point received_time);
 
 ipc::TelemetryPacket ToTelemetryPacket(const TelemetrySnapshot& snapshot);
+bool ToDynObstaclePacket(const DynamicObstaclesSnapshot& snapshot, std::vector<std::uint8_t>& out);
+bool FromDynObstaclePacketBytes(const std::uint8_t* data, std::size_t len, DynamicObstaclesSnapshot& out);
 ipc::CameraImageMetadataPacket ToCameraImageMetadataPacket(const CameraFrame& frame, std::uint32_t sensor_index);
 CameraFrame ToCameraFrame(const ipc::CameraImageMetadataPacket& packet, std::vector<std::uint8_t> pixels);
 

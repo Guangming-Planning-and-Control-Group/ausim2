@@ -3,6 +3,7 @@
 #include <atomic>
 #include <cstdint>
 #include <filesystem>
+#include <mutex>
 #include <string>
 #include <thread>
 #include <vector>
@@ -30,6 +31,7 @@ class RosBridgeProcessManager {
   void DiscreteCommandLoop();
   void CameraLoop();
   void LidarLoop();
+  void DynamicObstaclesLoop();
   void EnsureChildStillRunning(const char* stage) const;
 
   QuadrotorConfig config_;
@@ -46,7 +48,9 @@ class RosBridgeProcessManager {
   std::thread discrete_command_thread_;
   std::thread camera_thread_;
   std::thread lidar_thread_;
+  std::thread dynamic_obstacles_thread_;
   std::vector<std::string> camera_channel_names_;
+  std::mutex telemetry_send_mutex_;
 };
 
 }  // namespace ausim

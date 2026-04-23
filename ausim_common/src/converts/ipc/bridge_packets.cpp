@@ -1,6 +1,7 @@
 #include "converts/ipc/bridge_packets.hpp"
 
 #include <algorithm>
+#include <cstring>
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
@@ -35,6 +36,20 @@ std::array<char, ipc::kDiscreteEventNameCapacity> ToDiscreteEventName(const std:
   const std::size_t copy_length = std::min<std::size_t>(value.size(), buffer.size() - 1);
   std::copy_n(value.data(), copy_length, buffer.data());
   return buffer;
+}
+
+template <std::size_t Capacity>
+std::array<char, Capacity> ToFixedCString(const std::string& value) {
+  std::array<char, Capacity> buffer = {};
+  const std::size_t copy_length = std::min<std::size_t>(value.size(), buffer.size() - 1);
+  std::copy_n(value.data(), copy_length, buffer.data());
+  return buffer;
+}
+
+template <std::size_t Capacity>
+std::string FromFixedCString(const std::array<char, Capacity>& buffer) {
+  const auto nul = std::find(buffer.begin(), buffer.end(), '\0');
+  return std::string(buffer.data(), static_cast<std::size_t>(std::distance(buffer.begin(), nul)));
 }
 
 std::string FromDiscreteEventName(const std::array<char, ipc::kDiscreteEventNameCapacity>& buffer) {
@@ -130,6 +145,73 @@ ipc::TelemetryPacket ToTelemetryPacket(const TelemetrySnapshot& snapshot) {
   packet.last_discrete_command_status = static_cast<std::uint8_t>(snapshot.last_discrete_command_status);
   packet.last_discrete_command_sequence = snapshot.last_discrete_command_sequence;
   return packet;
+}
+
+bool ToDynObstaclePacket(const DynamicObstaclesSnapshot& snapshot, std::vector<std::uint8_t>& out) {
+  if (snapshot.entries.size() > ipc::kMaxDynObstacleEntries) {
+    return false;
+  }
+
+  const std::size_t total_size =
+      sizeof(ipc::DynObstaclePacketHeader) + snapshot.entries.size() * sizeof(ipc::DynObstaclePacketEntry);
+  out.resize(total_size);
+
+  ipc::DynObstaclePacketHeader header;
+  header.magic = 0x444F4253u;  // "DOBS"
+  header.entry_count = static_cast<std::uint32_t>(snapshot.entries.size());
+  header.sim_time = snapshot.sim_time;
+  header.frame_id = ToFixedCString<ipc::kDynObstacleFrameIdCapacity>(snapshot.frame_id);
+  std::memcpy(out.data(), &header, sizeof(header));
+
+  auto* entries = reinterpret_cast<ipc::DynObstaclePacketEntry*>(out.data() + sizeof(header));
+  for (std::size_t index = 0; index < snapshot.entries.size(); ++index) {
+    const DynamicObstacleEntry& in = snapshot.entries[index];
+    ipc::DynObstaclePacketEntry& entry = entries[index];
+    entry.name = ToFixedCString<ipc::kDynObstacleNameCapacity>(in.name);
+    std::copy_n(in.pos, 3, entry.pos.begin());
+    std::copy_n(in.quat, 4, entry.quat.begin());
+    std::copy_n(in.size, 3, entry.size.begin());
+  }
+
+  return true;
+}
+
+bool FromDynObstaclePacketBytes(const std::uint8_t* data, std::size_t len, DynamicObstaclesSnapshot& out) {
+  out = DynamicObstaclesSnapshot{};
+  if (data == nullptr || len < sizeof(ipc::DynObstaclePacketHeader)) {
+    return false;
+  }
+
+  ipc::DynObstaclePacketHeader header;
+  std::memcpy(&header, data, sizeof(header));
+  if (header.magic != 0x444F4253u) {
+    return false;
+  }
+  if (header.entry_count > ipc::kMaxDynObstacleEntries) {
+    return false;
+  }
+
+  const std::size_t expected_size =
+      sizeof(ipc::DynObstaclePacketHeader) + static_cast<std::size_t>(header.entry_count) * sizeof(ipc::DynObstaclePacketEntry);
+  if (len != expected_size) {
+    return false;
+  }
+
+  out.sim_time = header.sim_time;
+  out.frame_id = FromFixedCString(header.frame_id);
+  out.entries.resize(header.entry_count);
+
+  const auto* entries = reinterpret_cast<const ipc::DynObstaclePacketEntry*>(data + sizeof(header));
+  for (std::size_t index = 0; index < out.entries.size(); ++index) {
+    const ipc::DynObstaclePacketEntry& in = entries[index];
+    DynamicObstacleEntry& entry = out.entries[index];
+    entry.name = FromFixedCString(in.name);
+    std::copy(in.pos.begin(), in.pos.end(), entry.pos);
+    std::copy(in.quat.begin(), in.quat.end(), entry.quat);
+    std::copy(in.size.begin(), in.size.end(), entry.size);
+  }
+
+  return true;
 }
 
 ipc::CameraImageMetadataPacket ToCameraImageMetadataPacket(const CameraFrame& frame, std::uint32_t sensor_index) {

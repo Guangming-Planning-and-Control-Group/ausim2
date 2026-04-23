@@ -78,6 +78,7 @@ class QuadrotorSim {
   // Dynamic obstacle management
   void InitializeDynamicObstacleManager();
   bool PrepareDynamicObstaclesForStep();
+  void PublishDynamicObstaclesSnapshotIfDue();
 
   QuadrotorConfig config_;
   VehicleRuntime runtime_;
@@ -124,6 +125,7 @@ class QuadrotorSim {
   DiscreteCommandAckStatus last_discrete_command_status_ = DiscreteCommandAckStatus::kNone;
 
   ausim::DynamicObstacleRuntime dynamic_obstacle_runtime_;
+  double next_dynamic_obstacle_publish_time_ = 0.0;
 
   static QuadrotorSim* active_instance_;
 };

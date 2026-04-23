@@ -119,6 +119,10 @@ bool ObstacleConfig::IsValid(std::string* error_msg) const {
     if (error_msg) *error_msg = "parallel_threshold must be non-negative";
     return false;
   }
+  if (publish_enabled && publish_rate_hz <= 0.0) {
+    if (error_msg) *error_msg = "publish_rate_hz must be positive when publish_enabled=true";
+    return false;
+  }
 
   // Check size parameters
   if (radius <= 0) {
@@ -201,6 +205,14 @@ ObstacleConfig LoadConfigFromYaml(const std::string& path) {
   AssignIfPresent(root, "collision_enabled", &config.collision_enabled);
   AssignIfPresent(root, "update_threads", &config.update_threads);
   AssignIfPresent(root, "parallel_threshold", &config.parallel_threshold);
+
+  if (root["publish"]) {
+    const YAML::Node publish = root["publish"];
+    AssignIfPresent(publish, "enabled", &config.publish_enabled);
+    AssignIfPresent(publish, "topic", &config.publish_topic);
+    AssignIfPresent(publish, "frame_id", &config.publish_frame_id);
+    AssignIfPresent(publish, "rate_hz", &config.publish_rate_hz);
+  }
 
   // Validate
   std::string error_msg;

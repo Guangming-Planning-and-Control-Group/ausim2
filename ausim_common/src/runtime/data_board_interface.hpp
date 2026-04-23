@@ -4,6 +4,7 @@
 #include <string>
 
 #include "common/db/data_board.hpp"
+#include "runtime/dynamic_obstacles_snapshot.hpp"
 #include "runtime/lidar_snapshot.hpp"
 #include "runtime/runtime_types.hpp"
 
@@ -15,6 +16,8 @@ db::SecurityDataRef<DiscreteCommand, db::Permission::ReadOnly> DiscreteCommandRe
 db::SecurityDataRef<DiscreteCommand, db::Permission::ReadWrite> DiscreteCommandWriter();
 db::SecurityDataRef<TelemetrySnapshot, db::Permission::ReadOnly> TelemetrySnapshotReader();
 db::SecurityDataRef<TelemetrySnapshot, db::Permission::ReadWrite> TelemetrySnapshotWriter();
+db::SecurityDataRef<DynamicObstaclesSnapshot, db::Permission::ReadOnly> DynamicObstaclesSnapshotReader();
+db::SecurityDataRef<DynamicObstaclesSnapshot, db::Permission::ReadWrite> DynamicObstaclesSnapshotWriter();
 db::SecurityDataRef<CameraFrame, db::Permission::ReadOnly> CameraFrameReader(const std::string& channel_name);
 db::SecurityDataRef<CameraFrame, db::Permission::ReadWrite> CameraFrameWriter(const std::string& channel_name);
 
@@ -30,6 +33,8 @@ void ClearDiscreteCommand();
 
 std::optional<TelemetrySnapshot> ReadTelemetrySnapshot();
 void WriteTelemetrySnapshot(const TelemetrySnapshot& snapshot);
+std::optional<DynamicObstaclesSnapshot> ReadDynamicObstaclesSnapshot();
+void WriteDynamicObstaclesSnapshot(const DynamicObstaclesSnapshot& snapshot);
 std::optional<CameraFrame> ReadCameraFrame(const std::string& channel_name);
 void WriteCameraFrame(const std::string& channel_name, const CameraFrame& frame);
 

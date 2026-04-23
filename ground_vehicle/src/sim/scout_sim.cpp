@@ -529,6 +529,7 @@ void ScoutSim::Step() {
   PrepareDynamicObstaclesForStep();
   mj_step(model_, data_);
   PublishTelemetry();
+  PublishDynamicObstaclesSnapshotIfDue();
 }
 
 void ScoutSim::ApplyControl() {
@@ -675,6 +676,7 @@ void ScoutSim::ResetSimulation() {
   last_command_valid_ = false;
   last_discrete_command_sequence_ = 0;
   last_discrete_command_status_ = ausim::DiscreteCommandAckStatus::kNone;
+  next_dynamic_obstacle_publish_time_ = 0.0;
   mode_machine_.Reset();
 }
 
@@ -690,6 +692,25 @@ bool ScoutSim::PrepareDynamicObstaclesForStep() {
       data_->time + model_->opt.timestep,
       false,
       false);
+}
+
+void ScoutSim::PublishDynamicObstaclesSnapshotIfDue() {
+  if (data_ == nullptr || !dynamic_obstacle_runtime_.PublishEnabled()) {
+    return;
+  }
+
+  const double publish_rate_hz = dynamic_obstacle_runtime_.PublishRateHz();
+  if (publish_rate_hz <= 0.0 || data_->time + 1e-9 < next_dynamic_obstacle_publish_time_) {
+    return;
+  }
+
+  ausim::DynamicObstaclesSnapshot snapshot;
+  if (!dynamic_obstacle_runtime_.BuildSnapshot(snapshot)) {
+    return;
+  }
+
+  ausim::WriteDynamicObstaclesSnapshot(snapshot);
+  next_dynamic_obstacle_publish_time_ = data_->time + (1.0 / publish_rate_hz);
 }
 
 void ScoutSim::Run() {

@@ -51,6 +51,12 @@ update_threads: 0
 # Minimum number of moving obstacles before enabling worker threads
 parallel_threshold: 16
 
+publish:
+  enabled: false
+  topic: /dyn_obstacle
+  frame_id: world
+  rate_hz: 20.0
+
 # ---------------------------------------------------------------------------
 # Quick Start:
 # 1. Add obstacles to your MuJoCo XML scene with names: dynamic_obs_0, dynamic_obs_1, etc.

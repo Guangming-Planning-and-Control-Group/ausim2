@@ -33,6 +33,7 @@ add_library(dynamic_obs_generator STATIC
 target_include_directories(dynamic_obs_generator
   PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../ausim_common/src
     ${MUJOCO_RESOLVED_INCLUDE_DIR}
 )
 
@@ -44,6 +45,18 @@ target_link_libraries(dynamic_obs_generator
     yaml-cpp
     "${MUJOCO_IMPORTED_TARGET}"
 )
+
+add_executable(dynamic_obstacle_config_test
+  tests/dynamic_obstacle_config_test.cpp
+)
+
+target_include_directories(dynamic_obstacle_config_test
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+target_compile_features(dynamic_obstacle_config_test PRIVATE cxx_std_17)
+target_link_libraries(dynamic_obstacle_config_test PRIVATE dynamic_obs_generator)
 
 # Install the obstacle.yaml template
 install(FILES obstacle.yaml DESTINATION share/dynamic_obs_generator)

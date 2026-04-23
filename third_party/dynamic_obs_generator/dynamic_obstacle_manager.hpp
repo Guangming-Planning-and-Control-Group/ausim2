@@ -11,6 +11,7 @@
 #include <mujoco/mujoco.h>
 
 #include "obstacle_config.hpp"
+#include "runtime/dynamic_obstacles_snapshot.hpp"
 
 namespace dynamic_obstacle {
 
@@ -31,6 +32,7 @@ class DynamicObstacleManager {
 
   // Number of dynamic_obs_* geoms discovered in the scene.
   int GetObstacleCount() const { return obstacle_count_; }
+  bool FillSnapshot(ausim::DynamicObstaclesSnapshot& out, double sim_time, const std::string& frame_id) const;
 
   std::string GetDebugInfo() const;
 
@@ -97,6 +99,7 @@ class DynamicObstacleManager {
 
   // Only moving obstacles are kept here. Static obstacles stay in the XML and
   // need no runtime work.
+  std::vector<RuntimeObstacle> scene_obstacles_;
   std::vector<RuntimeObstacle> moving_obstacles_;
   int obstacle_count_ = 0;
 

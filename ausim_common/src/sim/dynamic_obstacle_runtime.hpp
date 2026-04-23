@@ -7,6 +7,8 @@
 
 #include "config/quadrotor_config.hpp"
 #include "dynamic_obstacle_manager.hpp"
+#include "obstacle_config.hpp"
+#include "runtime/dynamic_obstacles_snapshot.hpp"
 
 namespace ausim {
 
@@ -17,9 +19,13 @@ class DynamicObstacleRuntime {
   bool ResetToCurrentTime();
   void Clear();
   bool RequiresPhysicsRateUpdates() const;
+  bool BuildSnapshot(DynamicObstaclesSnapshot& out) const;
+  bool PublishEnabled() const;
+  double PublishRateHz() const;
 
  private:
   std::unique_ptr<dynamic_obstacle::DynamicObstacleManager> manager_;
+  dynamic_obstacle::ObstacleConfig obstacle_config_;
   mjModel* model_ = nullptr;
   mjData* data_ = nullptr;
 };

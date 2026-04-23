@@ -62,6 +62,7 @@ class ScoutSim {
   void InstallModelPointers(mjModel* new_model, mjData* new_data, const std::filesystem::path& model_path, bool replace_existing);
   void InitializeDynamicObstacleManager();
   bool PrepareDynamicObstaclesForStep();
+  void PublishDynamicObstaclesSnapshotIfDue();
   void ResetSimulation();
   bool ShouldContinue() const;
   void SleepToMatchRealtime(const std::chrono::high_resolution_clock::time_point& step_start) const;
@@ -101,6 +102,7 @@ class ScoutSim {
   std::atomic_bool stop_requested_ = false;
   bool visualization_state_initialized_ = false;
   ausim::DynamicObstacleRuntime dynamic_obstacle_runtime_;
+  double next_dynamic_obstacle_publish_time_ = 0.0;
 
   static ScoutSim* active_instance_;
 };

@@ -4,6 +4,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <chrono>
+#include <cmath>
 #include <csignal>
 #include <cstring>
 #include <iostream>
@@ -25,8 +26,18 @@ namespace {
 constexpr std::chrono::milliseconds kStartupProbeDelay(300);
 constexpr std::chrono::milliseconds kShutdownPollDelay(50);
 constexpr int kShutdownPollCount = 20;
+constexpr std::size_t kMaxBridgeMessageSize = 64 * 1024;
 
 std::runtime_error SystemError(const std::string& message) { return std::runtime_error(message + ": " + std::strerror(errno)); }
+
+std::vector<std::uint8_t> BuildTaggedMessage(ipc::BridgeMessageType type, const void* payload, std::size_t payload_size) {
+  std::vector<std::uint8_t> message(1 + payload_size);
+  message[0] = static_cast<std::uint8_t>(type);
+  if (payload_size > 0) {
+    std::memcpy(message.data() + 1, payload, payload_size);
+  }
+  return message;
+}
 
 }  // namespace
 
@@ -171,6 +182,9 @@ void RosBridgeProcessManager::Start() {
       break;
     }
   }
+  if (config_.dynamic_obstacle.enabled && config_.dynamic_obstacle.publish.enabled) {
+    dynamic_obstacles_thread_ = std::thread(&RosBridgeProcessManager::DynamicObstaclesLoop, this);
+  }
 
   std::this_thread::sleep_for(kStartupProbeDelay);
   EnsureChildStillRunning("startup");
@@ -199,6 +213,9 @@ void RosBridgeProcessManager::Stop() {
   }
   if (lidar_thread_.joinable()) {
     lidar_thread_.join();
+  }
+  if (dynamic_obstacles_thread_.joinable()) {
+    dynamic_obstacles_thread_.join();
   }
 
   if (child_pid_ > 0) {
@@ -233,7 +250,32 @@ void RosBridgeProcessManager::TelemetryLoop() {
     const std::optional<TelemetrySnapshot> snapshot = ReadTelemetrySnapshot();
     if (snapshot.has_value()) {
       const ipc::TelemetryPacket packet = converts::ToTelemetryPacket(*snapshot);
-      ipc::SendPacket(telemetry_send_fd_, packet, true);
+      const std::vector<std::uint8_t> message = BuildTaggedMessage(ipc::BridgeMessageType::kTelemetry, &packet, sizeof(packet));
+      std::lock_guard<std::mutex> lock(telemetry_send_mutex_);
+      ipc::SendPacketBytes(telemetry_send_fd_, message.data(), message.size(), true);
+    }
+    std::this_thread::sleep_until(next_tick);
+  }
+}
+
+void RosBridgeProcessManager::DynamicObstaclesLoop() {
+  const auto period = std::chrono::duration<double>(1.0 / config_.dynamic_obstacle.publish.rate_hz);
+  auto next_tick = std::chrono::steady_clock::now();
+  double last_sent_sim_time = -1.0;
+
+  while (running_.load()) {
+    next_tick += std::chrono::duration_cast<std::chrono::steady_clock::duration>(period);
+    const std::optional<DynamicObstaclesSnapshot> snapshot = ReadDynamicObstaclesSnapshot();
+    if (snapshot.has_value() && std::abs(snapshot->sim_time - last_sent_sim_time) > 1e-9) {
+      std::vector<std::uint8_t> payload;
+      if (converts::ToDynObstaclePacket(*snapshot, payload)) {
+        const std::vector<std::uint8_t> message =
+            BuildTaggedMessage(ipc::BridgeMessageType::kDynamicObstacles, payload.data(), payload.size());
+        std::lock_guard<std::mutex> lock(telemetry_send_mutex_);
+        if (ipc::SendPacketBytes(telemetry_send_fd_, message.data(), message.size(), true)) {
+          last_sent_sim_time = snapshot->sim_time;
+        }
+      }
     }
     std::this_thread::sleep_until(next_tick);
   }

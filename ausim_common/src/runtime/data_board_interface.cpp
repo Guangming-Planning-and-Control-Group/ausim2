@@ -45,6 +45,16 @@ db::SecurityDataRef<TelemetrySnapshot, db::Permission::ReadWrite> TelemetrySnaps
   return writer;
 }
 
+db::SecurityDataRef<DynamicObstaclesSnapshot, db::Permission::ReadOnly> DynamicObstaclesSnapshotReader() {
+  static auto reader = db::DataBoard().Read<DynamicObstaclesSnapshot>(runtime_board::kDynamicObstaclesSnapshot);
+  return reader;
+}
+
+db::SecurityDataRef<DynamicObstaclesSnapshot, db::Permission::ReadWrite> DynamicObstaclesSnapshotWriter() {
+  static auto writer = db::DataBoard().Write<DynamicObstaclesSnapshot>(runtime_board::kDynamicObstaclesSnapshot);
+  return writer;
+}
+
 db::SecurityDataRef<CameraFrame, db::Permission::ReadOnly> CameraFrameReader(const std::string& channel_name) {
   return db::DataBoard().Read<CameraFrame>(CameraFrameChannel(channel_name));
 }
@@ -98,6 +108,10 @@ void ClearDiscreteCommand() { DiscreteCommandWriter().Reset(); }
 std::optional<TelemetrySnapshot> ReadTelemetrySnapshot() { return TelemetrySnapshotReader().ReadOptional(); }
 
 void WriteTelemetrySnapshot(const TelemetrySnapshot& snapshot) { TelemetrySnapshotWriter() = snapshot; }
+
+std::optional<DynamicObstaclesSnapshot> ReadDynamicObstaclesSnapshot() { return DynamicObstaclesSnapshotReader().ReadOptional(); }
+
+void WriteDynamicObstaclesSnapshot(const DynamicObstaclesSnapshot& snapshot) { DynamicObstaclesSnapshotWriter() = snapshot; }
 
 std::optional<CameraFrame> ReadCameraFrame(const std::string& channel_name) { return CameraFrameReader(channel_name).ReadOptional(); }
 

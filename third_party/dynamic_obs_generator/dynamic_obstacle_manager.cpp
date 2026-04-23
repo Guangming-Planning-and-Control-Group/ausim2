@@ -82,6 +82,7 @@ bool DynamicObstacleManager::Initialize(
   config_ = config;
   model_ = model;
   data_ = data;
+  scene_obstacles_.clear();
   moving_obstacles_.clear();
   obstacle_count_ = 0;
   enabled_ = false;
@@ -125,6 +126,7 @@ bool DynamicObstacleManager::Initialize(
 }
 
 void DynamicObstacleManager::ScanSceneObstacles() {
+  scene_obstacles_.clear();
   moving_obstacles_.clear();
   obstacle_count_ = 0;
   std::unordered_set<int> handled_geom_ids;
@@ -151,8 +153,8 @@ void DynamicObstacleManager::ScanSceneObstacles() {
 
     handled_geom_ids.insert(geom_id);
     ++obstacle_count_;
-
     RuntimeObstacle obs = BuildRuntimeObstacle(geom_id, body_id);
+    scene_obstacles_.push_back(obs);
     if (config_.debug) {
       std::cout << "[DynamicObstacleManager] Found obstacle: " << obs.name
                 << " at (" << obs.initial_x << ", " << obs.initial_y << ", "
@@ -202,6 +204,7 @@ void DynamicObstacleManager::ScanSceneObstacles() {
 
     ++obstacle_count_;
     RuntimeObstacle obs = BuildRuntimeObstacle(geom_id);
+    scene_obstacles_.push_back(obs);
     if (config_.debug) {
       std::cout << "[DynamicObstacleManager] Found obstacle: " << obs.name
                 << " at (" << obs.initial_x << ", " << obs.initial_y << ", "
@@ -530,6 +533,34 @@ bool DynamicObstacleManager::ApplyTrajectory(double sim_time) {
   ++update_count_;
   total_sim_time_ = sim_time;
   last_applied_sim_time_ = sim_time;
+  return true;
+}
+
+bool DynamicObstacleManager::FillSnapshot(ausim::DynamicObstaclesSnapshot& out, double sim_time, const std::string& frame_id) const {
+  if (!HasValidModelData()) {
+    return false;
+  }
+
+  out = ausim::DynamicObstaclesSnapshot{};
+  out.sim_time = sim_time;
+  out.frame_id = frame_id;
+  out.entries.reserve(scene_obstacles_.size());
+  for (const RuntimeObstacle& obs : scene_obstacles_) {
+    ausim::DynamicObstacleEntry entry;
+    entry.name = obs.name;
+    entry.pos[0] = model_->geom_pos[obs.geom_pos_adr + 0];
+    entry.pos[1] = model_->geom_pos[obs.geom_pos_adr + 1];
+    entry.pos[2] = model_->geom_pos[obs.geom_pos_adr + 2];
+    entry.quat[0] = 1.0;
+    entry.quat[1] = 0.0;
+    entry.quat[2] = 0.0;
+    entry.quat[3] = 0.0;
+    entry.size[0] = obs.half_x * 2.0;
+    entry.size[1] = obs.half_y * 2.0;
+    entry.size[2] = obs.half_z * 2.0;
+    out.entries.push_back(std::move(entry));
+  }
+
   return true;
 }
 

@@ -495,6 +495,7 @@ void QuadrotorSim::Step() {
   PrepareDynamicObstaclesForStep();
   mj_step(model_, data_);
   ProcessPendingResetSimulation();
+  PublishDynamicObstaclesSnapshotIfDue();
 }
 
 void QuadrotorSim::Run() {
@@ -613,6 +614,7 @@ void QuadrotorSim::ResetSimulation() {
     stream.next_render_time = 0.0;
     stream.sequence = 0;
   }
+  next_dynamic_obstacle_publish_time_ = 0.0;
   dynamic_obstacle_runtime_.ResetToCurrentTime();
 }
 
@@ -1388,6 +1390,25 @@ bool QuadrotorSim::PrepareDynamicObstaclesForStep() {
       next_sim_time,
       HasRenderableDepthStream(),
       HasDueDepthStreamAfterStep(next_sim_time));
+}
+
+void QuadrotorSim::PublishDynamicObstaclesSnapshotIfDue() {
+  if (data_ == nullptr || !dynamic_obstacle_runtime_.PublishEnabled()) {
+    return;
+  }
+
+  const double publish_rate_hz = dynamic_obstacle_runtime_.PublishRateHz();
+  if (publish_rate_hz <= 0.0 || data_->time + 1e-9 < next_dynamic_obstacle_publish_time_) {
+    return;
+  }
+
+  ausim::DynamicObstaclesSnapshot snapshot;
+  if (!dynamic_obstacle_runtime_.BuildSnapshot(snapshot)) {
+    return;
+  }
+
+  ausim::WriteDynamicObstaclesSnapshot(snapshot);
+  next_dynamic_obstacle_publish_time_ = data_->time + (1.0 / publish_rate_hz);
 }
 
 }  // namespace quadrotor

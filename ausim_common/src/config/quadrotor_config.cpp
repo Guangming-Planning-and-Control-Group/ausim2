@@ -255,6 +255,32 @@ void LoadJoyActionServices(const YAML::Node& interfaces_node, std::vector<JoyAct
   }
 }
 
+void LoadDynamicObstaclePublishConfig(const fs::path& obstacle_config_path, DynamicObstacleConfig* config) {
+  if (config == nullptr) {
+    return;
+  }
+
+  config->publish = DynamicObstacleConfig::PublishConfig{};
+  if (obstacle_config_path.empty() || !fs::exists(obstacle_config_path)) {
+    return;
+  }
+
+  const YAML::Node root = YAML::LoadFile(obstacle_config_path.string());
+  if (!root || !root.IsMap()) {
+    throw std::runtime_error("Invalid obstacle config: not a YAML map");
+  }
+
+  const YAML::Node publish_node = root["publish"];
+  AssignIfPresent(publish_node, "enabled", &config->publish.enabled);
+  AssignIfPresent(publish_node, "topic", &config->publish.topic);
+  AssignIfPresent(publish_node, "frame_id", &config->publish.frame_id);
+  AssignIfPresent(publish_node, "rate_hz", &config->publish.rate_hz);
+
+  if (config->publish.enabled && config->publish.rate_hz <= 0.0) {
+    throw std::runtime_error("dynamic_obstacle publish.rate_hz must be positive when publish.enabled=true");
+  }
+}
+
 void ApplyConfigRoot(const YAML::Node& root, const fs::path& config_path, QuadrotorConfig* config, bool apply_global_simulation_config = true) {
   if (!root || !root.IsMap()) {
     return;
@@ -436,6 +462,9 @@ QuadrotorConfig LoadConfigFile(const fs::path& path, const fs::path& explicit_ro
   }
 
   ApplyDynamicObstacleEnvOverrides(&config);
+  if (!config.dynamic_obstacle.config_path.empty()) {
+    LoadDynamicObstaclePublishConfig(fs::absolute(config.dynamic_obstacle.config_path), &config.dynamic_obstacle);
+  }
 
   return config;
 }

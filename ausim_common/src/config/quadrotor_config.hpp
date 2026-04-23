@@ -62,8 +62,16 @@ struct SimulationConfig {
 };
 
 struct DynamicObstacleConfig {
+  struct PublishConfig {
+    bool enabled = false;
+    std::string topic = "/dyn_obstacle";
+    std::string frame_id = "world";
+    double rate_hz = 20.0;
+  };
+
   bool enabled = false;
   std::string config_path = "";  // Path to obstacle.yaml
+  PublishConfig publish;
 };
 
 struct ViewerConfig {

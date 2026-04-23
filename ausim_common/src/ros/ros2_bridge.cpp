@@ -13,6 +13,7 @@
 #include <thread>
 #include <utility>
 #include <vector>
+#include <cstring>
 
 #include <geometry_msgs/msg/transform_stamped.hpp>
 #include <rclcpp/rclcpp.hpp>
@@ -26,11 +27,13 @@
 #include "ipc/socket_packet.hpp"
 #include "ipc/socket_stream.hpp"
 #include "ros/publisher/data/clock_data_publisher.hpp"
+#include "ros/publisher/data/dyn_obstacle_data_publisher.hpp"
 #include "ros/publisher/data/image_data_publisher.hpp"
 #include "ros/publisher/data/imu_data_publisher.hpp"
 #include "ros/publisher/data/lidar_data_publisher.hpp"
 #include "ros/publisher/data/odom_data_publisher.hpp"
 #include "ros/publisher/data/transform_data_publisher.hpp"
+#include "ros/publisher/id_dyn_obstacle_publisher.hpp"
 #include "ros/publisher/i_telemetry_publisher.hpp"
 #include "ros/publisher/semantic/robot_mode_publisher.hpp"
 #include "ros/subscriber/data/cmd_vel_command_subscriber.hpp"
@@ -45,6 +48,7 @@ using TriggerService = std_srvs::srv::Trigger;
 
 constexpr std::chrono::milliseconds kDiscreteCommandAckPollPeriod(10);
 constexpr std::chrono::milliseconds kDiscreteCommandAckTimeout(1000);
+constexpr std::size_t kMaxBridgeMessageSize = 64 * 1024;
 
 struct RosBridgeConfig {
   VehicleIdentity identity;
@@ -52,6 +56,7 @@ struct RosBridgeConfig {
   RosInterfaceConfig interfaces;
   RosFrameConfig frames;
   std::vector<SensorConfig> sensors;
+  DynamicObstacleConfig dynamic_obstacle;
 };
 
 std::string NormalizeNamespace(std::string value) {
@@ -115,7 +120,18 @@ RosBridgeConfig BuildRosBridgeConfig(const QuadrotorConfig& config) {
   bridge_config.interfaces = config.interfaces;
   bridge_config.frames = config.frames;
   bridge_config.sensors = config.sensors;
+  bridge_config.dynamic_obstacle = config.dynamic_obstacle;
   return bridge_config;
+}
+
+std::optional<ipc::BridgeMessageType> ParseBridgeMessageType(std::uint8_t wire_value) {
+  const auto type = static_cast<ipc::BridgeMessageType>(wire_value);
+  switch (type) {
+    case ipc::BridgeMessageType::kTelemetry:
+    case ipc::BridgeMessageType::kDynamicObstacles:
+      return type;
+  }
+  return std::nullopt;
 }
 
 bool IsKnownCameraFrameFormat(std::uint32_t wire_value) {
@@ -315,6 +331,11 @@ class RosBridgeProcess {
             node_->create_publisher<std_msgs::msg::String>(ResolveTopicName(config_, config_.interfaces.robot_mode_topic), 10);
       }
 
+      if (config_.dynamic_obstacle.enabled && config_.dynamic_obstacle.publish.enabled) {
+        dyn_obstacle_publisher_ = std::make_unique<DynObstacleDataPublisher>(
+            node_, ResolveTopicName(config_, config_.dynamic_obstacle.publish.topic), config_.dynamic_obstacle.publish.frame_id);
+      }
+
       // Sensor publishers driven by sensors[] config.
       // Add a new else-if branch here when implementing a new sensor type.
       for (const SensorConfig& sensor : config_.sensors) {
@@ -410,6 +431,7 @@ class RosBridgeProcess {
     publishers_.clear();
     image_publishers_.clear();
     lidar_publisher_.reset();
+    dyn_obstacle_publisher_.reset();
     static_tf_broadcaster_.reset();
     latest_camera_frames_.clear();
     last_published_camera_sequences_.clear();
@@ -431,11 +453,48 @@ class RosBridgeProcess {
 
   void TelemetryLoop() {
     while (!stop_requested_.load()) {
-      ipc::TelemetryPacket packet;
-      switch (ipc::ReceivePacket(telemetry_fd_, &packet)) {
+      std::vector<std::uint8_t> message;
+      switch (ipc::ReceivePacketBytes(telemetry_fd_, &message, kMaxBridgeMessageSize)) {
         case ipc::PacketReceiveStatus::kPacket: {
-          std::lock_guard<std::mutex> lock(telemetry_mutex_);
-          latest_telemetry_ = packet;
+          if (message.empty()) {
+            break;
+          }
+          const std::optional<ipc::BridgeMessageType> type = ParseBridgeMessageType(message[0]);
+          if (!type.has_value()) {
+            if (!stop_requested_.load()) {
+              std::cerr << "ausim_ros_bridge warning: received unknown bridge message type\n";
+            }
+            break;
+          }
+
+          const std::uint8_t* payload = message.data() + 1;
+          const std::size_t payload_size = message.size() - 1;
+          if (*type == ipc::BridgeMessageType::kTelemetry) {
+            if (payload_size != sizeof(ipc::TelemetryPacket)) {
+              if (!stop_requested_.load()) {
+                std::cerr << "ausim_ros_bridge warning: malformed telemetry packet size\n";
+              }
+              break;
+            }
+
+            ipc::TelemetryPacket packet;
+            std::memcpy(&packet, payload, sizeof(packet));
+            std::lock_guard<std::mutex> lock(telemetry_mutex_);
+            latest_telemetry_ = packet;
+          } else if (*type == ipc::BridgeMessageType::kDynamicObstacles) {
+            if (!dyn_obstacle_publisher_) {
+              break;
+            }
+
+            DynamicObstaclesSnapshot snapshot;
+            if (!converts::FromDynObstaclePacketBytes(payload, payload_size, snapshot)) {
+              if (!stop_requested_.load()) {
+                std::cerr << "ausim_ros_bridge warning: malformed dynamic obstacle packet\n";
+              }
+              break;
+            }
+            dyn_obstacle_publisher_->Publish(snapshot);
+          }
           break;
         }
         case ipc::PacketReceiveStatus::kClosed:
@@ -655,6 +714,7 @@ class RosBridgeProcess {
   std::vector<std::unique_ptr<ITelemetryPublisher>> publishers_;
   std::vector<std::unique_ptr<ImageDataPublisher>> image_publishers_;
   std::unique_ptr<LidarDataPublisher> lidar_publisher_;
+  std::unique_ptr<IDynObstaclePublisher> dyn_obstacle_publisher_;
   std::unique_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster_;
   std::vector<std::unique_ptr<ICommandSubscriber>> subscribers_;
   std::vector<rclcpp::Service<TriggerService>::SharedPtr> joy_action_services_;

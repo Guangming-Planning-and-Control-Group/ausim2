@@ -12,6 +12,7 @@ void DynamicObstacleRuntime::Initialize(const DynamicObstacleConfig& config, mjM
   Clear();
   model_ = model;
   data_ = data;
+  obstacle_config_ = dynamic_obstacle::ObstacleConfig{};
 
   if (!config.enabled) {
     return;
@@ -28,19 +29,24 @@ void DynamicObstacleRuntime::Initialize(const DynamicObstacleConfig& config, mjM
 
   try {
     auto manager = std::make_unique<dynamic_obstacle::DynamicObstacleManager>();
-    const auto obstacle_config = dynamic_obstacle::LoadConfigFromYaml(config.config_path);
-    if (!manager->Initialize(obstacle_config, model_, data_)) {
+    obstacle_config_ = dynamic_obstacle::LoadConfigFromYaml(config.config_path);
+    obstacle_config_.publish_enabled = config.publish.enabled;
+    obstacle_config_.publish_topic = config.publish.topic;
+    obstacle_config_.publish_frame_id = config.publish.frame_id;
+    obstacle_config_.publish_rate_hz = config.publish.rate_hz;
+    if (!manager->Initialize(obstacle_config_, model_, data_)) {
       std::cerr << log_prefix << " Failed to initialize dynamic obstacle manager.\n";
-      return;
-    }
-    if (!manager->IsEnabled()) {
-      std::cout << log_prefix << " Dynamic obstacles resolved to a static scene. Runtime obstacle updates are disabled.\n";
       return;
     }
 
     manager_ = std::move(manager);
-    std::cout << log_prefix << " Dynamic obstacle manager initialized successfully.\n";
-    if (obstacle_config.debug) {
+    if (!manager_->IsEnabled()) {
+      std::cout << log_prefix << " Dynamic obstacles resolved to a static scene. Runtime trajectory updates are disabled,"
+                << " but obstacle snapshots remain available.\n";
+    } else {
+      std::cout << log_prefix << " Dynamic obstacle manager initialized successfully.\n";
+    }
+    if (obstacle_config_.debug) {
       std::cout << manager_->GetDebugInfo() << '\n';
     }
     ResetToCurrentTime();
@@ -76,6 +82,7 @@ bool DynamicObstacleRuntime::ResetToCurrentTime() {
 
 void DynamicObstacleRuntime::Clear() {
   manager_.reset();
+  obstacle_config_ = dynamic_obstacle::ObstacleConfig{};
   model_ = nullptr;
   data_ = nullptr;
 }
@@ -83,5 +90,18 @@ void DynamicObstacleRuntime::Clear() {
 bool DynamicObstacleRuntime::RequiresPhysicsRateUpdates() const {
   return manager_ != nullptr && manager_->RequiresPhysicsRateUpdates();
 }
+
+bool DynamicObstacleRuntime::BuildSnapshot(DynamicObstaclesSnapshot& out) const {
+  if (manager_ == nullptr || data_ == nullptr) {
+    return false;
+  }
+  return manager_->FillSnapshot(out, data_->time, obstacle_config_.publish_frame_id);
+}
+
+bool DynamicObstacleRuntime::PublishEnabled() const {
+  return manager_ != nullptr && obstacle_config_.publish_enabled;
+}
+
+double DynamicObstacleRuntime::PublishRateHz() const { return obstacle_config_.publish_rate_hz; }
 
 }  // namespace ausim
