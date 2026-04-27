@@ -34,12 +34,12 @@ transitions:
   - { from: on_ground,        event: takeoff, to: hover,     action: takeoff }
   - { from: hover,            event: land,    to: on_ground, action: land    }
 
-  # Hover <-> velocity-control based on live cmd_vel presence
+  # Hover <-> manual-active motion based on live cmd_vel presence
   - { from: hover,            condition: motion_active,   to: velocity_control }
   - { from: velocity_control, condition: motion_inactive, to: hover            }
 
   # Hover safety: auto-land after 60s of inactivity.
-  # (Demonstrates the timeout trigger; value can be overridden per-robot by a
+  # (Shows the timeout trigger; value can be overridden per-robot by a
   # sibling YAML, e.g. teleop/xi35_aggressive.yaml.)
   # - { from: hover,            timeout: 60.0, to: on_ground, action: land }
 

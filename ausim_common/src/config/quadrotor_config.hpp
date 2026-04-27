@@ -37,27 +37,10 @@ struct ControllerGains {
   double rate_hz = 250.0;
 };
 
-struct HoverGoal {
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  Eigen::Vector3d position = Eigen::Vector3d(0.0, 0.0, 0.3);
-  Eigen::Vector3d velocity = Eigen::Vector3d::Zero();
-  Eigen::Vector3d heading = Eigen::Vector3d(1.0, 0.0, 0.0);
-};
-
-struct CircleTrajectoryConfig {
-  double wait_time = 1.5;
-  double height = 0.3;
-  double radius = 0.5;
-  double speed_hz = 0.3;
-  double height_gain = 1.5;
-};
-
 struct SimulationConfig {
   double duration = 0.0;
   double dt = 0.001;
   double print_interval = 0.5;
-  int control_mode = 2;
-  int example_mode = 1;
   std::string track_camera_name = "track";
 };
 
@@ -221,8 +204,6 @@ struct QuadrotorConfig {
   ModelConfig model;
   VehicleParams vehicle;
   ControllerGains controller;
-  HoverGoal hover_goal;
-  CircleTrajectoryConfig circle_trajectory;
   SimulationConfig simulation;
   ViewerConfig viewer;
   DynamicObstacleConfig dynamic_obstacle;
@@ -251,10 +232,8 @@ using ::ausim::BuildCameraStreamConfigs;
 using ::ausim::CameraDepthConfig;
 using ::ausim::CameraStreamConfig;
 using ::ausim::CameraStreamKind;
-using ::ausim::CircleTrajectoryConfig;
 using ::ausim::ControllerGains;
 using ::ausim::DynamicObstacleConfig;
-using ::ausim::HoverGoal;
 using ::ausim::LoadConfigFromYaml;
 using ::ausim::ModelConfig;
 using ::ausim::QuadrotorConfig;

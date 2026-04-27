@@ -62,20 +62,8 @@ robot_config: robot/crazyfile_config.yaml
 simulation:
   duration: 0.0
   dt: 0.001
-  control_mode: 2
-  example_mode: 0
-
-goal:
-  position: [0.0, 0.0, 0.3]
-  velocity: [0.5, 0.0, 0.0]
-  heading: [1.0, 0.0, 0.0]
-
-trajectory:
-  wait_time: 1.5
-  height: 0.3
-  radius: 0.5
-  speed_hz: 0.3
-  height_gain: 1.5
+  print_interval: 0.0
+  track_camera_name: track
 
 viewer:
   enabled: true
@@ -106,19 +94,46 @@ model:
 mode_machine: ../teleop/quadrotor_default.yaml
 ```
 
-`control_mode` / `example_mode` / `goal` / `trajectory` 现在放在 `cfg/sim_config.yaml` 里，作为全局仿真配置。
+无人机运行时固定使用遥控 / ROS 指令目标源，底层控制器固定使用位置控制；旧的脚本轨迹和控制模式选择配置已移除。
 
 `viewer.show_mode_state_overlay: true` 时，会在 MuJoCo viewer 右上角叠加显示当前状态机子状态，例如 `on_ground` / `hover`。
 
 `model.aircraft_forward_axis` 表示"飞机机头在模型 body 坐标系里的方向"。Crazyflie 约定：
 - 模型 `+x`：飞机右侧，模型 `+y`：飞机机头，故为 `[0.0, 1.0, 0.0]`
-- 影响速度模式下的"当前 heading"计算和姿态保持时的机头朝向约束
+- 影响"当前 heading"计算、目标位置积分方向和姿态保持时的机头朝向约束
 
-`control_mode: 1` 下，默认 `/joy/cmd_vel` 的语义：
-- 无新命令时：锁定当前位置与当前朝向，进入悬停保持
+`controller` 子节配置 SE3 控制器和混控前的输出缩放。以
+`cfg/robot/omnidrone_config.yaml` 为例：
+
+```yaml
+controller:
+  rate_hz: 250.0
+  kx: 0.6
+  kv: 0.4
+  kR: 6.0
+  kw: 1.0
+  torque_scale: 0.001
+```
+
+| 字段 | 作用 |
+|------|------|
+| `rate_hz` | 控制器更新频率。仿真物理步长由 `simulation.dt` 决定，控制器按整数抽频运行；例如 `dt: 0.001` 时物理频率是 1000 Hz，`rate_hz: 250` 表示每 4 个 physics step 重算一次控制输出。该值必须为正，且不能高于物理频率。 |
+| `kx` | 位置误差增益。值越大，位置偏差被拉回目标的趋势越强；过大可能让姿态指令更激进。 |
+| `kv` | 速度误差增益。值越大，对速度偏差的阻尼越强；过小容易拖尾，过大可能让响应变钝或抖动。 |
+| `kR` | 姿态误差增益，根据当前姿态和目标姿态之间的 SO(3) 误差生成角向控制量。值越大，机体越积极地对准目标姿态。 |
+| `kw` | 角速度误差增益，用于抑制当前角速度和目标角速度之间的偏差。它相当于姿态环的阻尼项，通常配合 `kR` 调整。 |
+| `torque_scale` | 将控制器输出的角向控制量缩放成传给 `MotorMixer` 的力矩输入。值越大，混控器收到的 roll/pitch/yaw 力矩越强，也更容易触及电机速度限制；值越小，姿态响应更弱。 |
+
+这些参数不是完整 PID，而是当前 SE3 控制律中的比例/阻尼项：`kx`、`kv` 影响平移控制，
+`kR`、`kw` 影响姿态控制，`torque_scale` 决定姿态控制输出进入电机混控前的量级。
+
+默认 `/joy/cmd_vel` 的语义：
+- 底层 SE3 控制器始终接收位置目标
+- 有新运动命令时：`linear` 先按当前 heading 从机体局部坐标旋到世界坐标，再积分成目标位置
+- 无新命令、命令超时或状态机过滤命令时：锁定当前位置与当前朝向，进入悬停保持
 - `linear.x / linear.y`：无人机当前局部水平坐标系的前 / 左方向速度（与地面平行）
-- `linear.z`：竖直速度
-- `angular.z`：机体系偏航角速度；持续发 `0` 时保持当前朝向
+- `linear.z`：竖直速度，积分后改变目标高度
+- `angular.z`：偏航角速度，积分后改变目标朝向；持续发 `0` 时保持当前朝向
 
 ### `cfg/teleop/<name>.yaml`
 
@@ -164,6 +179,8 @@ mode_machine: ../teleop/quadrotor_default.yaml
 | `hover`            | `MANUAL_READY`  | true  |
 | `velocity_control` | `MANUAL_ACTIVE` | true  |
 | `estop`            | `FAULT`         | false |
+
+`velocity_control` 是兼容保留的手动运动子状态名，不代表底层控制器使用速度控制。
 
 `accepts_motion: false` 的子状态会**过滤掉** `/joy/cmd_vel`——这也是"必须先调 takeoff 才能飞"的实现方式。
 
@@ -215,7 +232,7 @@ ros2 service call /joy/action4 std_srvs/srv/Trigger "{}"  # estop
 
 **手柄 / 键盘**（`third_party/remote_control`）：默认把摇杆输出到 `/joy/cmd_vel`，并把离散动作槽位调用到 `/joy/actionN`，详见 `third_party/remote_control/README.md`。
 
-**速度指令**：
+**运动指令**：
 
 ```bash
 ros2 topic pub /joy/cmd_vel geometry_msgs/msg/Twist \
@@ -270,4 +287,4 @@ sensors:
 - `depth.data_type` 会覆盖 ray-caster 的 `sensor_data_types`，当前 ROS depth image 路径支持单个标量类型，例如 `data_inf_zero`、`normal`、`distance_to_image_plane_inf_zero`、`image_plane_image_inf_zero`、`image_plane_normal_inf_zero`；`pos_w/pos_b` 是每像素 xyz 三通道数据，需要单独的数据流
 - `depth.compute_rate_hz` 用来控制 ray-caster 实际计算频率；如果物理步长是 `0.001` 且该值为 `30`，插件会自动写成约每 `33` 个 physics step 更新一次
 - `depth.worker_threads` 会映射到 `mujoco_ray_caster` 的 `num_thread` 配置，只作用于 depth ray-caster，不会改动 RGB 的 OpenGL 渲染线程模型；当前上游多线程实现不稳定，默认建议保持 `0`
-- 当前 Crazyflie 示例会自动把 `front_camera` 绑定到 `assets/crazyfile/cf2.xml` 里的第一个非 track 相机，并把 depth 流绑定到同一相机上的 ray-caster plugin
+- 当前 Crazyflie 配置会自动把 `front_camera` 绑定到 `assets/crazyfile/cf2.xml` 里的第一个非 track 相机，并把 depth 流绑定到同一相机上的 ray-caster plugin

@@ -30,10 +30,10 @@ vehicle:
 
 controller:
   rate_hz: 250.0
-  kx: 0.6
+  kx: 0.45
   kv: 0.4
-  kR: 6.0
-  kw: 1.0
+  kR: 4.0
+  kw: 0.8
   torque_scale: 0.001
 
 interfaces:

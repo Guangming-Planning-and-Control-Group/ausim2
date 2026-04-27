@@ -10,20 +10,13 @@ VehicleRuntime::VehicleRuntime(const QuadrotorConfig& config)
   controller_.kv = config_.controller.kv;
   controller_.kR = config_.controller.kR;
   controller_.kw = config_.controller.kw;
-  controller_.control_mode = static_cast<SE3Controller::ControlMode>(config_.simulation.control_mode);
   controller_.setAircraftForwardAxis(config_.model.aircraft_forward_axis);
-
-  if (config_.simulation.example_mode == 0) {
-    goal_provider_ = std::make_unique<CommandGoalProvider>(config_);
-  } else {
-    goal_provider_ = std::make_unique<DemoGoalProvider>(config_);
-  }
+  goal_provider_ = std::make_unique<CommandGoalProvider>(config_);
 }
 
 RuntimeOutput VehicleRuntime::Step(const RuntimeInput& input, bool recompute_control, double control_dt) {
   if (recompute_control) {
     cached_goal_ = goal_provider_->Evaluate(GoalContext{input.sim_time, input.current_state});
-    controller_.control_mode = cached_goal_.control_mode;
     cached_command_ = controller_.controlUpdate(input.current_state, cached_goal_.state, control_dt, cached_goal_.forward);
   }
 

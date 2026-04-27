@@ -99,11 +99,10 @@ ControlCommand SE3Controller::controlUpdate(const State& current_state, const St
   goal_state_ = goal_state;
 
   const auto [e_x, e_v] = updateLinearError();
-  const Eigen::Vector3d position_error = control_mode == ControlMode::kPosition ? e_x : Eigen::Vector3d::Zero();
 
-  const Eigen::Vector3d trans_control(-kx * position_error.x() - kv * e_v.x() + goal_state_->velocity.x(),
-                                      -kx * position_error.y() - kv * e_v.y() + goal_state_->velocity.y(),
-                                      -kx * position_error.z() - kv * e_v.z() + goal_state_->velocity.z());
+  const Eigen::Vector3d trans_control(-kx * e_x.x() - kv * e_v.x() + goal_state_->velocity.x(),
+                                      -kx * e_x.y() - kv * e_v.y() + goal_state_->velocity.y(),
+                                      -kx * e_x.z() - kv * e_v.z() + goal_state_->velocity.z());
 
   const AngularError angular_error = updateAngularError(trans_control, forward);
 

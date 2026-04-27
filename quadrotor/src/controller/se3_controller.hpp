@@ -12,18 +12,11 @@ namespace quadrotor {
 
 class SE3Controller {
  public:
-  enum class ControlMode {
-    kDirect = 0,
-    kVelocity = 1,
-    kPosition = 2,
-  };
-
   double kx = 0.0;
   double kv = 0.0;
   double kR = 0.0;
   double kw = 0.0;
   Eigen::Vector3d gravity = Eigen::Vector3d(0.0, 0.0, -1.0);
-  ControlMode control_mode = ControlMode::kPosition;
 
   void setCurrentState(const State& state);
   void setGoalState(const State& state);

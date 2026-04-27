@@ -4,6 +4,7 @@
 
 #include "config/quadrotor_config.hpp"
 #include "control/motor_mixer.hpp"
+#include "controller/se3_controller.hpp"
 #include "runtime/goal_provider.hpp"
 
 namespace quadrotor {

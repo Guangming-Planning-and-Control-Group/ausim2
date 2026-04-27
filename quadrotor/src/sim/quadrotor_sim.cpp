@@ -1343,16 +1343,6 @@ int QuadrotorSim::ComputeControlDecimation() const {
   if (config_.controller.rate_hz <= 0.0) {
     throw std::runtime_error("controller.rate_hz must be positive.");
   }
-  if (config_.simulation.control_mode < 0 || config_.simulation.control_mode > 2) {
-    throw std::runtime_error("simulation.control_mode must be 0, 1, or 2.");
-  }
-  if (config_.simulation.example_mode < 0 || config_.simulation.example_mode > 2) {
-    throw std::runtime_error("simulation.example_mode must be 0, 1, or 2.");
-  }
-  if (config_.simulation.control_mode == static_cast<int>(SE3Controller::ControlMode::kDirect)) {
-    throw std::runtime_error("simulation.control_mode=0 is reserved for direct thrust/motor control and is not implemented yet.");
-  }
-
   const double physics_rate_hz = 1.0 / config_.simulation.dt;
   const double raw_decimation = physics_rate_hz / config_.controller.rate_hz;
   const int decimation = static_cast<int>(std::lround(raw_decimation));

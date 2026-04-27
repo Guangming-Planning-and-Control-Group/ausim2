@@ -4,7 +4,6 @@
 
 #include <Eigen/Core>
 
-#include "controller/se3_controller.hpp"
 #include "runtime/runtime_types.hpp"
 
 namespace quadrotor {
@@ -13,8 +12,7 @@ struct GoalReference {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   State state;
   Eigen::Vector3d forward = Eigen::Vector3d(1.0, 0.0, 0.0);
-  SE3Controller::ControlMode control_mode = SE3Controller::ControlMode::kPosition;
-  std::string source = "demo";
+  std::string source;
 };
 
 struct RuntimeOutput {

@@ -2,8 +2,8 @@
 
 #include "config/quadrotor_config.hpp"
 #include "runtime/mode_actions_registry.hpp"
-#include "runtime/robot_mode_state_machine.hpp"
 #include "runtime/quadrotor_runtime_types.hpp"
+#include "runtime/robot_mode_state_machine.hpp"
 
 namespace quadrotor {
 
@@ -34,19 +34,6 @@ class GoalProvider {
   virtual void Reset() {}
 };
 
-class DemoGoalProvider : public GoalProvider {
- public:
-  explicit DemoGoalProvider(const QuadrotorConfig& config);
-
-  GoalReference Evaluate(const GoalContext& context) override;
-  // Demo provider bypasses the state machine — it always runs an autonomous
-  // trajectory. Report AUTO so downstream consumers see a sensible top state.
-  RobotModeSnapshot ModeSnapshot() const override;
-
- private:
-  const QuadrotorConfig& config_;
-};
-
 class CommandGoalProvider : public GoalProvider {
  public:
   explicit CommandGoalProvider(const QuadrotorConfig& config);
@@ -64,7 +51,6 @@ class CommandGoalProvider : public GoalProvider {
   static bool MotionCommandActive(const VelocityCommand& command);
 
   double command_timeout_seconds_ = 0.5;
-  SE3Controller::ControlMode control_mode_ = SE3Controller::ControlMode::kVelocity;
   Eigen::Vector3d aircraft_forward_axis_ = Eigen::Vector3d(0.0, 1.0, 0.0);
   ausim::RobotModeActionsConfig mode_actions_;
   ausim::RobotModeStateMachine mode_machine_;

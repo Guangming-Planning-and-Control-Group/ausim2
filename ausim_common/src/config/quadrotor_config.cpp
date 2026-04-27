@@ -422,26 +422,11 @@ void ApplyConfigRoot(const YAML::Node& root,
     AssignIfPresent(simulation_node, "duration", &config->simulation.duration);
     AssignIfPresent(simulation_node, "dt", &config->simulation.dt);
     AssignIfPresent(simulation_node, "print_interval", &config->simulation.print_interval);
-    AssignIfPresent(simulation_node, "control_mode", &config->simulation.control_mode);
-    AssignIfPresent(simulation_node, "example_mode", &config->simulation.example_mode);
     AssignIfPresent(simulation_node, "track_camera_name", &config->simulation.track_camera_name);
     // Backward compatibility for legacy single-file configs.
     if (simulation_node && !simulation_node["track_camera_name"]) {
       AssignIfPresent(model_node, "track_camera_name", &config->simulation.track_camera_name);
     }
-    const YAML::Node goal_node = root["goal"];
-    if (goal_node) {
-      config->hover_goal.position = LoadVector3(goal_node["position"], config->hover_goal.position);
-      config->hover_goal.velocity = LoadVector3(goal_node["velocity"], config->hover_goal.velocity);
-      config->hover_goal.heading = LoadVector3(goal_node["heading"], config->hover_goal.heading);
-    }
-
-    const YAML::Node trajectory_node = root["trajectory"];
-    AssignIfPresent(trajectory_node, "wait_time", &config->circle_trajectory.wait_time);
-    AssignIfPresent(trajectory_node, "height", &config->circle_trajectory.height);
-    AssignIfPresent(trajectory_node, "radius", &config->circle_trajectory.radius);
-    AssignIfPresent(trajectory_node, "speed_hz", &config->circle_trajectory.speed_hz);
-    AssignIfPresent(trajectory_node, "height_gain", &config->circle_trajectory.height_gain);
 
     const YAML::Node dynamic_obstacle_node = root["dynamic_obstacle"];
     if (dynamic_obstacle_node) {

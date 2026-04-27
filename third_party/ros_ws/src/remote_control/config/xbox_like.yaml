@@ -36,7 +36,8 @@ remote_control_node:
       action1:
         service: /joy/action1
         buttons:
-          - -1
+          - 4
+          - 0
         keyboard: t
       action2:
         service: /joy/action2
@@ -54,12 +55,12 @@ remote_control_node:
         service: /joy/action4
         buttons:
           - -1
-        keyboard: q
+        keyboard: ""
       action5:
         service: /joy/action5
         buttons:
           - -1
-        keyboard: b
+        keyboard: ""
       action6:
         service: /joy/action6
         buttons:
