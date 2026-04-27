@@ -124,7 +124,8 @@ void LoadSensors(const YAML::Node& sensors_node, std::vector<SensorConfig>* sens
       }
       const YAML::Node rotation_node = transform_node["rotation"];
       if (rotation_node && rotation_node.IsSequence() && rotation_node.size() == 4) {
-        sensor.transform.rotation = {rotation_node[0].as<double>(), rotation_node[1].as<double>(), rotation_node[2].as<double>(), rotation_node[3].as<double>()};
+        sensor.transform.rotation = {rotation_node[0].as<double>(), rotation_node[1].as<double>(), rotation_node[2].as<double>(),
+                                     rotation_node[3].as<double>()};
       }
     }
     const YAML::Node depth_node = sensor_node["depth"];
@@ -177,9 +178,8 @@ void LoadRobotModeConfigFromNode(const YAML::Node& mode_node, RobotModeConfig* c
       // event-driven transitions ignore `condition`; warn if both are set so
       // authors don't expect the condition to gate the event.
       if (!transition.event.empty() && !transition.condition.empty()) {
-        std::cerr << "[robot_mode_config] warning: transition " << transition.from << " --(" << transition.event
-                  << ")--> " << transition.to << " sets both 'event' and 'condition'; the 'condition' will be ignored."
-                  << std::endl;
+        std::cerr << "[robot_mode_config] warning: transition " << transition.from << " --(" << transition.event << ")--> " << transition.to
+                  << " sets both 'event' and 'condition'; the 'condition' will be ignored." << std::endl;
       }
       if (transition.timeout > 0.0 && !transition.event.empty()) {
         std::cerr << "[robot_mode_config] warning: transition " << transition.from << " --> " << transition.to
@@ -212,8 +212,8 @@ void LoadRobotModeConfig(const YAML::Node& root, const fs::path& config_path, Ro
     selected = root["mode_machine"];
   } else if (root["teleop"]) {
     selected = root["teleop"];
-    std::cerr << "[robot_mode_config] warning: 'teleop:' key is deprecated, use 'mode_machine:' instead ("
-              << config_path.string() << ")" << std::endl;
+    std::cerr << "[robot_mode_config] warning: 'teleop:' key is deprecated, use 'mode_machine:' instead (" << config_path.string() << ")"
+              << std::endl;
   } else {
     return;
   }
@@ -286,9 +286,7 @@ void LoadDynamicObstaclePublishConfig(const fs::path& obstacle_config_path, Dyna
 std::optional<fs::path> ResolveRepoRoot(const fs::path& path) {
   fs::path current = fs::absolute(path).parent_path();
   while (!current.empty()) {
-    if (fs::exists(current / "em_run.sh") &&
-        fs::exists(current / "ground_vehicle" / "cfg") &&
-        fs::exists(current / "quadrotor" / "cfg")) {
+    if (fs::exists(current / "em_run.sh") && fs::exists(current / "ground_vehicle" / "cfg") && fs::exists(current / "quadrotor" / "cfg")) {
       return current;
     }
     if (!current.has_parent_path() || current.parent_path() == current) {
@@ -302,8 +300,7 @@ std::optional<fs::path> ResolveRepoRoot(const fs::path& path) {
 std::vector<fs::path> ResolveDynamicObstacleRegistryPaths(const fs::path& config_path) {
   std::vector<fs::path> paths;
 
-  if (const char* override_value = std::getenv("AUSIM_MODEL_REGISTRY_OVERRIDE");
-      override_value != nullptr && override_value[0] != '\0') {
+  if (const char* override_value = std::getenv("AUSIM_MODEL_REGISTRY_OVERRIDE"); override_value != nullptr && override_value[0] != '\0') {
     std::stringstream stream(override_value);
     std::string entry;
     while (std::getline(stream, entry, ':')) {
@@ -337,9 +334,8 @@ fs::path ResolveRegistryValuePath(const fs::path& registry_path, const std::stri
   return (registry_path.parent_path() / candidate).lexically_normal();
 }
 
-void ApplyDynamicObstacleRegistryFallback(const fs::path& sim_config_path,
-                                         const std::optional<fs::path>& robot_config_path,
-                                         DynamicObstacleConfig* config) {
+void ApplyDynamicObstacleRegistryFallback(const fs::path& sim_config_path, const std::optional<fs::path>& robot_config_path,
+                                          DynamicObstacleConfig* config) {
   if (config == nullptr) {
     return;
   }
@@ -390,10 +386,7 @@ void ApplyDynamicObstacleRegistryFallback(const fs::path& sim_config_path,
   }
 }
 
-void ApplyConfigRoot(const YAML::Node& root,
-                     const fs::path& config_path,
-                     QuadrotorConfig* config,
-                     bool apply_global_simulation_config = true,
+void ApplyConfigRoot(const YAML::Node& root, const fs::path& config_path, QuadrotorConfig* config, bool apply_global_simulation_config = true,
                      bool* dynamic_obstacle_config_seen = nullptr) {
   if (!root || !root.IsMap()) {
     return;

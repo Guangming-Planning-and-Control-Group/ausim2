@@ -571,8 +571,8 @@ void QuadrotorSim::ControlCallback(const mjModel* model, mjData* data) {
 
 void QuadrotorSim::ApplyControl(const mjModel* model, mjData* data) {
   const RuntimeInput input = state_reader_.Read(model, data, bindings_);
-  if (const std::optional<DiscreteCommand> command = ReadDiscreteCommand(); command.has_value() &&
-                                                                   command->sequence != last_discrete_command_sequence_) {
+  if (const std::optional<DiscreteCommand> command = ReadDiscreteCommand();
+      command.has_value() && command->sequence != last_discrete_command_sequence_) {
     if (HandleDiscreteCommand(*command, input)) {
       last_discrete_command_sequence_ = command->sequence;
       last_discrete_command_status_ = DiscreteCommandAckStatus::kSuccess;
@@ -811,10 +811,10 @@ void QuadrotorSim::PhysicsLoop(mj::Simulate& sim) {
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 
-      const std::unique_lock<std::recursive_mutex> lock(sim.mtx);
-      if (model_ == nullptr || data_ == nullptr) {
-        continue;
-      }
+    const std::unique_lock<std::recursive_mutex> lock(sim.mtx);
+    if (model_ == nullptr || data_ == nullptr) {
+      continue;
+    }
 
     if (sim.run) {
       bool stepped = false;
@@ -1411,10 +1411,7 @@ bool QuadrotorSim::PrepareDynamicObstaclesForStep() {
   }
 
   const double next_sim_time = data_->time + model_->opt.timestep;
-  return dynamic_obstacle_runtime_.PrepareForStep(
-      next_sim_time,
-      HasRenderableDepthStream(),
-      HasDueDepthStreamAfterStep(next_sim_time));
+  return dynamic_obstacle_runtime_.PrepareForStep(next_sim_time, HasRenderableDepthStream(), HasDueDepthStreamAfterStep(next_sim_time));
 }
 
 void QuadrotorSim::PublishDynamicObstaclesSnapshotIfDue() {

@@ -269,8 +269,7 @@ void RosBridgeProcessManager::DynamicObstaclesLoop() {
     if (snapshot.has_value() && std::abs(snapshot->sim_time - last_sent_sim_time) > 1e-9) {
       std::vector<std::uint8_t> payload;
       if (converts::ToDynObstaclePacket(*snapshot, payload)) {
-        const std::vector<std::uint8_t> message =
-            BuildTaggedMessage(ipc::BridgeMessageType::kDynamicObstacles, payload.data(), payload.size());
+        const std::vector<std::uint8_t> message = BuildTaggedMessage(ipc::BridgeMessageType::kDynamicObstacles, payload.data(), payload.size());
         std::lock_guard<std::mutex> lock(telemetry_send_mutex_);
         if (ipc::SendPacketBytes(telemetry_send_fd_, message.data(), message.size(), true)) {
           last_sent_sim_time = snapshot->sim_time;

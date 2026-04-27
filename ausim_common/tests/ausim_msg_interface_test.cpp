@@ -4,10 +4,10 @@
 #include <string>
 
 #include "ausim_msg/create_aabb.hpp"
-#include "ausim_msg/msg/device_capability.hpp"
-#include "ausim_msg/msg/device_status.hpp"
 #include "ausim_msg/msg/detection2_d_array.hpp"
 #include "ausim_msg/msg/detection3_d_array.hpp"
+#include "ausim_msg/msg/device_capability.hpp"
+#include "ausim_msg/msg/device_status.hpp"
 #include "ausim_msg/msg/label_info.hpp"
 #include "ausim_msg/msg/robot_mode.hpp"
 #include "ausim_msg/msg/simulation_event.hpp"

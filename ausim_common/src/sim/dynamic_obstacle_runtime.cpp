@@ -56,16 +56,12 @@ void DynamicObstacleRuntime::Initialize(const DynamicObstacleConfig& config, mjM
   }
 }
 
-bool DynamicObstacleRuntime::PrepareForStep(
-    double next_sim_time,
-    bool has_renderable_depth_stream,
-    bool cadence_due) {
+bool DynamicObstacleRuntime::PrepareForStep(double next_sim_time, bool has_renderable_depth_stream, bool cadence_due) {
   if (manager_ == nullptr || model_ == nullptr || data_ == nullptr) {
     return false;
   }
 
-  const bool update_due =
-      manager_->RequiresPhysicsRateUpdates() || !has_renderable_depth_stream || cadence_due;
+  const bool update_due = manager_->RequiresPhysicsRateUpdates() || !has_renderable_depth_stream || cadence_due;
   if (!update_due) {
     return false;
   }
@@ -87,9 +83,7 @@ void DynamicObstacleRuntime::Clear() {
   data_ = nullptr;
 }
 
-bool DynamicObstacleRuntime::RequiresPhysicsRateUpdates() const {
-  return manager_ != nullptr && manager_->RequiresPhysicsRateUpdates();
-}
+bool DynamicObstacleRuntime::RequiresPhysicsRateUpdates() const { return manager_ != nullptr && manager_->RequiresPhysicsRateUpdates(); }
 
 bool DynamicObstacleRuntime::BuildSnapshot(DynamicObstaclesSnapshot& out) const {
   if (manager_ == nullptr || data_ == nullptr) {
@@ -98,9 +92,7 @@ bool DynamicObstacleRuntime::BuildSnapshot(DynamicObstaclesSnapshot& out) const 
   return manager_->FillSnapshot(out, data_->time, obstacle_config_.publish_frame_id);
 }
 
-bool DynamicObstacleRuntime::PublishEnabled() const {
-  return manager_ != nullptr && obstacle_config_.publish_enabled;
-}
+bool DynamicObstacleRuntime::PublishEnabled() const { return manager_ != nullptr && obstacle_config_.publish_enabled; }
 
 double DynamicObstacleRuntime::PublishRateHz() const { return obstacle_config_.publish_rate_hz; }
 

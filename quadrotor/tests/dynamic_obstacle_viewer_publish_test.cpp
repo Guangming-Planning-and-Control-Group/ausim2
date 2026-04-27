@@ -78,12 +78,8 @@ void WriteObstacleConfig(const fs::path& path) {
   Expect(output.good(), "failed to write quadrotor viewer obstacle test config");
 }
 
-void GenerateSceneWithObstacles(
-    const fs::path& repo_root,
-    const fs::path& obstacle_config_path,
-    const fs::path& output_scene_path) {
-  const fs::path script_path =
-      repo_root / "third_party" / "dynamic_obs_generator" / "generate_scene_obstacles.py";
+void GenerateSceneWithObstacles(const fs::path& repo_root, const fs::path& obstacle_config_path, const fs::path& output_scene_path) {
+  const fs::path script_path = repo_root / "third_party" / "dynamic_obs_generator" / "generate_scene_obstacles.py";
   const fs::path input_scene_path = repo_root / "assets" / "crazyfile" / "scene.xml";
 
   std::ostringstream command;
@@ -97,12 +93,8 @@ void GenerateSceneWithObstacles(
   Expect(exit_code == 0, "failed to generate quadrotor viewer test scene with dynamic obstacles");
 }
 
-quadrotor::QuadrotorConfig LoadViewerConfig(
-    const fs::path& repo_root,
-    const fs::path& scene_path,
-    const fs::path& obstacle_config_path) {
-  quadrotor::QuadrotorConfig config =
-      quadrotor::LoadConfigFromYaml((repo_root / "quadrotor" / "cfg" / "sim_config.yaml").string(), "");
+quadrotor::QuadrotorConfig LoadViewerConfig(const fs::path& repo_root, const fs::path& scene_path, const fs::path& obstacle_config_path) {
+  quadrotor::QuadrotorConfig config = quadrotor::LoadConfigFromYaml((repo_root / "quadrotor" / "cfg" / "sim_config.yaml").string(), "");
   config.viewer.enabled = true;
   config.viewer.fallback_to_headless = false;
   config.simulation.duration = 0.2;
@@ -126,20 +118,14 @@ void ExpectPublishedSnapshot(const std::optional<ausim::DynamicObstaclesSnapshot
   Expect(snapshot->sim_time >= min_sim_time, "expected viewer snapshot sim_time to meet minimum");
 }
 
-void ExpectViewerRunningStepPublishes(
-    const fs::path& repo_root,
-    const fs::path& scene_path,
-    const fs::path& obstacle_config_path) {
+void ExpectViewerRunningStepPublishes(const fs::path& repo_root, const fs::path& scene_path, const fs::path& obstacle_config_path) {
   quadrotor::QuadrotorSim sim(LoadViewerConfig(repo_root, scene_path, obstacle_config_path));
   sim.LoadModel();
   sim.TestViewerStepOnce();
   ExpectPublishedSnapshot(ausim::ReadDynamicObstaclesSnapshot(), 1e-9);
 }
 
-void ExpectViewerPausedTickPublishes(
-    const fs::path& repo_root,
-    const fs::path& scene_path,
-    const fs::path& obstacle_config_path) {
+void ExpectViewerPausedTickPublishes(const fs::path& repo_root, const fs::path& scene_path, const fs::path& obstacle_config_path) {
   quadrotor::QuadrotorSim sim(LoadViewerConfig(repo_root, scene_path, obstacle_config_path));
   sim.LoadModel();
   sim.TestViewerPauseTick(true);
@@ -153,10 +139,8 @@ int main() {
     const fs::path repo_root = ResolveRepoRoot();
     Expect(!repo_root.empty(), "failed to locate repo root for quadrotor viewer publish test");
 
-    const fs::path obstacle_config_path =
-        fs::temp_directory_path() / "quadrotor_dynamic_obstacle_viewer_publish_test.yaml";
-    const fs::path scene_path =
-        repo_root / "assets" / "crazyfile" / "scene.dynamic_obstacles.viewer_publish_test.xml";
+    const fs::path obstacle_config_path = fs::temp_directory_path() / "quadrotor_dynamic_obstacle_viewer_publish_test.yaml";
+    const fs::path scene_path = repo_root / "assets" / "crazyfile" / "scene.dynamic_obstacles.viewer_publish_test.xml";
     ScopedCleanup cleanup({obstacle_config_path, scene_path});
 
     WriteObstacleConfig(obstacle_config_path);

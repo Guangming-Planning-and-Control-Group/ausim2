@@ -3,6 +3,7 @@
 #include <atomic>
 #include <chrono>
 #include <cstdlib>
+#include <cstring>
 #include <filesystem>
 #include <iostream>
 #include <memory>
@@ -13,13 +14,12 @@
 #include <thread>
 #include <utility>
 #include <vector>
-#include <cstring>
 
+#include <tf2_ros/static_transform_broadcaster.h>
 #include <geometry_msgs/msg/transform_stamped.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/string.hpp>
 #include <std_srvs/srv/trigger.hpp>
-#include <tf2_ros/static_transform_broadcaster.h>
 
 #include "converts/data/image.hpp"
 #include "converts/ipc/bridge_packets.hpp"
@@ -33,8 +33,8 @@
 #include "ros/publisher/data/lidar_data_publisher.hpp"
 #include "ros/publisher/data/odom_data_publisher.hpp"
 #include "ros/publisher/data/transform_data_publisher.hpp"
-#include "ros/publisher/id_dyn_obstacle_publisher.hpp"
 #include "ros/publisher/i_telemetry_publisher.hpp"
+#include "ros/publisher/id_dyn_obstacle_publisher.hpp"
 #include "ros/publisher/semantic/robot_mode_publisher.hpp"
 #include "ros/subscriber/data/cmd_vel_command_subscriber.hpp"
 #include "ros/subscriber/i_command_subscriber.hpp"
@@ -109,9 +109,7 @@ std::string ResolveTopicName(const RosBridgeConfig& config, const std::string& t
   return ros_namespace + "/" + TrimSlashes(topic_name);
 }
 
-std::string ResolveServiceName(const RosBridgeConfig& config, const std::string& service_name) {
-  return ResolveTopicName(config, service_name);
-}
+std::string ResolveServiceName(const RosBridgeConfig& config, const std::string& service_name) { return ResolveTopicName(config, service_name); }
 
 RosBridgeConfig BuildRosBridgeConfig(const QuadrotorConfig& config) {
   RosBridgeConfig bridge_config;
@@ -218,8 +216,8 @@ std::vector<std::unique_ptr<ITelemetryPublisher>> BuildPublishers(const std::sha
   }
 
   if (!config.interfaces.robot_mode_structured_topic.empty()) {
-    publishers.push_back(std::make_unique<RobotModePublisher>(node, ResolveTopicName(config, config.interfaces.robot_mode_structured_topic),
-                                                              config.identity));
+    publishers.push_back(
+        std::make_unique<RobotModePublisher>(node, ResolveTopicName(config, config.interfaces.robot_mode_structured_topic), config.identity));
   }
 
   return publishers;
@@ -311,17 +309,14 @@ class RosBridgeProcess {
       subscribers_.push_back(
           std::make_unique<CmdVelCommandSubscriber>(node_, cmd_vel_topic, [this](const data::CmdVelData& message) { PublishCommand(message); }));
       if (!joy_cmd_vel_topic.empty() && joy_cmd_vel_topic != cmd_vel_topic) {
-        subscribers_.push_back(
-            std::make_unique<CmdVelCommandSubscriber>(node_, joy_cmd_vel_topic, [this](const data::CmdVelData& message) {
-              PublishCommand(message);
-            }));
+        subscribers_.push_back(std::make_unique<CmdVelCommandSubscriber>(node_, joy_cmd_vel_topic,
+                                                                         [this](const data::CmdVelData& message) { PublishCommand(message); }));
       }
 
       for (const JoyActionServiceConfig& action_service : config_.interfaces.joy_action_services) {
         joy_action_services_.push_back(node_->create_service<TriggerService>(
             ResolveServiceName(config_, action_service.service),
-            [this, event_name = action_service.event](const TriggerService::Request::SharedPtr,
-                                                      TriggerService::Response::SharedPtr response) {
+            [this, event_name = action_service.event](const TriggerService::Request::SharedPtr, TriggerService::Response::SharedPtr response) {
               ExecuteDiscreteCommand(event_name, response.get());
             }));
       }
@@ -332,8 +327,8 @@ class RosBridgeProcess {
       }
 
       if (config_.dynamic_obstacle.enabled && config_.dynamic_obstacle.publish.enabled) {
-        dyn_obstacle_publisher_ = std::make_unique<DynObstacleDataPublisher>(
-            node_, ResolveTopicName(config_, config_.dynamic_obstacle.publish.topic), config_.dynamic_obstacle.publish.frame_id);
+        dyn_obstacle_publisher_ = std::make_unique<DynObstacleDataPublisher>(node_, ResolveTopicName(config_, config_.dynamic_obstacle.publish.topic),
+                                                                             config_.dynamic_obstacle.publish.frame_id);
       }
 
       // Sensor publishers driven by sensors[] config.
@@ -628,10 +623,9 @@ class RosBridgeProcess {
     }
     if (legacy_robot_mode_publisher_) {
       std_msgs::msg::String mode_message;
-      mode_message.data = std::string("{\"top_state\":\"") +
-                          RobotTopLevelStateName(static_cast<RobotTopLevelState>(packet->robot_top_level_state)) +
-                          "\",\"sub_state\":\"" + packet->robot_mode_sub_state.data() + "\",\"accepts_motion\":" +
-                          (packet->robot_mode_accepts_motion != 0 ? "true" : "false") + "}";
+      mode_message.data = std::string("{\"top_state\":\"") + RobotTopLevelStateName(static_cast<RobotTopLevelState>(packet->robot_top_level_state)) +
+                          "\",\"sub_state\":\"" + packet->robot_mode_sub_state.data() +
+                          "\",\"accepts_motion\":" + (packet->robot_mode_accepts_motion != 0 ? "true" : "false") + "}";
       legacy_robot_mode_publisher_->publish(mode_message);
     }
   }

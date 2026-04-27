@@ -26,8 +26,7 @@ void WriteFile(const fs::path& path, const std::string& contents) {
 }
 
 void SetRegistryOverride(const fs::path& path) {
-  Expect(setenv("AUSIM_MODEL_REGISTRY_OVERRIDE", path.string().c_str(), 1) == 0,
-         "failed to set AUSIM_MODEL_REGISTRY_OVERRIDE");
+  Expect(setenv("AUSIM_MODEL_REGISTRY_OVERRIDE", path.string().c_str(), 1) == 0, "failed to set AUSIM_MODEL_REGISTRY_OVERRIDE");
 }
 
 void ClearRegistryOverride() { unsetenv("AUSIM_MODEL_REGISTRY_OVERRIDE"); }
@@ -41,9 +40,8 @@ void TestRegistryFallbackLoadsDynamicObstacleConfig() {
   const fs::path robot_config_path = temp_dir / "robot_config.yaml";
   const fs::path registry_path = temp_dir / "ground_vehicle_registry.yaml";
 
-  WriteFile(
-      obstacle_config_path,
-      R"yaml(
+  WriteFile(obstacle_config_path,
+            R"yaml(
 publish:
   enabled: true
   topic: /dyn_obstacle
@@ -52,16 +50,20 @@ publish:
 )yaml");
   WriteFile(sim_config_path, "simulation:\n  dt: 0.001\n");
   WriteFile(robot_config_path, "model:\n  scene_xml: /tmp/scene.xml\n");
-  WriteFile(
-      registry_path,
-      "models:\n"
-      "  - id: scout_v2\n"
-      "    sim_config: " + sim_config_path.string() + "\n"
-      "    robot_config: " + robot_config_path.string() + "\n"
-      "    scene_xml: /tmp/scene.xml\n"
-      "    dynamic_obstacle:\n"
-      "      enabled: true\n"
-      "      config_path: " + obstacle_config_path.string() + "\n");
+  WriteFile(registry_path,
+            "models:\n"
+            "  - id: scout_v2\n"
+            "    sim_config: " +
+                sim_config_path.string() +
+                "\n"
+                "    robot_config: " +
+                robot_config_path.string() +
+                "\n"
+                "    scene_xml: /tmp/scene.xml\n"
+                "    dynamic_obstacle:\n"
+                "      enabled: true\n"
+                "      config_path: " +
+                obstacle_config_path.string() + "\n");
 
   SetRegistryOverride(registry_path);
   const ausim::QuadrotorConfig config = ausim::LoadConfigFromYaml(sim_config_path.string(), robot_config_path.string());
@@ -88,40 +90,42 @@ void TestExplicitConfigOverridesRegistryFallback() {
   const fs::path robot_config_path = temp_dir / "robot_config.yaml";
   const fs::path registry_path = temp_dir / "ground_vehicle_registry.yaml";
 
-  WriteFile(
-      obstacle_config_path,
-      R"yaml(
+  WriteFile(obstacle_config_path,
+            R"yaml(
 publish:
   enabled: true
   topic: /from_registry
   frame_id: registry
   rate_hz: 8.0
 )yaml");
-  WriteFile(
-      explicit_obstacle_config_path,
-      R"yaml(
+  WriteFile(explicit_obstacle_config_path,
+            R"yaml(
 publish:
   enabled: true
   topic: /from_sim
   frame_id: sim
   rate_hz: 20.0
 )yaml");
-  WriteFile(
-      sim_config_path,
-      "dynamic_obstacle:\n"
-      "  enabled: false\n"
-      "  config_path: " + explicit_obstacle_config_path.string() + "\n");
+  WriteFile(sim_config_path,
+            "dynamic_obstacle:\n"
+            "  enabled: false\n"
+            "  config_path: " +
+                explicit_obstacle_config_path.string() + "\n");
   WriteFile(robot_config_path, "model:\n  scene_xml: /tmp/scene.xml\n");
-  WriteFile(
-      registry_path,
-      "models:\n"
-      "  - id: scout_v2\n"
-      "    sim_config: " + sim_config_path.string() + "\n"
-      "    robot_config: " + robot_config_path.string() + "\n"
-      "    scene_xml: /tmp/scene.xml\n"
-      "    dynamic_obstacle:\n"
-      "      enabled: true\n"
-      "      config_path: " + obstacle_config_path.string() + "\n");
+  WriteFile(registry_path,
+            "models:\n"
+            "  - id: scout_v2\n"
+            "    sim_config: " +
+                sim_config_path.string() +
+                "\n"
+                "    robot_config: " +
+                robot_config_path.string() +
+                "\n"
+                "    scene_xml: /tmp/scene.xml\n"
+                "    dynamic_obstacle:\n"
+                "      enabled: true\n"
+                "      config_path: " +
+                obstacle_config_path.string() + "\n");
 
   SetRegistryOverride(registry_path);
   const ausim::QuadrotorConfig config = ausim::LoadConfigFromYaml(sim_config_path.string(), robot_config_path.string());

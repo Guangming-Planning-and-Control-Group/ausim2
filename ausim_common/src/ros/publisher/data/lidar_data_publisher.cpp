@@ -13,8 +13,7 @@
 namespace ausim {
 
 LidarDataPublisher::LidarDataPublisher(const std::shared_ptr<rclcpp::Node>& node, std::string topic_name, std::string frame_id)
-    : publisher_(node->create_publisher<sensor_msgs::msg::PointCloud2>(std::move(topic_name), rclcpp::QoS(10))),
-      frame_id_(std::move(frame_id)) {}
+    : publisher_(node->create_publisher<sensor_msgs::msg::PointCloud2>(std::move(topic_name), rclcpp::QoS(10))), frame_id_(std::move(frame_id)) {}
 
 void LidarDataPublisher::Publish(const ipc::LidarPacket& packet) {
   const int h = packet.h_ray_num;

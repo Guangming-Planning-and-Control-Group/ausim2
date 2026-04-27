@@ -14,8 +14,8 @@
 
 #include "config/quadrotor_config.hpp"
 #include "runtime/vehicle_runtime.hpp"
-#include "sim/dynamic_obstacle_runtime.hpp"
 #include "sim/camera_renderer.hpp"
+#include "sim/dynamic_obstacle_runtime.hpp"
 #include "sim/mujoco_actuator_writer.hpp"
 #include "sim/mujoco_bindings.hpp"
 #include "sim/mujoco_state_reader.hpp"

@@ -97,19 +97,11 @@ void TestVerticalMajorOrderingIsPreserved() {
 
   constexpr float kTolerance = 1e-3f;
   // First valid hit should be (v=0, h=1): front-right/up.
-  ExpectPoint(
-      xyz, 0,
-      3.0f * std::cos(Degrees(15.0f)) * std::cos(Degrees(-45.0f)),
-      3.0f * std::cos(Degrees(15.0f)) * std::sin(Degrees(-45.0f)),
-      3.0f * std::sin(Degrees(15.0f)),
-      kTolerance);
+  ExpectPoint(xyz, 0, 3.0f * std::cos(Degrees(15.0f)) * std::cos(Degrees(-45.0f)), 3.0f * std::cos(Degrees(15.0f)) * std::sin(Degrees(-45.0f)),
+              3.0f * std::sin(Degrees(15.0f)), kTolerance);
   // Second valid hit should be (v=1, h=0): front-left/down.
-  ExpectPoint(
-      xyz, 1,
-      4.0f * std::cos(Degrees(-15.0f)) * std::cos(Degrees(45.0f)),
-      4.0f * std::cos(Degrees(-15.0f)) * std::sin(Degrees(45.0f)),
-      4.0f * std::sin(Degrees(-15.0f)),
-      kTolerance);
+  ExpectPoint(xyz, 1, 4.0f * std::cos(Degrees(-15.0f)) * std::cos(Degrees(45.0f)), 4.0f * std::cos(Degrees(-15.0f)) * std::sin(Degrees(45.0f)),
+              4.0f * std::sin(Degrees(-15.0f)), kTolerance);
 }
 
 }  // namespace

@@ -57,12 +57,8 @@ void WriteObstacleConfig(const fs::path& path) {
   Expect(output.good(), "failed to write quadrotor dynamic obstacle test config");
 }
 
-void GenerateSceneWithObstacles(
-    const fs::path& repo_root,
-    const fs::path& obstacle_config_path,
-    const fs::path& output_scene_path) {
-  const fs::path script_path =
-      repo_root / "third_party" / "dynamic_obs_generator" / "generate_scene_obstacles.py";
+void GenerateSceneWithObstacles(const fs::path& repo_root, const fs::path& obstacle_config_path, const fs::path& output_scene_path) {
+  const fs::path script_path = repo_root / "third_party" / "dynamic_obs_generator" / "generate_scene_obstacles.py";
   const fs::path input_scene_path = repo_root / "assets" / "crazyfile" / "scene.xml";
 
   std::ostringstream command;
@@ -82,15 +78,12 @@ int main() {
   const fs::path repo_root = ResolveRepoRoot();
   Expect(!repo_root.empty(), "failed to locate repo root for dynamic_obstacle_no_depth_test");
 
-  const fs::path obstacle_config_path =
-      fs::temp_directory_path() / "quadrotor_dynamic_obstacle_no_depth_test.yaml";
-  const fs::path scene_path =
-      repo_root / "assets" / "crazyfile" / "scene.dynamic_obstacles.no_depth_test.xml";
+  const fs::path obstacle_config_path = fs::temp_directory_path() / "quadrotor_dynamic_obstacle_no_depth_test.yaml";
+  const fs::path scene_path = repo_root / "assets" / "crazyfile" / "scene.dynamic_obstacles.no_depth_test.xml";
   WriteObstacleConfig(obstacle_config_path);
   GenerateSceneWithObstacles(repo_root, obstacle_config_path, scene_path);
 
-  quadrotor::QuadrotorConfig config =
-      quadrotor::LoadConfigFromYaml((repo_root / "quadrotor" / "cfg" / "sim_config.yaml").string(), "");
+  quadrotor::QuadrotorConfig config = quadrotor::LoadConfigFromYaml((repo_root / "quadrotor" / "cfg" / "sim_config.yaml").string(), "");
   config.viewer.enabled = false;
   config.viewer.fallback_to_headless = true;
   config.model.scene_xml = scene_path;
@@ -126,8 +119,7 @@ int main() {
   const double end_y = data->mocap_pos[mocap_adr + 1];
   const double end_z = data->mocap_pos[mocap_adr + 2];
 
-  Expect(start_x != end_x || start_y != end_y || start_z != end_z,
-         "expected collidable mocap obstacle to move even when no depth stream is enabled");
+  Expect(start_x != end_x || start_y != end_y || start_z != end_z, "expected collidable mocap obstacle to move even when no depth stream is enabled");
 
   fs::remove(obstacle_config_path);
   fs::remove(scene_path);

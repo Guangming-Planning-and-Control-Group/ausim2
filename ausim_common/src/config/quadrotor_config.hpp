@@ -123,7 +123,7 @@ struct CameraDepthConfig {
 };
 
 struct SensorTransformConfig {
-  std::array<double, 3> translation = {0.0, 0.0, 0.0};  // x, y, z [m]
+  std::array<double, 3> translation = {0.0, 0.0, 0.0};    // x, y, z [m]
   std::array<double, 4> rotation = {0.0, 0.0, 0.0, 1.0};  // quaternion x, y, z, w
 };
 
@@ -238,15 +238,15 @@ using ::ausim::LoadConfigFromYaml;
 using ::ausim::ModelConfig;
 using ::ausim::QuadrotorConfig;
 using ::ausim::RobotConfig;
-using ::ausim::Ros2Config;
-using ::ausim::RosFrameConfig;
-using ::ausim::RosInterfaceConfig;
 using ::ausim::RobotModeActionsConfig;
 using ::ausim::RobotModeConfig;
 using ::ausim::RobotModeLandActionConfig;
 using ::ausim::RobotModeStateConfig;
 using ::ausim::RobotModeTakeoffActionConfig;
 using ::ausim::RobotModeTransitionConfig;
+using ::ausim::Ros2Config;
+using ::ausim::RosFrameConfig;
+using ::ausim::RosInterfaceConfig;
 using ::ausim::SensorConfig;
 using ::ausim::SimConfig;
 using ::ausim::SimulationConfig;

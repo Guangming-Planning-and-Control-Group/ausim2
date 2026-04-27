@@ -152,8 +152,7 @@ bool ToDynObstaclePacket(const DynamicObstaclesSnapshot& snapshot, std::vector<s
     return false;
   }
 
-  const std::size_t total_size =
-      sizeof(ipc::DynObstaclePacketHeader) + snapshot.entries.size() * sizeof(ipc::DynObstaclePacketEntry);
+  const std::size_t total_size = sizeof(ipc::DynObstaclePacketHeader) + snapshot.entries.size() * sizeof(ipc::DynObstaclePacketEntry);
   out.resize(total_size);
 
   ipc::DynObstaclePacketHeader header;

@@ -60,8 +60,7 @@ RobotModeStateMachine::RobotModeStateMachine(RobotModeConfig config) : config_(s
     if (state_config.name.empty()) {
       throw std::runtime_error("teleop.states entries must define a non-empty name");
     }
-    states_.emplace(state_config.name,
-                    RuntimeState{state_config.name, ParseRobotTopLevelState(state_config.top_state), state_config.accepts_motion});
+    states_.emplace(state_config.name, RuntimeState{state_config.name, ParseRobotTopLevelState(state_config.top_state), state_config.accepts_motion});
   }
 
   enabled_ = !states_.empty() && !config_.initial_state.empty();

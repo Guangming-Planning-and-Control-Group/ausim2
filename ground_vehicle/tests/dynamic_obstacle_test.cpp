@@ -70,12 +70,8 @@ void WriteObstacleConfig(const fs::path& path, bool collision_enabled) {
   Expect(output.good(), "failed to write obstacle test config");
 }
 
-void GenerateSceneWithObstacles(
-    const fs::path& repo_root,
-    const fs::path& obstacle_config_path,
-    const fs::path& output_scene_path) {
-  const fs::path script_path =
-      repo_root / "third_party" / "dynamic_obs_generator" / "generate_scene_obstacles.py";
+void GenerateSceneWithObstacles(const fs::path& repo_root, const fs::path& obstacle_config_path, const fs::path& output_scene_path) {
+  const fs::path script_path = repo_root / "third_party" / "dynamic_obs_generator" / "generate_scene_obstacles.py";
   const fs::path input_scene_path = repo_root / "assets" / "scout_v2" / "scene.xml";
 
   std::ostringstream command;
@@ -90,10 +86,8 @@ void GenerateSceneWithObstacles(
 }
 
 void ExpectDirectGeomPathMovesGeom(const fs::path& repo_root) {
-  const fs::path obstacle_config_path =
-      fs::temp_directory_path() / "scout_dynamic_obstacle_direct_test.yaml";
-  const fs::path scene_path =
-      repo_root / "assets" / "scout_v2" / "scene.dynamic_obstacles.direct_test.xml";
+  const fs::path obstacle_config_path = fs::temp_directory_path() / "scout_dynamic_obstacle_direct_test.yaml";
+  const fs::path scene_path = repo_root / "assets" / "scout_v2" / "scene.dynamic_obstacles.direct_test.xml";
   WriteObstacleConfig(obstacle_config_path, false);
   GenerateSceneWithObstacles(repo_root, obstacle_config_path, scene_path);
 
@@ -133,10 +127,8 @@ void ExpectDirectGeomPathMovesGeom(const fs::path& repo_root) {
 }
 
 void ExpectMocapPathMovesMocapBody(const fs::path& repo_root) {
-  const fs::path obstacle_config_path =
-      fs::temp_directory_path() / "scout_dynamic_obstacle_mocap_test.yaml";
-  const fs::path scene_path =
-      repo_root / "assets" / "scout_v2" / "scene.dynamic_obstacles.mocap_test.xml";
+  const fs::path obstacle_config_path = fs::temp_directory_path() / "scout_dynamic_obstacle_mocap_test.yaml";
+  const fs::path scene_path = repo_root / "assets" / "scout_v2" / "scene.dynamic_obstacles.mocap_test.xml";
   WriteObstacleConfig(obstacle_config_path, true);
   GenerateSceneWithObstacles(repo_root, obstacle_config_path, scene_path);
 

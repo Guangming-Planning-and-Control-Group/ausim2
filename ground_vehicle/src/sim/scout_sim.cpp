@@ -582,7 +582,8 @@ void ScoutSim::ApplyControl() {
     last_command_source_ = mode_machine_.enabled() ? "teleop:" + mode_machine_.Snapshot().sub_state : "ros2_cmd_vel";
     last_command_valid_ = true;
   } else {
-    last_command_source_ = mode_machine_.enabled() && !mode_machine_.Snapshot().sub_state.empty() ? "teleop:" + mode_machine_.Snapshot().sub_state : "hold";
+    last_command_source_ =
+        mode_machine_.enabled() && !mode_machine_.Snapshot().sub_state.empty() ? "teleop:" + mode_machine_.Snapshot().sub_state : "hold";
     last_command_valid_ = false;
   }
 
@@ -717,10 +718,7 @@ bool ScoutSim::PrepareDynamicObstaclesForStep() {
   if (model_ == nullptr || data_ == nullptr) {
     return false;
   }
-  return dynamic_obstacle_runtime_.PrepareForStep(
-      data_->time + model_->opt.timestep,
-      false,
-      false);
+  return dynamic_obstacle_runtime_.PrepareForStep(data_->time + model_->opt.timestep, false, false);
 }
 
 void ScoutSim::PublishDynamicObstaclesSnapshotIfDue() {
